@@ -10,17 +10,17 @@ occLoad2 <- function(taxon.class){
   ## Agrugments:
   ## taxon.class <- 3 letter sub set that corisponds with the breeding class
   # options built in are "ptr", "mol", "mic" (and "all" not currently supported)
-  occ.df <- occLoad(taxon.class = taxon.class)
+  occLoad(taxon.class = taxon.class)
+  occ.df <- get(paste0(taxon.class,".occ"), envir = .GlobalEnv)
   
-  spp <- substring(names(occ.df[3]),1,3)
   out.xy <- occ.df[,1:2]
   out.frame <- out.xy
   for(i in 1:12){
     v <- 1:12
     j <- ((v + i) - 2) %% length(v)+1
     k <- j[1:2]
-    m1 <- paste0(spp,k[[1]])
-    m2 <- paste0(spp,k[[2]])
+    m1 <- paste0(taxon.class,k[[1]])
+    m2 <- paste0(taxon.class,k[[2]])
     if(sum(occ.df[,m1],occ.df[,m2]) >= 5){
       months.bi <- rep(NA, nrow(occ.df))
       for(d in 1:nrow(occ.df)){
@@ -66,7 +66,7 @@ stkRevolver2 <- function(month, path.to.dir = norm.dir){
   }
   
   #apply internal function and stack products
-  tempo.env<- do.call(stack, lapply(tempo, internalRevolver, start.i = month))
+  tempo.env <- do.call(stack, lapply(tempo, internalRevolver, start.i = month))
   
   return(tempo.env)
 }

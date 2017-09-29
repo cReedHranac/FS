@@ -1,0 +1,13 @@
+"Model.name","Eval.metric","Testing.data","Evaluating.data","Cutoff","Sensitivity","Specificity"
+"EMmeanByROC_mergedAlgo_mergedRun_mergedData","KAPPA",0.926,NA,430.5,95.522,97.059
+"EMmeanByROC_mergedAlgo_mergedRun_mergedData","TSS",0.926,NA,430.5,95.522,97.059
+"EMmeanByROC_mergedAlgo_mergedRun_mergedData","ROC",0.994,NA,431,95.522,97.059
+"EMmedianByROC_mergedAlgo_mergedRun_mergedData","KAPPA",0.938,NA,486,94.03,99.02
+"EMmedianByROC_mergedAlgo_mergedRun_mergedData","TSS",0.931,NA,355,97.015,96.078
+"EMmedianByROC_mergedAlgo_mergedRun_mergedData","ROC",0.987,NA,354,97.015,96.078
+"EMcaByROC_mergedAlgo_mergedRun_mergedData","KAPPA",0.95,NA,651.5,95.522,99.02
+"EMcaByROC_mergedAlgo_mergedRun_mergedData","TSS",0.945,NA,651.5,95.522,99.02
+"EMcaByROC_mergedAlgo_mergedRun_mergedData","ROC",0.996,NA,653,95.522,99.02
+"EMwmeanByROC_mergedAlgo_mergedRun_mergedData","KAPPA",0.926,NA,398,97.015,96.078
+"EMwmeanByROC_mergedAlgo_mergedRun_mergedData","TSS",0.931,NA,398,97.015,96.078
+"EMwmeanByROC_mergedAlgo_mergedRun_mergedData","ROC",0.994,NA,397,97.015,96.078

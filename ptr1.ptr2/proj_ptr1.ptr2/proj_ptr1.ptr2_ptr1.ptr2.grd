@@ -1,0 +1,25 @@
+[general]
+creator=R package 'raster'
+created=2017-09-29 13:54:16
+[georeference]
+nrows=407
+ncols=427
+xmin=-25.416666667
+ymin=-47.083333333
+xmax=63.541666666
+ymax=37.708333334
+projection=+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT8S
+byteorder=little
+nbands=36
+bandorder=BIL
+minvalue=0:28:0:3:70:2:0:30:0:7:30:2:0:39:0:54:39:10:0:27:0:34:14:0:0:25:0:1:51:2:0:30:0:0:15:0
+maxvalue=1000:948:1000:966:912:994:1000:950:966:957:904:990:1000:924:1000:972:926:980:1000:942:1000:967:970:972:1000:945:1000:985:929:986:1000:951:1000:996:979:996
+nodatavalue=-1.7e+308
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=ptr1.ptr2_AllData_RUN1_GLM:ptr1.ptr2_AllData_RUN1_GBM:ptr1.ptr2_AllData_RUN1_CTA:ptr1.ptr2_AllData_RUN1_ANN:ptr1.ptr2_AllData_RUN1_FDA:ptr1.ptr2_AllData_RUN1_RF:ptr1.ptr2_AllData_RUN2_GLM:ptr1.ptr2_AllData_RUN2_GBM:ptr1.ptr2_AllData_RUN2_CTA:ptr1.ptr2_AllData_RUN2_ANN:ptr1.ptr2_AllData_RUN2_FDA:ptr1.ptr2_AllData_RUN2_RF:ptr1.ptr2_AllData_RUN3_GLM:ptr1.ptr2_AllData_RUN3_GBM:ptr1.ptr2_AllData_RUN3_CTA:ptr1.ptr2_AllData_RUN3_ANN:ptr1.ptr2_AllData_RUN3_FDA:ptr1.ptr2_AllData_RUN3_RF:ptr1.ptr2_AllData_RUN4_GLM:ptr1.ptr2_AllData_RUN4_GBM:ptr1.ptr2_AllData_RUN4_CTA:ptr1.ptr2_AllData_RUN4_ANN:ptr1.ptr2_AllData_RUN4_FDA:ptr1.ptr2_AllData_RUN4_RF:ptr1.ptr2_AllData_RUN5_GLM:ptr1.ptr2_AllData_RUN5_GBM:ptr1.ptr2_AllData_RUN5_CTA:ptr1.ptr2_AllData_RUN5_ANN:ptr1.ptr2_AllData_RUN5_FDA:ptr1.ptr2_AllData_RUN5_RF:ptr1.ptr2_AllData_Full_GLM:ptr1.ptr2_AllData_Full_GBM:ptr1.ptr2_AllData_Full_CTA:ptr1.ptr2_AllData_Full_ANN:ptr1.ptr2_AllData_Full_FDA:ptr1.ptr2_AllData_Full_RF
