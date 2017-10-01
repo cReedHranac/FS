@@ -59,17 +59,55 @@ staticStkLoad <- function(path.to.dir = clean.dir){
   assign("static.stk", stk, envir = .GlobalEnv)
 }
 
+stkRevolver <- function(month, path.to.dir = norm.dir){
+  ### Function for obtaining temporal covarriates within the requested window
+  ## Arguments: 
+  ##  month <- month (as intiger) for the cylinder to start on
+  # can also be a name item from a column header
+  ##  path.to.dir <- directory to look for the layers in .
+  # normalized rasters will be in "norm.dir"
+  # processed but un-altered rasters will be in "clean.dir"
+  # source rasters will be in "source.dir"
+  
+  require(raster);require(gtools)
+  tempo <- c("evi", "pet", "prec", "tmean") #temporal co-varriates
+  
+  internalRevolver <- function(x, start.i = month){
+    ##Internal function to read in the subset of rasters required, and stack  
+    if("numeric" %!in% is(start.i)){
+      start.i <- as.numeric(substring(start.i,4,4))
+    }
+    
+    ##Heart of the Revolver
+    v <- 1:12
+    i <- ((v + start.i) - 2) %% length(v)+1
+    j <- i[c(1:3,11:12)] ## number vector for 1 month
+    
+    ##Read in and stack
+    stk <- do.call(stack, lapply(file.path(path.to.dir,
+                                           mixedsort(list.files(path.to.dir,
+                                                                pattern = paste0(x,"*")))[j]),
+                                 raster))
+    return(stk)
+  }
+  
+  #apply internal function and stack products
+  tempo.env <- do.call(stack, lapply(tempo, internalRevolver, start.i = month))
+  
+  return(tempo.env)
+}
+
 #### Logs and Directories ####
-outDirGen <- function(run.id, mod.id){
-  out.dir <- file.path("ModOut", run.id, mod.id)  
+outDirGen <- function(mod.id, run.id){
+  out.dir <- file.path("ModOut", run.id, mod.id)
   if(!file.exists(out.dir)){
     dir.create(file.path(out.dir),recursive=T, showWarnings = F)
-  } 
+  }
   return(out.dir)
 }
 
 log.path <- function(path.to.dir = out.dir, run.id, mod.id){
-  out.log <- file.path(out.dir, paste0("TextLog_",run.id,"_",mod.id,".txt"))
+  out.log <- file.path(path.to.dir, paste0("TextLog_",run.id,"_",mod.id,".txt"))
 }
 
 
@@ -77,7 +115,7 @@ log.path <- function(path.to.dir = out.dir, run.id, mod.id){
 listGen <- function(occ.db){
   ### Function to generate the list of names required for an lapply
   ## Arguments:
-  ##  occ.db: product of doubleMonth() or 
+  ##  occ.db: product of occLoad or occLoad2
   occ.l <- names(occ.db[3:(length(names(occ.db))-1)])
   return(occ.l)
 }
@@ -162,4 +200,46 @@ ensVarEval <- function(ensemble.out, n){
   colnames(vi3) <- rownames(vi[[1]])
   
   return(as.data.frame(vi3))
+}
+
+#### Batch Run Functions ####
+classMod <- function(taxon.class, run.id, nrep, dbl = T){
+  ## Function for running the bioMod function with snowfall cluster sppedup
+  # Arguments
+  # taxon.class <- 3 letter sub set that corisponds with the breeding class
+    # options are "ptr", "mol", "mic"
+  # run.id <- character string used for naming the porject run
+  # nrep <- number of repitions to be preformed. 
+  # dbl <- Logical for if the double month varriants should be used. 
+  
+  #### Double month functions ####
+  if(dbl){
+    source("R/dblMonthFuns.R")}
+  
+  #### Biomod modeling function ####
+  source("bioMod_fun.R")
+  
+  #### Set Up Taxon Class ####
+  txc.occ2 <- occLoad2(taxon.class)
+  txc.l <- listGen(txc.occ2)
+  
+  #### Cluster Setup ####
+  library(snowfall)
+  sfInit(parallel=TRUE)
+  sfLibrary('biomod2', character.only=TRUE)
+  sfLibrary('dplyr', character.only=TRUE)
+  sfLibrary('RStoolbox', character.only=TRUE)
+  sfLibrary('raster', character.only = TRUE)
+  sfExportAll()
+  
+  #### bioMod Function call ####
+  sfLapply(txc.l, bioMod, 
+           occ.db = txc.occ2,
+           nrep = nrep,
+           run.id = run.id,
+           dbl = dbl)
+  
+  #### End Cluster ####
+  sfStop(nostop = FALSE)
+  
 }

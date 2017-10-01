@@ -10,8 +10,9 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   ## nrep <- number of model runs to preform
   ## mod.id <- name string for model run id
   require(biomod2)
+  time.start <- proc.time()
   #### Directories and Logs ####
-  out.dir <- outDirGen(run.id = run.id, mod.id = mod.id) #create output dir
+  out.dir <- outDirGen(mod.id = mod.id, run.id = run.id) #create output dir
   ## Start log file
   out.log <- log.path(path.to.dir = out.dir, run.id = run.id, mod.id = mod.id)
   cat("Model Run: ", run.id, " Item: ", mod.id, "\nStart ", date(), "\n",
@@ -19,33 +20,33 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   
   #### Occurrence and Co-varriates ####
   ## Occurence weights vector ##
-    #NOTE: 5 pseudo-occurence points are added to make sure that all modles 
-    #can proceed with all levels of the LandCover varriable. They are 
-    #downweighted from standard occurence points however. 
-  
-  mini.frame <- read.csv(file.path(clean.dir,"Pseudopoints.csv"))  
+    #NOTE: 5 pseudo-occurence points are added to make sure that all modles
+    #can proceed with all levels of the LandCover varriable. They are
+    #downweighted from standard occurence points however.
+
+  mini.frame <- read.csv(file.path(clean.dir,"Pseudopoints.csv"))
   myResp <- as.numeric(c(occ.db[,mod.id],rep(1,5)))
   myRespXY <- rbind(occ.db[,1:2], mini.frame)
   weights <- c(rep(1,nrow(occ.db)), rep(.01, 5))
-  
+
   ## Co-varriates
   static.stk <- staticStkLoad(path.to.dir = clean.dir)
   if(dbl){
-    tempo.stk <- stkRevolver2(month = mod.id, path.to.dir = norm.dir)  
+    tempo.stk <- stkRevolver2(month = mod.id, path.to.dir = norm.dir)
   } else {
-    tempo.stk <- stkRevolver(month = mod.id, path.to.dir = norm.dir)  
+    tempo.stk <- stkRevolver(month = mod.id, path.to.dir = norm.dir)
   }
-  
-  
-  
-  
+
+
+
+
   env <- do.call(stack, c(static.stk, tempo.stk))
-  
+
   env.rotate <- envPCA(env = env, mod.id = mod.id, path.to.dir = out.dir)
-  
-  
-  
-  
+
+
+
+
   #### Format Data ####
   myBiomodData <- BIOMOD_FormatingData(resp.var = myResp,
                                        expl.var = env.rotate,
@@ -54,7 +55,7 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   ## Send to Log
   cat(capture.output(myBiomodData), file = out.log, fill=T, append = T)
   cat("Begin Modeling ", date(), "\n", file = out.log, fill = T, append = T)
-  
+
   #### Options #####
   myBiomodOption <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(path_to_maxent.jar = getwd(),
                                                                   memory_allocated = 7168,
@@ -64,37 +65,37 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   #### Modeling ####
   myBiomodModelOut <- BIOMOD_Modeling(myBiomodData,
                                       models = c('GLM','GBM','CTA','ANN',
-                                                 'SRE','FDA','RF','MAXENT.Phillips', 
+                                                 'SRE','FDA','RF','MAXENT.Phillips',
                                                  "MAXENT.Tsuruoka"),
                                       models.options = myBiomodOption,
                                       NbRunEval= nrep,
                                       DataSplit=70,
-                                      Yweights = weights, 
+                                      Yweights = weights,
                                       VarImport= nrep,
                                       models.eval.meth ='ROC',
                                       SaveObj = TRUE,
                                       rescal.all.models = FALSE,
                                       do.full.models = TRUE,
                                       modeling.id = paste0(mod.id, run.id))
-  
-  ## Save models evaluation and variables importance 
+
+  ## Save models evaluation and variables importance
   BioModEval <- get_evaluations(myBiomodModelOut,as.data.frame=T)
-  write.csv(BioModEval, 
+  write.csv(BioModEval,
             file.path(out.dir, paste0(mod.id,"_All_Model_Eval.csv")),row.names = F)
-  
+
   varImportance <- normImp(myBiomodModelOut)
-  write.csv(varImportance, 
+  write.csv(varImportance,
             file.path(out.dir, paste0(mod.id,"_All_Model_VarImp.csv")),row.names = F)
-  
+
   ## Send to log
   cat("Preliminary Models Built at: ", date(), "\n", file = out.log, fill = T, append = T)
   cat(capture.output(myBiomodModelOut),file = out.log, fill = T, append = T)
-  
+
   #### Ensemble modeling ####
-  
-  ##Chek which models succeded and model all of those 
+
+  ##Chek which models succeded and model all of those
   succeded <- setdiff(myBiomodModelOut@models.computed, myBiomodModelOut@models.failed)
-  
+
   myBiomodEM <- BIOMOD_EnsembleModeling(
     modeling.output = myBiomodModelOut,
     chosen.models = succeded,
@@ -110,18 +111,18 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
     prob.mean.weight = T,
     prob.mean.weight.decay = 'proportional',
     VarImport = nrep)
-  
+
   ## Save models evaluation and variables importance
   EM.eval <- get_evaluations(myBiomodEM, as.data.frame=T)
   write.csv(EM.eval, file.path(out.dir,paste0(mod.id,"_EM_Eval.csv")), row.names = F)
   EM.var <- ensVarEval(myBiomodEM,n=nrep)
   write.csv(EM.var, file.path(out.dir,paste0(mod.id,"_EM_VarImp.csv")))
-  
+
   ## Send to Log
-  cat("Ensamble Built at: ", date(),"\n", 
+  cat("Ensamble Built at: ", date(),"\n",
       capture.output(myBiomodEM), "\nProjection Start",
       file = out.log, fill = T, append = T)
-  
+
   #### Projection ####
   myBiomodProj <- BIOMOD_Projection(
     modeling.output = myBiomodModelOut,
@@ -133,12 +134,12 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
     build.clamping.mask = F,
     ommit.na = T,
     output.format = '.grd')
-  
+
   ## Send to log
   cat("\nProjection Built at: ", date(), "\n",capture.output(myBiomodProj),
       "\nEnsemble Projection Start\n",
       file=out.log, fill = T, append = T)
-  
+
 
 
   #### Ensemble Projection ####
@@ -147,9 +148,17 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
     projection.output = myBiomodProj,
     EM.output = myBiomodEM,
     proj.name = paste0(mod.id,"ENSEMBLE_PROJ"))
-  
+
   ## Send to log
   cat("Emsemble Projection Built at: ", date(), "\n#Shitsfinished",
       file = out.log, append = T)
+  #### Post Processing ####
+  ## Time Elapsed
+  time.stop <- proc.time()
+  cat("Total time:", time.stop-time.start, 
+      file = out.log, append = T)
   
+  ## Move Files
+  file.copy(file.path(mod.id), file.path(out.dir), overwrite = T, recursive = T)
+  unlink(file.path(mod.id), recursive = T, force = T)
 }
