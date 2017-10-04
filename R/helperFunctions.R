@@ -7,10 +7,12 @@ if(.Platform$"OS.type" == "windows"){
   data.source <-file.path("D:", "Dropbox", "FS", "SourceData")
   clean.dir <- file.path("D:", "Dropbox", "FS", "Processed")
   norm.dir <- file.path("D:", "Dropbox", "FS", "Normalized")
+  mod.out.dir <- file.path("D:", "Dropbox", "FS", "ModOut")
 } else{
   data.source <-file.path("~", "Dropbox", "FS", "SourceData")
   clean.dir <- file.path("~", "Dropbox", "FS", "Processed")
   norm.dir <- file.path("~", "Dropbox", "FS", "Normalized")
+  mod.out.dir <- file.path("~", "Dropbox", "FS", "ModOut")
 }
 
 #### Opperators ####
@@ -18,7 +20,7 @@ if(.Platform$"OS.type" == "windows"){
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 #### Loading Funs ####
-## occLoad_fun
+
 occLoad <- function(taxon.class){
   ##Function for loading the occurence dataframes from cache 
   #Arguments:
@@ -116,7 +118,7 @@ listGen <- function(occ.db){
   ### Function to generate the list of names required for an lapply
   ## Arguments:
   ##  occ.db: product of occLoad or occLoad2
-  occ.l <- names(occ.db[3:length(names(occ.db))])
+  occ.l <- names(which(apply(occ.db[,3:ncol(occ.db)],2,sum) > 5))
   return(occ.l)
 }
 
@@ -201,7 +203,7 @@ ensVarEval <- function(ensemble.out, n){
 }
 
 #### Batch Run Functions ####
-classMod <- function(taxon.class, run.id, nrep, dbl = T){
+classMod <- function(taxon.class, run.id, nrep, dbl = T, band = 4){
   ## Function for running the bioMod function with snowfall cluster sppedup
   # Arguments
   # taxon.class <- 3 letter sub set that corisponds with the breeding class
@@ -246,4 +248,156 @@ classMod <- function(taxon.class, run.id, nrep, dbl = T){
   #### End Cluster ####
   sfStop(nostop = FALSE)
   
+}
+#### Post Processing ####
+resRasterLoad <- function(taxon.class, run.id, dbl, path.to.dir, band = 4){
+  ##Function of loading the raster results from batch runs of bioMod
+  ##Arguments:
+  # taxon.class <- 3 letter sub set that corisponds with the breeding class
+    # options are "ptr", "mol", "mic"
+  # run.id <- character string used for naming the porject run
+  # dbl <- logical. If the double month modeling took place
+  # path.to.dir <- path argument to the destination 
+  # band <- which band to read in in refernece to the .gri file returned.
+  # options are 1: EMmeanByROC, 2: EMmedianByROC, 3: EMcaByROC, 4: EMwmeanByROC
+  require(raster)
+  if(dbl){
+    source("R/dblMonthFuns.R")
+    txc.l <- listGen(occLoad2(taxon.class))
+  } else { 
+    occLoad(taxon.class)
+    txc.l <- listGen(get(paste0(taxon.class,".occ"), envir = .GlobalEnv))}
+  f.path <- file.path(path.to.dir,run.id,txc.l,txc.l,
+                      paste0("proj_",txc.l,"ENSEMBLE_PROJ"),
+                      paste0("proj_",txc.l,"ENSEMBLE_PROJ_",txc.l,
+                             "_ensemble.gri"))
+  r.stk <- do.call(stack,lapply(X = f.path,FUN = raster, band = band))
+  names(r.stk) <- txc.l
+  
+  return(r.stk)
+}
+
+flickerPlot <- function(res.stk, dbl, births = F, virus = F,
+                        source.path = data.source, path.out = NULL){
+  ##Function to plot bioMod results for .gif assembly 
+  ##Arguments:
+  # res.stk <- result from resRasterLoad
+  # taxon.class <- 3 letter sub set that corisponds with the breeding class
+    # options are "ptr", "mol", "mic"
+  # dbl <- logical. If the double month modeling took place
+  # births <- Logical if the birth data should be included on the map surface
+  # virus <- Logical if virus data should be included on the map surface
+  # Source.path <- path argument to the location of the dataframe, polygons, and
+  # cropping masks needed for the figures
+  # path.out <- path argument for if and where the .gif should be saved
+  require(ggplot2);require(rgdal)
+  
+  #### Set Up ####
+  ## accessory layers
+  afr.poly <- readOGR(dsn = file.path(source.path, "Africa"),
+                      layer = "AfricanCountires")
+  rf.poly <- rasterToPolygons(raster(file.path(source.path, "cropMask.tif")),
+                              fun = function(x){x==1}, dissolve = T)
+  
+  ## dataframe for plotting
+  res.df <- data.frame(rasterToPoints(res.stk))
+  
+  ## name vector to itterate across 
+  occ.l <- names(res.stk)
+  
+  #### function for ggplots ####
+  gfun <- function(occ.l){
+    
+    #### Main Plot ####
+    ## DataFrame
+    t <- cbind(res.df[,1:2], res.df[,occ.l])
+    colnames(t) <- c("long","lat","score")
+    
+    g.plot <- ggplot(t) +
+      
+      #create african continent background
+      geom_polygon(data = fortify(afr.poly),
+                   aes(long, lat, group = group), 
+                   colour = "grey20",
+                   alpha = .25) +
+      aes(x=long, y=lat) +
+      scale_fill_gradient(low = "yellow", high = "red4",
+                          limits = c(0,1000))+
+      geom_raster(aes(fill = score), interpolate = T)+
+      
+      #add area modeled
+      geom_polygon(data = fortify(rf.poly),
+                   aes(long, lat, group = group),
+                   colour = "black", 
+                   fill = NA) +
+      
+      #create african continent background
+      geom_polygon(data = fortify(afr.poly),
+                   aes(long, lat, group = group), 
+                   colour = "grey20",
+                   fill = NA,
+                   alpha = .2) +
+      ggtitle(paste0("Modeled Breeding ", occ.l)) +
+      coord_fixed()
+    
+    #### Theme settings ####
+    bkg <- theme(
+      panel.background = element_rect(fill = "lightblue",
+                                      colour = "lightblue",
+                                      size = 0.5, linetype = "solid"),
+      panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                      colour = "white"),
+      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                      colour = "white"),
+      plot.title = element_text(hjust = 0.5))
+    
+    #### If options ####
+      #### No births or virus ####
+    if(births == F & virus == F){
+      out <-  g.plot + bkg
+    }
+    
+      #### births ####
+    if(births){
+      if(dbl){
+        breeding.db <- occLoad2(substring(occ.l[[1]], 1, 3))
+      } else {## Get brith database (should be loaded in resRasterLoad)
+        breeding.db <- get(paste0(substring(occ.l[[1]], 1, 3),".occ"),
+          envir = .GlobalEnv)}
+      q <- subset(breeding.db[,1:2], breeding.db[,occ.l] == 1)
+      q$Births <- as.factor(1)
+      
+      bat.births <- geom_point(data = fortify(q), aes(x = x, y = y, group = Births, shape = Births),
+                               colour = "green2", 
+                               size = 2, 
+                               alpha = .2)
+      out <- g.plot + bat.births + bkg
+    }
+    
+      #### virus ####
+    if(virus){
+      
+    }
+    return(out)
+  }
+  
+  ##Apply gfun() across the occ.l
+  out.l <- lapply(occ.l, gfun)
+  
+  #### write conditions ####
+  if(!is.null(path.out)){
+    ## Create path.out if it doesn't exist
+    if(!dir.exists(path.out)){
+      dir.create(path = path.out, recursive = T, showWarnings = F)}
+    ## save as .png for ,git assembly
+    #Save as .png for .gif assembly
+    for(i in 1:length(out.l)){
+      png(file = file.path(path.out,paste0(occ.l[[i]],births,virus,".png")),
+          bg = "transparent", width = 680, height = 750)
+      print(out.l[[i]])
+      dev.off()
+    }
+  }
+  
+  return(out.l)
 }
