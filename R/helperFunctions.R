@@ -217,7 +217,7 @@ classMod <- function(taxon.class, run.id, nrep, dbl = T, band = 4){
     source("R/dblMonthFuns.R")}
   
   #### Biomod modeling function ####
-  source("bioMod_fun.R")
+  source("R/bioMod_fun.R")
   
   #### Set Up Taxon Class ####
   if(dbl){
@@ -392,7 +392,7 @@ flickerPlot <- function(res.stk, dbl, births = F, virus = F,
     ## save as .png for ,git assembly
     #Save as .png for .gif assembly
     for(i in 1:length(out.l)){
-      png(file = file.path(path.out,paste0(occ.l[[i]],births,virus,".png")),
+      png(file = file.path(path.out,paste0(occ.l[[i]],".",births,virus,".png")),
           bg = "transparent", width = 680, height = 750)
       print(out.l[[i]])
       dev.off()
@@ -400,4 +400,62 @@ flickerPlot <- function(res.stk, dbl, births = F, virus = F,
   }
   
   return(out.l)
+}
+
+gifMaster <- function(taxon.class, path.to.sng = NULL, path.to.dbl = NULL, fps, master = T,
+                      path.out = NULL){
+  ## Function for creating .gif giles of flickerplots including those for 
+  ## all model results together (both double and single months)
+  ##Arguments:
+  # taxon.class <- 3 letter sub set that corisponds with the breeding class
+  # options are "ptr", "mol", "mic"
+  # fps <- frames per second for gif rate. 
+  # master <- Logical. if TRUE both paths need to be filled
+  # path.out <- path to save the image at
+  require(magick); require(gtools)
+  
+  
+  if(master){
+    v.l <- c()
+    for(i in 1:12){
+      pat1 <- paste0(taxon.class, i, "[T OR \\.]")
+      if(length(list.files(path.to.sng, pattern = pat1)) ==1 ){
+        v.l <- append(v.l, image_read(file.path(path.to.sng,
+                                      list.files(path.to.sng, pattern = pat1))))}
+      pat2 <- paste0(taxon.class, i,".", taxon.class, i+1)
+      if(length(list.files(path.to.dbl, pattern = pat2)) ==1 ){
+        v.l <- append(v.l, image_read(file.path(path.to.dbl,
+                                      list.files(path.to.dbl, pattern = pat2))))}
+    }
+    gif <- image_animate(v.l, fps = fps)
+  } else{
+    ifelse(!is.null(path.to.sng),
+           path.item <- path.to.sng,
+           path.item <- path.to.dbl)
+    p.l <- mixedsort(list.files(path.item))
+    i.v <- c()
+    for(i in 1:length(p.l)){
+      i.v <- append(i.v, image_read(file.path(path.item, p.l[[i]])))
+    }
+    gif <- image_animate(i.v, fps = fps)
+  }
+  
+  if(!is.null(path.out)){
+    ## Create path.out if it doesn't exist
+    if(!dir.exists(path.out)){
+      dir.create(path = path.out, recursive = T, showWarnings = F)}
+    if(master){
+      bogie <- "MASTER"
+    } else{
+      if(!is.null(path.to.sng) & is.null(path.to.dbl)){
+        bogie <- "_SNG"
+      }
+      if(!is.null(path.to.dbl) & is.null(path.to.sng)){
+        bogie <- "_DBL"
+      }
+    }
+    image_write(gif, path = file.path(path.out, paste0(taxon.class,bogie, ".gif")),
+                format = "gif", quality = 100)
+  }
+  return(gif)
 }
