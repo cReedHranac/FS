@@ -22,12 +22,14 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   ## Occurence weights vector ##
     #NOTE: 5 pseudo-occurence points are added to make sure that all modles
     #can proceed with all levels of the LandCover varriable. They are
-    #downweighted from standard occurence points however.
+    #downweighted from standard occurence points however. 
+    #An additional 5 pseudo-absense points were added to since some models were
+    #failing due to low absense avaliability
 
   mini.frame <- read.csv(file.path(clean.dir,"Pseudopoints.csv"))
-  myResp <- as.numeric(c(occ.db[,mod.id],rep(1,5)))
+  myResp <- as.numeric(c(occ.db[,mod.id],rep(1,5),rep(0,10)))
   myRespXY <- rbind(occ.db[,1:2], mini.frame)
-  weights <- c(rep(1,nrow(occ.db)), rep(.01, 5))
+  weights <- c(rep(1,nrow(occ.db)), rep(.01, 15))
 
   ## Co-varriates
   static.stk <- staticStkLoad(path.to.dir = clean.dir)
@@ -58,7 +60,7 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
 
   #### Options #####
   myBiomodOption <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(path_to_maxent.jar = getwd(),
-                                                                  memory_allocated = 7168,
+                                                                  memory_allocated = 6144,
                                                                   maximumiterations = 1000))
   ## Send to log
   cat(capture.output(myBiomodOption), file = out.log, fill = T, append = T)
