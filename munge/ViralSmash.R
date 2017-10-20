@@ -30,7 +30,7 @@ occGenV <- function(df, name, mask){
   proj4string(df) <- proj4string(mask)
   out <- data.frame()
   for(i in 1:12){
-    rr1 <- rasterize(df,mask, field= df[[paste0("OB",i)]], fun='count')
+    rr1 <- rasterize(df,mask, field= df[[paste0("OB",i)]], function(x, na.rm=FALSE) { sum(x>0, na.rm=na.rm) })
     rr2 <- crop(rr1,mask)
     rr3 <- mask(rr2,mask)
     df1 <- xyFromCell(rr3, cell = which(!is.na(rr3[])))
@@ -40,6 +40,31 @@ occGenV <- function(df, name, mask){
   }
   
   return(out)
+}
+
+viralRasterGen <- function(df, name, mask, out.dir = NULL){
+  ##Function to create monthly rasters of viral occurrence 
+  ##Arguments 
+  # df <- df from bi.genV()
+  # name <- name of it as a 3 letter code (generally hum or ann)
+  # mask <- cropping mask to set it to
+  # out.dir <- where it should be sent to if saved. 
+  coordinates(df) <- ~ x + y
+  proj4string(df) <- proj4string(mask)
+  out <- list()
+  for(i in 1:12){
+    rr1 <- rasterize(df,mask, field= df[[paste0("OB",i)]], function(x, na.rm=FALSE) { sum(x>0, na.rm=na.rm) })
+    rr2 <- crop(rr1,mask)
+    rr3 <- mask(rr2,mask)
+    names(rr3) <- paste0(name,i)
+    out[[i]] <- rr3
+  }
+  out.stk <- do.call(stack, out)
+  if(!is.null(out.dir)){
+    writeRaster(out.stk, file.path(out.dir, "OB"), format = "GTiff",
+                bylayer = T, suffix = "names")
+  }
+  return(out.stk)
 }
 
 ## 
@@ -77,7 +102,10 @@ names(hu.ma) <- "Outbreak_ID"
 ma.hu <- inner_join(as.data.frame(hu.ma), hum.simple, by = "Outbreak_ID")
   #### OUT ####
 humOB.bi <- biGenV(ma.hu)
+write.csv(humOB.bi, file.path(clean.dir,"humOB.PPM.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
+write.csv(humOB.occ, file.path(clean.dir,"humOcc.csv"), row.names = F)
+viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir))
 
 
 #### Animal Index cases ####
@@ -103,4 +131,7 @@ ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
 
  #### OUT ####
 anOB.bi <- biGenV(ma.an)
+write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
 anOB.occ <- occGenV(anOB.bi, "ann", c.mask)
+write.csv(anOB.occ, file.path(clean.dir, "annOcc.csv"), row.names = F)
+viralRasterGen(anOB.bi, "ann", c.mask, file.path(clean.dir))

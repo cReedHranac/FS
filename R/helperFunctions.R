@@ -376,7 +376,15 @@ flickerPlot <- function(res.stk, dbl, births = F, virus = F,
     
       #### virus ####
     if(virus){
-      
+      vir <- read.csv(file.path(clean.dir, "humOB.PPM.csv"))
+      if(dbl){
+        
+      } else{
+        ob <- paste0("OB", substring(occ.l,4,4))
+        q <- subset(vir[,2:3], vir[,ob] > 0)
+        q$HumOB <- as.factor(1)
+        
+      }
     }
     return(out)
   }
