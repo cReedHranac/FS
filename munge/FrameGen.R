@@ -1,0 +1,91 @@
+## Creating the Super frame 
+  ## Need to create long format dataframe for regression analysis of ebola outbreak events 
+source("R/helperFunctions.R")
+
+#### OutBreak Events ####
+# outbreak events have previously been split into human/and animal events, and seperateded across months
+library(raster);library(gtools)
+  # human outbreak stack
+hum.stk <- do.call(stack, lapply(
+  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum0*")))
+  ,raster))
+  # animal outbreak stack
+ann.stk <- do.call(stack, lapply(
+  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann0*")))
+  ,raster))
+
+#### Breeding probability rasters ####
+ptr.sng <- resRasterLoad("ptr", "SNG_2",F,  mod.out.dir)
+mic.sng <- resRasterLoad("mic", "SNG_2",F,  mod.out.dir)
+mol.sng <- resRasterLoad("mol", "SNG_2",F,  mod.out.dir)
+
+ptr.dbl <- resRasterLoad("ptr", "DBL_2",T,  mod.out.dir)
+mic.dbl <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
+mol.dbl <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
+
+#### Static Co-varriates ####
+  # Population density, Biodiversity, Landcover
+pop.den <- raster(file.path(clean.dir, "popDen.tif"))
+land.cover <- raster(file.path(clean.dir, "LandCover.tif"))
+div.stk <- do.call(stack, 
+                   lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*_sum.tif")),
+                          raster))
+sttc.stk <- do.call(stack, c(pop.den, land.cover, div.stk))
+
+#### Master Stack/DataFrame ####
+# super.stk <- do.call(stack, c(hum.stk, ann.stk,
+#                              ptr.sng, ptr.dbl,
+#                              mic.sng, mic.dbl,
+#                              mol.sng, mol.dbl,
+#                              pop.den, land.cover, div.stk))
+# 
+# super.frame <- as.data.frame(super.stk)
+# write.csv(super.frame, file.path(clean.dir,"wideTable.csv"), row.names = F)
+## Not what we need
+
+  ## longFrame ## 
+long.list <- list()
+blank <- raster(file.path(data.source, "cropMask.tif"))
+values(blank) <- NA
+for(i in 1:12){
+  #Outbreak Stack
+  ob.stk <- stack(hum.stk[[paste0("OB_hum0_",i)]], ann.stk[[paste0("OB_ann0_",i)]]) 
+  names(ob.stk) <- c("OB_hum0_", "OB_ann0_")
+  #Breeding Stacks
+  #sng
+  br.sng <- list()
+  for(j in 1:3){
+    tax <- c(ptr.sng, mic.sng, mol.sng)
+    tax.name <- c("ptr", "mic", "mol")
+    if(paste0(tax.name[[j]],i) %in% names(tax[[j]])){
+      br.sng[[j]] <- tax[[j]][[paste0(tax.name[[j]],i)]]
+    } else {
+      br.sng[[j]] <- blank
+    }
+  }
+  sng.stk <- do.call(stack, br.sng)
+  names(sng.stk) <- c("ptr_sng", "mic_sng", "mol_sng")
+  #dbl
+  br.dbl <- list()
+  for(j in 1:3){
+    tax <- c(ptr.dbl, mic.dbl, mol.dbl)
+    tax.name <- c("ptr", "mic", "mol")
+    if(paste0(tax.name[[j]],i,".",tax.name[[j]],i+1) %in% names(tax[[j]])){
+      br.dbl[[j]] <- tax[[j]][[paste0(tax.name[[j]],i,".",tax.name[[j]],i+1)]]
+    } else {
+      br.dbl[[j]] <- blank
+    }
+  }
+  dbl.stk <- do.call(stack, br.dbl)
+  names(dbl.stk) <- c("ptr_dbl", "mic_dbl", "mol_dbl")
+  
+  #Bring it all together
+  month.stk <- do.call(stack, c(ob.stk, sng.stk, dbl.stk, sttc.stk))
+  month.df <- as.data.frame(month.stk)
+  month.df$cell <- paste0("c",seq(1:nrow(month.df)))
+  month.df$month <- i
+  long.list[[i]] <- month.df
+}
+
+long.table <- as.data.table(do.call(rbind, long.list))
+fwrite(long.table, file.path(clean.dir, "longTable.csv"))

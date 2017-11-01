@@ -102,3 +102,10 @@ glob.m <- projectRaster(glob.f, crop.mask, method = "ngb")
 glob.mm <- mask(glob.m, crop.mask)
 glob.r <- subs(glob.mm, key)
 writeRaster(glob.r, file.path(clean.dir,"LandCover.tif"),format = "GTiff", overwrite = T)
+
+## population Density 
+pop.den <- raster(file.path(data.source, "af_gpwv3_pdens_00_ascii_25", "afds00ag.asc"))
+proj4string(pop.den) <- proj4string(crop.mask)
+pop.prj <- projectRaster(pop.den, crop.mask)
+pop.m <- mask(pop.prj, crop.mask)
+writeRaster(pop.m, file.path(clean.dir,"popDen.tif"), format = "GTiff")

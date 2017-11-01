@@ -67,6 +67,29 @@ viralRasterGen <- function(df, name, mask, out.dir = NULL){
   return(out.stk)
 }
 
+viralRasterGen0 <- function(df, name, z.mask, out.dir = NULL){
+  ##Function to create monthly rasters of viral occurrence with 0 backs
+  ##Arguments 
+  # df <- df from bi.genV()
+  # name <- name of it as a 3 letter code (generally hum or ann)
+  # mask <- cropping mask to set it to with zero back 
+  # out.dir <- where it should be sent to if saved. 
+  
+  out <- list()
+  for(i in 1:12){
+    r <- z.mask
+    r[cellFromXY(z.mask,df[which(df[paste0("OB",i)] == 1),c("x","y")])] <- 1
+    names(r) <- paste0(name,"0_",i)
+    out[[i]] <- r
+  }
+  out.stk <- do.call(stack, out)
+  if(!is.null(out.dir)){
+    writeRaster(out.stk, file.path(out.dir, "OB"), format = "GTiff",
+                bylayer = T, suffix = "names", overwrite = T)
+  }
+  return(out.stk)
+}
+
 ## 
 c.mask <- raster(file.path(data.source, "cropMask.tif"))
 wgs <- proj4string(c.mask)
@@ -106,7 +129,8 @@ write.csv(humOB.bi, file.path(clean.dir,"humOB.PPM.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
 write.csv(humOB.occ, file.path(clean.dir,"humOcc.csv"), row.names = F)
 viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir))
-
+z.mask <- reclassify(c.mask, c(0,1,0))
+viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
 
 #### Animal Index cases ####
 an.src <- read.csv(file.path(data.source, "vIndex", "latest_animal_case.csv"))
@@ -135,3 +159,5 @@ write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
 anOB.occ <- occGenV(anOB.bi, "ann", c.mask)
 write.csv(anOB.occ, file.path(clean.dir, "annOcc.csv"), row.names = F)
 viralRasterGen(anOB.bi, "ann", c.mask, file.path(clean.dir))
+viralRasterGen0(anOB.bi, "ann", z.mask, file.path(clean.dir))
+

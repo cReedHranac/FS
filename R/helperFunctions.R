@@ -271,8 +271,9 @@ resRasterLoad <- function(taxon.class, run.id, dbl, path.to.dir, band = 4){
                       paste0("proj_",txc.l,"ENSEMBLE_PROJ"),
                       paste0("proj_",txc.l,"ENSEMBLE_PROJ_",txc.l,
                              "_ensemble.gri"))
-  r.stk <- do.call(stack,lapply(X = f.path,FUN = raster, band = band))
-  names(r.stk) <- txc.l
+  tf.path <- f.path[which(file.exists(f.path))] #scrape out ones that DNE
+  r.stk <- do.call(stack,lapply(X = tf.path,FUN = raster, band = band))
+  names(r.stk) <- txc.l[which(file.exists(f.path))]
   
   return(r.stk)
 }
