@@ -6,12 +6,19 @@ source("R/helperFunctions.R")
 # outbreak events have previously been split into human/and animal events, and seperateded across months
 library(raster);library(gtools)
   # human outbreak stack
-hum.stk <- do.call(stack, lapply(
+hum.stk0 <- do.call(stack, lapply(
   file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum0*")))
   ,raster))
+hum.stk <- do.call(stack, lapply(
+  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum*")))
+  ,raster))
+
   # animal outbreak stack
-ann.stk <- do.call(stack, lapply(
+ann.stk0 <- do.call(stack, lapply(
   file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann0*")))
+  ,raster))
+ann.stk <- do.call(stack, lapply(
+  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann*")))
   ,raster))
 
 #### Breeding probability rasters ####
@@ -49,8 +56,9 @@ blank <- raster(file.path(data.source, "cropMask.tif"))
 values(blank) <- NA
 for(i in 1:12){
   #Outbreak Stack
-  ob.stk <- stack(hum.stk[[paste0("OB_hum0_",i)]], ann.stk[[paste0("OB_ann0_",i)]]) 
-  names(ob.stk) <- c("OB_hum0_", "OB_ann0_")
+  ob.stk <- stack(hum.stk0[[paste0("OB_hum0_",i)]], ann.stk0[[paste0("OB_ann0_",i)]],
+                  hum.stk[[paste0("OB_hum",i)]], ann.stk[[paste0("OB_ann",i)]]) 
+  names(ob.stk) <- c("OB_hum0_", "OB_ann0_", "OB_hum", "OB_ann")
   #Breeding Stacks
   #sng
   br.sng <- list()
@@ -88,4 +96,8 @@ for(i in 1:12){
 }
 
 long.table <- as.data.table(do.call(rbind, long.list))
+xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
+xy$cell <- paste0("c", seq(1:ncell(blank)))
+long.table <- left_join(long.table, xy, "cell")
+
 fwrite(long.table, file.path(clean.dir, "longTable.csv"))
