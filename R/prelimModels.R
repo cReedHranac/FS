@@ -5,12 +5,6 @@ source("R/helperFunctions.R")
 library(data.table); library(dplyr)
 
 #### Functions ####
-lagCol <- function(data.tbl, colName, lag){
-  n <- nrow(data.tbl)/12
-  col.v <- as.vector(data.tbl[c(seq(((12-lag)*n):nrow(data.tbl)),seq(1:((12-lag)*n-1))),colName])
-  return(col.v)
-}
-
 
 wrap <- function (x, n = 1L, order_by = NULL, ...){
   if (!is.null(order_by)) {
@@ -35,9 +29,9 @@ wrap <- function (x, n = 1L, order_by = NULL, ...){
 dat <- tbl_df(fread(file.path(clean.dir, "longTable.csv")))
 
 dat.br <- dat %>%
-  mutate(ptr_BR = ptr_sng * Mega_sum,
-         mic_BR = mic_sng * Micro_sum,
-         mol_BR = mol_sng * Molo_sum)
+  mutate(ptr_BR = ptr_dbl * Mega_sum,
+         mic_BR = mic_dbl * Micro_sum,
+         mol_BR = mol_dbl * Molo_sum)
 
 dat.1 <- dat.br %>%
   mutate(ptr_BR_1 = wrap(ptr_BR, n=1, order_by = month),
@@ -63,50 +57,71 @@ dat.1 <- dat.br %>%
 #### Prelim Models ####
 
 ## AnimalModels
-  #No lag
-ann_mod <- glm(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR + offset(logPop), 
-               data = dat.1, family = "binomial")
+  #No lag 0 back  
+ann_mod <- glm(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR + logPop, 
+               data = dat.1, family = binomial(link = "log"))
 summary(ann_mod)
 
-ann_mod <- glm(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR + LandCover_category + offset(logPop), 
-               data = dat.1, family = "binomial")
-summary(ann_mod)
+an_mod_full <- glm(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR +
+                     ptr_BR_1 + mic_BR_1 + mol_BR_1 +
+                     ptr_BR_2 + mic_BR_2 + mol_BR_2 +
+                     ptr_BR_3 + mic_BR_3 + mol_BR_3 +
+                     ptr_BR_4 + mic_BR_4 + mol_BR_4 +
+                     ptr_BR_5 + mic_BR_5 + mol_BR_5 +
+                     ptr_BR_6 + mic_BR_6 + mol_BR_6 +
+                     logPop,data= dat.1, family = binomial(link = "log"))
 
-  #Lag 1
-ann_mod.1 <- glm(OB_ann0_ ~ ptr_BR_1 + mic_BR_1 + mol_BR_1 + offset(logPop), 
-               data = dat.1, family = "binomial")
-summary(ann_mod.1)
+summary(an_mod_full)
 
-  #Lag 2
-ann_mod.2 <- glm(OB_ann0_ ~ ptr_BR_2 + mic_BR_2 + mol_BR_2 + offset(logPop), 
-                 data = dat.1, family = "binomial")
-summary(ann_mod.2)
+  ####GLMNET
+library(glmnet)
+x <- model.matrix(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR +
+                    ptr_BR_1 + mic_BR_1 + mol_BR_1 +
+                    ptr_BR_2 + mic_BR_2 + mol_BR_2 +
+                    ptr_BR_3 + mic_BR_3 + mol_BR_3 +
+                    ptr_BR_4 + mic_BR_4 + mol_BR_4 +
+                    ptr_BR_5 + mic_BR_5 + mol_BR_5 +
+                    ptr_BR_6 + mic_BR_6 + mol_BR_6 +
+                    logPop,data= dat.1, na.rm = F)
+y <- as.matrix(dat.1[as.numeric(rownames(x)),"OB_ann0_"])
 
-  #Lag 3
-ann_mod.3 <- glm(OB_ann0_ ~ ptr_BR_3 + mic_BR_3 + mol_BR_3 + offset(logPop), 
-                 data = dat.1, family = "binomial")
-summary(ann_mod.3)
+an.fit <- glmnet(x, y, family = "binomial")
+summary(an.fit)
+plot(an.fit,xvar = "dev", label = T)
 
-  #Lag 4
-ann_mod.4 <- glm(OB_ann0_ ~ ptr_BR_4 + mic_BR_4 + mol_BR_4 + offset(logPop), 
-                 data = dat.1, family = "binomial")
-summary(ann_mod.4)
-
-#Lag 5
-ann_mod.5 <- glm(OB_ann0_ ~ ptr_BR_5 + mic_BR_5 + mol_BR_5 + offset(logPop), 
-                 data = dat.1, family = "binomial")
-summary(ann_mod.5)
-
-#Lag 2
-ann_mod.6 <- glm(OB_ann0_ ~ ptr_BR_6 + mic_BR_6 + mol_BR_6 + offset(logPop), 
-                 data = dat.1, family = "binomial")
-summary(ann_mod.6)
-
+x <- model.matrix(OB_ann0_ ~ ptr_BR + mic_BR + mol_BR +
+                    logPop,data= dat.1)
+y <- as.matrix(dat.1[as.numeric(rownames(x)),"OB_ann0_"])
+an.fit <- glmnet(x, y, family = "binomial")
+summary(an.fit)
+plot(an.fit,xvar = "dev", label = T)
+cvfit = cv.glmnet(x, y, family = "binomial", type.measure = "class")
+plot(cvfit)
 
 ## HumanModels
-hum_mod <- glm(OB_hum0_ ~ ptr_BR + mic_BR + mol_BR + OB_ann0_/Mam_sum + offset(logPop), 
-               data = dat.1, family = "binomial")
+hum_mod <- glm(OB_hum0_ ~ ptr_BR + mic_BR + mol_BR + OB_ann0_/Mam_sum +logPop, 
+               data = dat.1, family = binomial(link = "log"))
 summary(hum_mod)
+
+x <- model.matrix(OB_hum0_ ~ ptr_BR + mic_BR + mol_BR +
+                  OB_ann0_/Mam_sum +logPop, 
+                  data = dat.1)
+y <- as.matrix(dat.1[as.numeric(rownames(x)),"OB_hum0_"])
+hum.fit <- glmnet(x, y, family = "binomial")
+plot(hum.fit)
+
+x <- model.matrix(OB_hum0_ ~ ptr_BR + mic_BR + mol_BR +
+                    ptr_BR_1 + mic_BR_1 + mol_BR_1 +
+                    ptr_BR_2 + mic_BR_2 + mol_BR_2 +
+                    ptr_BR_3 + mic_BR_3 + mol_BR_3 +
+                    ptr_BR_4 + mic_BR_4 + mol_BR_4 +
+                    OB_ann0_/Mam_sum, + logPop, 
+                  data = dat.1)
+y <- as.matrix(dat.1[as.numeric(rownames(x)),"OB_hum0_"])
+hum.fit <- glmnet(x, y, family = "binomial")
+plot(hum.fit)
+
+
 
   #Lag 1
 hum_mod.1 <- glm(OB_hum0_ ~ ptr_BR_1 + mic_BR_1 + mol_BR_1 + OB_ann0_/Mam_sum + offset(logPop), 
