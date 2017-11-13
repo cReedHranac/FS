@@ -468,3 +468,21 @@ gifMaster <- function(taxon.class, path.to.sng = NULL, path.to.dbl = NULL, fps, 
   }
   return(gif)
 }
+
+#### DataFrame manipulation tools ####
+wrap <- function (x, n = 1L, order_by = NULL, ...){
+  if (!is.null(order_by)) {
+    return(with_order(order_by, wrap, x, n = n))
+  }
+  if (length(n) != 1 || !is.numeric(n) || n < 0) {
+    dplyr:::bad_args("n", "must be a nonnegative integer scalar, ", 
+                     "not {rlang::type_of(n)} of length {length(n)}")
+  }
+  if (n == 0) 
+    return(x)
+  xlen <- length(x)
+  n <- n %% xlen
+  out <- x[c(seq_len(n)+xlen-n, seq(xlen-n))]
+  attributes(out) <- attributes(x)
+  out
+}

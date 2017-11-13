@@ -62,7 +62,7 @@ viralRasterGen <- function(df, name, mask, out.dir = NULL){
   out.stk <- do.call(stack, out)
   if(!is.null(out.dir)){
     writeRaster(out.stk, file.path(out.dir, "OB"), format = "GTiff",
-                bylayer = T, suffix = "names")
+                bylayer = T, suffix = "names", overwrite = T)
   }
   return(out.stk)
 }
@@ -150,9 +150,10 @@ an.pt <- an.pt[,1]
 names(an.pt) <- "Outbreak_ID"
  #### masterFrame ####
 an.ma <- rbind(an.poly.c, an.pt)
-
 ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
-
+## Ammendment for point that fell off the map
+new.xy <- xyFromCell(c.mask, 65453) #extract new xy
+ma.an[1,c("x","y")] <- new.xy
  #### OUT ####
 anOB.bi <- biGenV(ma.an)
 write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
