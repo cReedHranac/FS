@@ -78,8 +78,11 @@ for(i in 1:12){
   for(j in 1:3){
     tax <- c(ptr.dbl, mic.dbl, mol.dbl)
     tax.name <- c("ptr", "mic", "mol")
-    if(paste0(tax.name[[j]],i,".",tax.name[[j]],i+1) %in% names(tax[[j]])){
-      br.dbl[[j]] <- tax[[j]][[paste0(tax.name[[j]],i,".",tax.name[[j]],i+1)]]
+    v <- 1:12
+    k <- ((v + i) - 2) %% length(v)+1
+    l <- k[2]
+    if(paste0(tax.name[[j]],i,".",tax.name[[j]],l) %in% names(tax[[j]])){
+      br.dbl[[j]] <- tax[[j]][[paste0(tax.name[[j]],i,".",tax.name[[j]],l)]]
     } else {
       br.dbl[[j]] <- blank
     }
