@@ -4,7 +4,7 @@ source("R/helperFunctions.R")
 library(data.table); library(dplyr)
 
 ## Dave run this!
-clean.dir <- "."
+#clean.dir <- "."
 
 
 #### Functions ####
@@ -123,27 +123,52 @@ sQ <- if(is.null(zeroes)) rep.int(TRUE, nQ) else !zeroes # Checking whether we a
 
 glmdata <- data.frame(.mpl.W = .mpl$W, .mpl.Y = .mpl$Y, x = P$x, y = P$y)
 
-# Adding covariates: Just left join on x,y
+glm2 <- data.frame(.mpl.W = .mpl$W, .mpl.Y = .mpl$Y, x = P$x, y = P$y)
 
+# Expand out so we have month as well
+all <- list()
+for (i in 1:12) {
+  all[[i]] <- cbind(glm2, month=i)
+}
+glm_all <- do.call(rbind, all)
+
+# Unfortunately, the x,y's from spatstat aint the same. There's probably a smart
+# way to join shit up. Maybe by 
 dat.list <- dat.2[, c( "ptr_BR", "mic_BR", "mol_BR",
                         "ptr_BR_1", "mic_BR_1", "mol_BR_1",
                         "ptr_BR_3", "mic_BR_3", "mol_BR_3",
                         "ptr_BR_5", "mic_BR_5", "mol_BR_5",
                         "logPop", "OB_ann0_", "NB_lDiv","month",
                        "OB_hum0_",  "x", "y")]
-glm.full <- left_join(glmdata, dat.list, by = c("x", "y"))
 
-# Filtering for month, and adjusting responce weight
-glm.m <- glm.full %>%
-  filter(month == 12) %>%
-  mutate(.mpl.Y = .mpl.Y*OB_hum0_) #using binary responce vector to clear data from some points
+# Adding covariates: Just left join on x,y
+# find the smallest x in both sets
+gridMe <- function(x, mx2) {
+  min_x <- min(x,mx2)
+  dx <- diff(sort(unique(x)))
+  delta_x <- min(dx[dx > 1e-10])
+  round((x - min_x) / delta_x)
+}
+glm_test <- glm_all %>% mutate(x_grid = gridMe(x, min(dat.list$x)), y_grid = gridMe(y, min(dat.list$y)))
+dat.test <- dat.list %>% mutate(x_grid = gridMe(x, min(glm_all$x)), y_grid = gridMe(y, min(glm_all$y))) %>% dplyr::rename(x2=x, y2=y)
 
-#for month sub sets
-glmdata <- glm.m
-#for full data
-glmdata <- glm.full
+# testing shit
+#test <- glm2 %>% mutate(x_grid = gridMe(x)) %>% filter(.mpl.Y == 0)
+#t <- as.matrix(table(test$x, test$x_grid))
+#any(rowSums(t) != diag(t))
+#any(colSums(t) != diag(t))
+any(!glm_test$x_grid %in% dat.test$x_grid)
+any(!glm_test$y_grid %in% dat.test$y_grid)
 
-.mpl.W <- glmdata$.mpl.W
+glm.full <- left_join(glm_test, dat.test, by = c("x_grid", "y_grid", "month"))
+
+glm.full %>% mutate(xdiff = x - x2, ydiff = y - y2) %>% dplyr::select(xdiff, ydiff) %>% max
+
+# now we need to adjust the occurence column:
+glm.m <- glm.full %>% mutate(.mpl.Y = .mpl.Y*OB_hum0_) %>% replace_na(list(.mpl.Y = 0))
+table(glm.m$.mpl.Y)
+
+.mpl.W <- glm.m$.mpl.W
 .mpl.SUBSET <- NULL
 
 # This is where we'd put covariaty stuff in somehow
@@ -155,5 +180,5 @@ int.form <- as.formula(paste(".mpl.Y ","~", paste(names(dat.list[1:(length(names
 fmla <- int.form
 
 # and running the model fit
-FIT  <- glm(fmla, family=quasi(link="log", variance="mu"), weights=.mpl.W, data=glmdata)
+FIT  <- glm(fmla, family=quasi(link="log", variance="mu"), weights=.mpl.W, data=glm.m)
 
