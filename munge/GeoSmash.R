@@ -1,5 +1,5 @@
 ##Geo munge from source 
-
+source("R/helperFunctions.R")
 ## African extent
 library(rgdal); library(rgeos); library(maptools)
 # afr <- readOGR(dsn = path.expand(file.path(data.source, "Africa")),
@@ -109,3 +109,9 @@ proj4string(pop.den) <- proj4string(crop.mask)
 pop.prj <- projectRaster(pop.den, crop.mask)
 pop.m <- mask(pop.prj, crop.mask)
 writeRaster(pop.m, file.path(clean.dir,"popDen.tif"), format = "GTiff")
+
+## Fragmentation index
+frag <- raster(file.path(data.source, "fragIndexSourceRes.tif"))
+frag.prj <- projectRaster(frag, crop.mask)
+frag.m <- mask(frag.prj, crop.mask)
+writeRaster(frag.m, file.path(clean.dir, "fragIndex.tif"), format = "GTiff")

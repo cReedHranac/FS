@@ -31,13 +31,14 @@ mic.dbl <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
 mol.dbl <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
 
 #### Static Co-varriates ####
-  # Population density, Biodiversity, Landcover
+  # Population density, Biodiversity, Landcover, Fragmentation
 pop.den <- raster(file.path(clean.dir, "popDen.tif"))
 land.cover <- raster(file.path(clean.dir, "LandCover.tif"))
 div.stk <- do.call(stack, 
                    lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*_sum.tif")),
                           raster))
-sttc.stk <- do.call(stack, c(pop.den, land.cover, div.stk))
+frag <- raster(file.path(clean.dir, "fragIndex.tif"))
+sttc.stk <- do.call(stack, c(pop.den, land.cover, div.stk, frag))
 
 #### Master Stack/DataFrame ####
 # super.stk <- do.call(stack, c(hum.stk, ann.stk,
@@ -98,6 +99,7 @@ for(i in 1:12){
   long.list[[i]] <- month.df
 }
 
+library(data.table);library(dplyr)
 long.table <- as.data.table(do.call(rbind, long.list))
 xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
