@@ -338,7 +338,7 @@ flickerPlot <- function(res.stk, dbl, births = F, virus = F,
                    colour = "grey20",
                    fill = NA,
                    alpha = .2) +
-      ggtitle(paste0("Modeled Breeding ", occ.l)) +
+      ggtitle(paste0("Modeled Births ", occ.l)) +
       coord_fixed()
     
     #### Theme settings ####
