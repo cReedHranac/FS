@@ -66,7 +66,7 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   cat(capture.output(myBiomodOption), file = out.log, fill = T, append = T)
   #### Modeling ####
   myBiomodModelOut <- BIOMOD_Modeling(myBiomodData,
-                                      models = c('GLM','GBM','CTA','ANN',
+                                      models = c('GLM','CTA','ANN','GBM',
                                                  'SRE','FDA','RF','MAXENT.Phillips',
                                                  "MAXENT.Tsuruoka"),
                                       models.options = myBiomodOption,
