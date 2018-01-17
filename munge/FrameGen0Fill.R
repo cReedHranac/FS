@@ -141,4 +141,12 @@ xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
 long.table <- left_join(long.table, xy, "cell")
 
-fwrite(long.table, file.path(clean.dir, "longTable0Fill.csv"))
+
+long <- fread(file.path(clean.dir, "longTable.csv"))
+long$ptr_sngI <- long.table$ptr_sng
+long$mic_sngI <- long.table$mic_sng
+long$mol_sngI <- long.table$mol_sng
+long$ptr_dblI <- long.table$ptr_dbl
+long$mic_dblI <- long.table$mic_dbl
+long$mol_dblI <- long.table$mol_dbl
+fwrite(long, file.path(clean.dir, "longTable0Fill.csv"))
