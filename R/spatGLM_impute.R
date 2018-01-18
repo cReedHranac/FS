@@ -159,9 +159,34 @@ spatGLM <- function(ob.col, coV.v, dat, rGrid = rf){
 }
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir, "longTable0Fill.csv")))
-
-  ####SingleMonthFrame####
-dat.br <- dat %>%
+# library(skimr)
+#  skim(dat) 
+  ## Add force of breeding ##
+ tax <- c("ptr", "mic", "mol") #taxonomic group
+ tx <- c("Mega", "Micro", "Molo")
+ grp <- c("sng", "dbl") #temporal grouping
+ hndl <- c("raw", "imp") #handle as raw or imputed
+ 
+item <- list()
+q <- 1
+ for(i in 1:length(tax)){ #tax
+   for(j in 1:length(grp)){ #group
+     for(k in 1:length(hndl)){ #handle
+       nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep=".")
+       z <- ifelse(k == 1, log(dat[,paste(tax[[i]], grp[[j]],sep="_")] * dat[,paste0(tx[[i]],"_sum")] +1),
+                               log(dat[,paste0(tax[[i]],"_", grp[[j]],"I")] * dat[,paste0(tx[[i]],"_sum")] +1))
+       item[[q]] <- z ; names(item[[q]])  <- nm
+       q <- q+1
+     }
+   } 
+ }
+ 
+ mutator <- function(tax, df){
+   tax.q <- enquo(tax)
+   
+ }
+ 
+ dat.br <- dat %>%
   mutate(ptr_BR = log(ptr_sng * Mega_sum +1),
          mic_BR = log(mic_sng * Micro_sum +1),
          mol_BR = log(mol_sng * Molo_sum +1))
