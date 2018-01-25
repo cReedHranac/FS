@@ -182,17 +182,20 @@ for(i in 1:length(tax)){ #tax
   for(j in 1:length(grp)){ #group
     for(k in 1:length(hndl)){ #handle
       nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep="_")
-      z <- log(dat[,paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")] * dat[,paste0(tx[[i]],"_sum")] +1)
-      item[[q]] <- z ; names(item[[q]])  <- nm
+      z <- log(long.table[,paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")] * long.table[,paste0(tx[[i]],"_sum")] +1)
+      item[[q]] <- as.data.table(z) ; colnames(item[[q]])  <- nm
       q <- q+1
     }
   } 
 }
 f.br <- do.call(cbind, item)
-dat.br <- cbind(dat, f.br)
-
+long.table.br <- as.data.table(cbind(long.table, f.br))
+# Warning message:
+#   In data.row.names(row.names, rowsi, i) :
+#   some row.names duplicated: 3,4,5,
 #### Add lags ####
 wrap <- function (x, n = 1L, order_by = NULL, ...){
+  cat(x, order_by, "\n")
   if (!is.null(order_by)) {
     return(with_order(order_by, wrap, x, n = n))
   }
@@ -209,6 +212,25 @@ wrap <- function (x, n = 1L, order_by = NULL, ...){
   out
 }
 
+wraperer <- function(df, tax, grp, hndl, l, ...){
+  g.b <- quos(...)
+  t.q <- enquo(tax)
+  g.q <- enquo(grp)
+  h.q <- enquo(hndl)
+  l.q <- enquo(l)
+  
+  nm <- paste(quo_name(t.q), quo_name(g.q), quo_name(h.q), "BR", quo_name(l.q),sep = "_")
+  nw <- paste(quo_name(t.q), quo_name(g.q), quo_name(h.q), "BR",sep = "_")
+  
+  d.out <- df %>%
+    dplyr::group_by(!!!g.b) %>%
+    dplyr::mutate(!!nm := wrap(!!nw,  n= l, order_by = month)) %>%
+    ungroup %>%
+    dplyr::select(!!nm)
+  return(d.out)
+}
+
+
 q <- 1
 item <- list()
 ## add lag columns ##
@@ -218,21 +240,23 @@ for(i in 1:length(tax)){ #tax
       for(l in 1:6){ # n lag
         nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR", l ,sep="_")
         nw <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep="_")
-        bz <- dat.br %>% group_by(cell) %>%
-          mutate(!!nm := wrap(!!nw,  n= l, order_by = month)) %>%
+        bz <- long.table.br %>% dplyr::group_by(cell) %>%
+          dplyr::mutate(!!nm := wrap(UQ(nw),  n= l, order_by = month)) %>%
           ungroup %>%
           dplyr::select(!!nm)
         item[[q]] <- bz
         q <- q+1
+        # bz <- wraperer(long.table.br, tax[[i]], grp[[j]], hndl[[k]], l, ... = "cell")
+        
       }
     }
   } 
 }
 
-lagz <- do.call(cbind, item)
-dat.full <- dat.br %>%
+lagz <- as.data.table(do.call(cbind, item))
+long.table.full <- long.table.br %>%
   bind_cols(lagz) %>%
   mutate(logPop = log(popDen + 1),
          NB_lDiv = log((Mam_sum - (Mega_sum + Molo_sum + Micro_sum))+1))
 
-fwrite(dat.full, file.path(clean.dir, "longMaster.csv"))
+fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))
