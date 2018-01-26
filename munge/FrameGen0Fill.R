@@ -1,8 +1,9 @@
 ## Creating the Super frame 
+clean.env <- list(ls())
+
 ## Need to create long format dataframe for regression analysis of ebola outbreak events 
 source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
 #### include 0 where there is not any data
-
 #### OutBreak Events ####
 # outbreak events have previously been split into human/and animal events, and seperateded across months
 library(raster);library(gtools)
@@ -182,8 +183,13 @@ for(i in 1:length(tax)){ #tax
   for(j in 1:length(grp)){ #group
     for(k in 1:length(hndl)){ #handle
       nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep="_")
-      z <- log(long.table[,paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")] * long.table[,paste0(tx[[i]],"_sum")] +1)
-      item[[q]] <- as.data.table(z) ; colnames(item[[q]])  <- nm
+      breed.prob <- paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")
+      class.div <- paste0(tx[[i]],"_sum")
+      item[[q]] <- long.table %>% 
+        mutate_(.dots = setNames(list(lazyeval::interp(~log(breed.prob * class.div + 1),
+                                                       breed.prob = as.name(breed.prob),
+                                                       class.div = as.name(class.div))), nm)) %>%
+        dplyr::select(!!nm)
       q <- q+1
     }
   } 
@@ -195,7 +201,6 @@ long.table.br <- as.data.table(cbind(long.table, f.br))
 #   some row.names duplicated: 3,4,5,
 #### Add lags ####
 wrap <- function (x, n = 1L, order_by = NULL, ...){
-  cat(x, order_by, "\n")
   if (!is.null(order_by)) {
     return(with_order(order_by, wrap, x, n = n))
   }
@@ -212,25 +217,6 @@ wrap <- function (x, n = 1L, order_by = NULL, ...){
   out
 }
 
-wraperer <- function(df, tax, grp, hndl, l, ...){
-  g.b <- quos(...)
-  t.q <- enquo(tax)
-  g.q <- enquo(grp)
-  h.q <- enquo(hndl)
-  l.q <- enquo(l)
-  
-  nm <- paste(quo_name(t.q), quo_name(g.q), quo_name(h.q), "BR", quo_name(l.q),sep = "_")
-  nw <- paste(quo_name(t.q), quo_name(g.q), quo_name(h.q), "BR",sep = "_")
-  
-  d.out <- df %>%
-    dplyr::group_by(!!!g.b) %>%
-    dplyr::mutate(!!nm := wrap(!!nw,  n= l, order_by = month)) %>%
-    ungroup %>%
-    dplyr::select(!!nm)
-  return(d.out)
-}
-
-
 q <- 1
 item <- list()
 ## add lag columns ##
@@ -241,13 +227,15 @@ for(i in 1:length(tax)){ #tax
         nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR", l ,sep="_")
         nw <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep="_")
         bz <- long.table.br %>% dplyr::group_by(cell) %>%
-          dplyr::mutate(!!nm := wrap(UQ(nw),  n= l, order_by = month)) %>%
+          dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw, n = p, order_by = month),
+                                                                nw=as.name(nw),
+                                                                p=l,
+                                                                month = as.name("month"))),nm)) %>%
           ungroup %>%
           dplyr::select(!!nm)
         item[[q]] <- bz
         q <- q+1
-        # bz <- wraperer(long.table.br, tax[[i]], grp[[j]], hndl[[k]], l, ... = "cell")
-        
+        cat(nm,"\n")
       }
     }
   } 
@@ -260,3 +248,5 @@ long.table.full <- long.table.br %>%
          NB_lDiv = log((Mam_sum - (Mega_sum + Molo_sum + Micro_sum))+1))
 
 fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))
+#Clean env
+rm(list = setdiff(clean.env,ls()))

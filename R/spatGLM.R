@@ -116,9 +116,9 @@ weightedDf <- function(ob.col, obWeights.df, dataFrame, cols){
 
 
 #### Data ####
-dat <- tbl_df(fread(file.path(clean.dir, "longTable.csv")))
+dat.z <- tbl_df(fread(file.path(clean.dir, "longTable.csv")))
 
-dat.br <- dat %>%
+dat.br <- dat.z %>%
   mutate(ptr_BR = log(ptr_dbl * Mega_sum +1),
          mic_BR = log(mic_dbl * Micro_sum +1),
          mol_BR = log(mol_dbl * Molo_sum +1))
