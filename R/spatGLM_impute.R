@@ -4,9 +4,10 @@ library(data.table); library(dplyr); library(tidyr)
 
 ## Dave run this!
 #clean.dir <- "."
+#data.source <- "."
 
 #### Functions ####
-pppWeights <- function(ob.col, dataFrame, rasterGrid){
+pppWeights <- function(ob.col, dataFrame, rasterGrid, owin = windows){
   require(rlang)
   ##Funciton for creating the spatial weights to be applied for the glm
   ##Arguments:
@@ -21,8 +22,7 @@ pppWeights <- function(ob.col, dataFrame, rasterGrid){
   proj4string(ob.pts) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   ob.pts <- remove.duplicates(ob.pts) #  filter unique points
   ob <- ppp(ob.pts@coords[,"x"],ob.pts@coords[,"y"],
-            window = windows[[1]])
-  
+            window = owin[[1]])
   #### DETERMINING WEIGHTS etc####
   library(spatstat)
   im_win <- as.im(rasterGrid)
@@ -76,11 +76,11 @@ weightedDf <- function(ob.col, obWeights.df, dataFrame, cols){
     dplyr::select(cols) #select select data
   #### handle the gridding being different ####
   obGrid <- obWeights.df %>% 
-    mutate_(x_grid = ~gridMe(x, min(dataFrame[,"x"])), ##From the raster grid
-            y_grid = ~gridMe(y, min(dataFrame[,"y"])))
+    mutate_(x_grid := ~gridMe(x, min(dataFrame[,"x"])), ##From the raster grid
+            y_grid := ~gridMe(y, min(dataFrame[,"y"])))
   datGrid <- dat.sub %>% 
-    mutate_(x_grid = ~gridMe(x, min(obWeights.df[,"x"])), ##From the ppp grid
-            y_grid = ~gridMe(y, min(obWeights.df[,"y"]))) %>%
+    mutate_(x_grid := ~gridMe(x, min(obWeights.df[,"x"])), ##From the ppp grid
+            y_grid := ~gridMe(y, min(obWeights.df[,"y"]))) %>%
     dplyr::rename_(x2=~x, y2=~y)
   
   if(!any(obGrid$x_grid %in% datGrid$x_grid) ||
@@ -157,10 +157,11 @@ wrap <- function (x, n = 1L, order_by = NULL, ...){
   attributes(out) <- attributes(x)
   out
 }
+
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
-library(skimr)
- skim(dat)
+# library(skimr)
+#  skim(dat)
 dat <- dat %>%
   dplyr::group_by(cell) %>%
   dplyr::mutate(OB_ann_imp_1 = wrap(OB_ann_imp, 1, month)) %>%
@@ -186,11 +187,11 @@ rm(rf.poly, regions)
 #### Raw ####
     #### creating point object ####
 
-humOB.W <- pppWeights(ob.col = OB_hum_imp,
+hum.sng.raw.OB.W <- pppWeights(ob.col = OB_hum_imp,
                       dataFrame = dat,
                       rasterGrid = rf)
     #### Covariates ####
-hum.CoV <- c( "ptr_sng_raw_BR", "mic_sng_raw_BR", "mol_sng_raw_BR",
+hum.sng.raw.CoV <- c( "ptr_sng_raw_BR", "mic_sng_raw_BR", "mol_sng_raw_BR",
               "ptr_sng_raw_BR_1", "mic_sng_raw_BR_1", "mol_sng_raw_BR_1",
               "ptr_sng_raw_BR_2", "mic_sng_raw_BR_2", "mol_sng_raw_BR_2",
               "ptr_sng_raw_BR_3", "mic_sng_raw_BR_3", "mol_sng_raw_BR_3",
@@ -201,19 +202,20 @@ hum.CoV <- c( "ptr_sng_raw_BR", "mic_sng_raw_BR", "mol_sng_raw_BR",
               "OB_hum_imp",  "x", "y", "cell")
 
     #### Weighted dataframe/ weights vector ####
-humW.df <- weightedDf(ob.col = OB_hum_imp,
-                      obWeights.df = humOB.W,
+humW.sng.raw.df <- weightedDf(ob.col = OB_hum_imp,
+                      obWeights.df = hum.sng.raw.OB.W,
                       dataFrame = dat,
-                      cols = hum.CoV)
-humW.v <- humW.df$.mpl.W
+                      cols = hum.sng.raw.CoV)
+humW.sng.raw.v <- humW.sng.raw.df$.mpl.W
     #### Model ####
-hum.form <- as.formula(paste(".mpl.Y ","~", paste(hum.CoV[1:(length(hum.CoV)-5)],collapse = "+")))
+hum.sng.raw.form <- as.formula(paste(".mpl.Y ","~",
+                                     paste(hum.sng.raw.CoV[1:(length(hum.sng.raw.CoV)-5)],collapse = "+")))
 
-hum.mod <- glm(hum.form,
+hum.sng.raw.mod <- glm(hum.sng.raw.form,
                family=quasi(link="log", variance="mu"),
-               weights=humW.v,
-               data=humW.df)
-summary(hum.mod)
+               weights=humW.sng.raw.v,
+               data=humW.sng.raw.df)
+summary(hum.sng.raw.mod)
 
     #### Predict ####
 
@@ -236,11 +238,11 @@ lapply(out,plot)
 #### Imp ####
     #### creating point object ####
 
-humOB.W <- pppWeights(ob.col = OB_hum_imp,
+humOB.sng.imp.W <- pppWeights(ob.col = OB_hum_imp,
                       dataFrame = dat,
                       rasterGrid = rf)
     #### Covariates ####
-hum.CoV <- c( "ptr_sng_imp_BR", "mic_sng_imp_BR", "mol_sng_imp_BR",
+hum.sng.imp.CoV <- c( "ptr_sng_imp_BR", "mic_sng_imp_BR", "mol_sng_imp_BR",
               "ptr_sng_imp_BR_1", "mic_sng_imp_BR_1", "mol_sng_imp_BR_1",
               "ptr_sng_imp_BR_2", "mic_sng_imp_BR_2", "mol_sng_imp_BR_2",
               "ptr_sng_imp_BR_3", "mic_sng_imp_BR_3", "mol_sng_imp_BR_3",
@@ -251,36 +253,39 @@ hum.CoV <- c( "ptr_sng_imp_BR", "mic_sng_imp_BR", "mol_sng_imp_BR",
               "OB_hum_imp",  "x", "y", "cell")
 
     #### Weighted dataframe/ weights vector ####
-humW.df <- weightedDf(ob.col = OB_hum_imp,
-                      obWeights.df = humOB.W,
+humW.sng.imp.df <- weightedDf(ob.col = OB_hum_imp,
+                      obWeights.df = humOB.sng.imp.W,
                       dataFrame = dat,
-                      cols = hum.CoV)
-humW.v <- humW.df$.mpl.W
-    #### Model ####
-hum.form <- as.formula(paste(".mpl.Y ","~", paste(hum.CoV[1:(length(hum.CoV)-5)],collapse = "+")))
+                      cols = hum.sng.imp.CoV)
+humW.sng.imp.v <- humW.sng.imp.df$.mpl.W
 
-hum.mod <- glm(hum.form,
+    #### Model ####
+hum.sng.imp.form <- as.formula(paste(".mpl.Y ","~", 
+                                     paste(hum.sng.imp.CoV[1:(length(hum.sng.imp.CoV)-5)],collapse = "+")))
+
+hum.sng.imp.mod <- glm(hum.sng.imp.form,
                family=quasi(link="log", variance="mu"),
-               weights=humW.v,
-               data=humW.df)
-summary(hum.mod)
+               weights=humW.sng.imp.v,
+               data=humW.sng.imp.df)
+summary(hum.sng.imp.mod)
 
     #### Predict ####
 
-hum.pred <- predict.glm(hum.mod,newdata = humW.df, na.action = na.pass)
-hum.pred.df <- cbind(hum.pred, humW.df)
+hum.sng.imp.pred <- predict.glm(hum.sng.imp.mod,newdata = humW.sng.imp.df, na.action = na.pass)
+hum.sng.imp.pred.df <- cbind(hum.sng.imp.pred, humW.sng.imp.df)
 
-out <- list()
+out.hum.sng.imp <- list()
 for( i in 1:12){
   empty.raster <- rf
   empty.raster[] <- NA_real_
-  cell.dance <- hum.pred.df %>%
+  cell.dance <- hum.sng.imp.pred.df %>%
     filter(month == i)
-  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$hum.pred
+  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$hum.sng.imp.pred
   names(empty.raster) <- paste0("pred_",i)
-  out[[i]] <- empty.raster
+  out.hum.sng.imp[[i]] <- empty.raster
 }
-lapply(out,plot)
+lapply(out.hum.sng.imp,plot)
+
 
 
   #### Double Month ####
@@ -288,50 +293,51 @@ lapply(out,plot)
 # it does have imputed animal, and human outbreak occurence points though. it doesn't work without
     #### creating point object ####
 
-humOB.W <- pppWeights(ob.col = OB_hum_imp,
+hum.dbl.raw.OB.W <- pppWeights(ob.col = OB_hum_imp,
                       dataFrame = dat,
                       rasterGrid = rf)
     #### Covariates ####
-hum.CoV <- c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
-              "ptr_dbl_raw_BR_1", "mic_dbl_raw_BR_1", "mol_dbl_raw_BR_1",
-              "ptr_dbl_raw_BR_3", "mic_dbl_raw_BR_3", "mol_dbl_raw_BR_3",
-              "ptr_dbl_raw_BR_5", "mic_dbl_raw_BR_5", "mol_dbl_raw_BR_5",
+hum.dbl.raw.CoV <- c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
+              "ptr_dbl_raw_BR_2", "mic_dbl_raw_BR_2", "mol_dbl_raw_BR_2",
+              "ptr_dbl_raw_BR_4", "mic_dbl_raw_BR_4", "mol_dbl_raw_BR_4",
+              "ptr_dbl_raw_BR_6", "mic_dbl_raw_BR_6", "mol_dbl_raw_BR_6",
               "logPop", "OB_ann_imp", "NB_lDiv",
               "fragIndex", "OB_ann_imp_1","month",
               "OB_hum_imp",  "x", "y", "cell")
 
     #### Weighted dataframe/ weights vector ####
-humW.df <- weightedDf(ob.col = OB_hum_imp,
-                      obWeights.df = humOB.W,
+humW.dbl.raw.df <- weightedDf(ob.col = OB_hum_imp,
+                      obWeights.df = hum.dbl.raw.OB.W,
                       dataFrame = dat,
-                      cols = hum.CoV)
-humW.v <- humW.df$.mpl.W
+                      cols = hum.dbl.raw.CoV)
+humW.dbl.raw.v <- humW.dbl.raw.df$.mpl.W
 
     #### Model ####
-hum.form <- as.formula(paste(".mpl.Y ","~", paste(hum.CoV[1:(length(hum.CoV)-5)],collapse = "+")))
+hum.dbl.raw.form <- as.formula(paste(".mpl.Y ","~",
+                                     paste(hum.dbl.raw.CoV[1:(length(hum.dbl.raw.CoV)-5)],collapse = "+")))
 
-hum.dbl <- glm(hum.form,
+hum.dbl.raw.mod <- glm(hum.dbl.raw.form,
                family=quasi(link="log", variance="mu"),
-               weights=humW.v,
-               data=humW.df)
-summary(hum.dbl)
+               weights=humW.dbl.raw.v,
+               data=humW.dbl.raw.df)
+summary(hum.dbl.raw.mod)
 
     #### Predict ####
 
-hum.pred.dbl <- predict.glm(hum.dbl,newdata = humW.df, na.action = na.pass)
-hum.pred.df.dbl <- cbind(hum.pred.dbl, humW.df)
+hum.pred.dbl.raw <- predict.glm(hum.dbl.raw.mod,newdata = humW.dbl.raw.df, na.action = na.pass)
+hum.pred.df.dbl.raw <- cbind(hum.pred.dbl.raw, humW.dbl.raw.df)
 
-out.dbl <- list()
+out.hum.dbl.raw <- list()
 for( i in 1:12){
   empty.raster <- rf
   empty.raster[] <- NA_real_
-  cell.dance <- hum.pred.df.dbl %>%
+  cell.dance <- hum.pred.df.dbl.raw %>%
     filter(month == i)
-  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$hum.pred
+  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$hum.pred.dbl.raw
   names(empty.raster) <- paste0("pred_",i)
-  out.dbl[[i]] <- empty.raster
+  out.hum.dbl.raw[[i]] <- empty.raster
 }
-lapply(out.dbl,plot)
+lapply(out.hum.dbl.raw,plot)
 
 #### Imp #### 
 # it does have imputed animal, and human outbreak occurence points though. it doesn't work without
@@ -383,100 +389,104 @@ for( i in 1:12){
 lapply(out.dbl,plot)
 
 
+
+
 #### Animal Outbreaks ####
   #### Double Month ####
 #### Imp #### 
 # it does have imputed animal, and human outbreak occurence points though. it doesn't work without
     #### creating point object ####
 
-annOB.W <- pppWeights(ob.col = OB_ann_imp,
+annOB.dbl.imp.W <- pppWeights(ob.col = OB_ann_imp,
                       dataFrame = dat,
                       rasterGrid = rf)
     #### Covariates ####
-ann.CoV <- c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-              "ptr_dbl_imp_BR_1", "mic_dbl_imp_BR_1", "mol_dbl_imp_BR_1",
-              "ptr_dbl_imp_BR_3", "mic_dbl_imp_BR_3", "mol_dbl_imp_BR_3",
-              "ptr_dbl_imp_BR_5", "mic_dbl_imp_BR_5", "mol_dbl_imp_BR_5",
+ann.dbl.imp.CoV <- c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
               "logPop", "NB_lDiv",
               "fragIndex", "month",
               "OB_ann_imp",  "x", "y", "cell")
 
     #### Weighted dataframe/ weights vector ####
-annW.df <- weightedDf(ob.col = OB_ann_imp,
-                      obWeights.df = annOB.W,
+annW.dbl.imp.df <- weightedDf(ob.col = OB_ann_imp,
+                      obWeights.df = annOB.dbl.imp.W,
                       dataFrame = dat,
-                      cols = ann.CoV)
-annW.v <- annW.df$.mpl.W
+                      cols = ann.dbl.imp.CoV)
+annW.dbl.imp.v <- annW.dbl.imp.df$.mpl.W
 
     #### Model ####
-ann.form <- as.formula(paste(".mpl.Y ","~", paste(ann.CoV[1:(length(ann.CoV)-5)],collapse = "+")))
+ann.dbl.imp.form <- as.formula(paste(".mpl.Y ","~",
+                                     paste(ann.dbl.imp.CoV[1:(length(ann.dbl.imp.CoV)-5)],collapse = "+")))
 
-ann.dbl <- glm(ann.form,
+ann.dbl.imp.mod <- glm(ann.dbl.imp.form,
                family=quasi(link="log", variance="mu"),
-               weights=annW.v,
-               data=annW.df)
-summary(ann.dbl)
+               weights=annW.dbl.imp.v,
+               data=annW.dbl.imp.df)
+summary(ann.dbl.imp.mod)
 
     #### Predict ####
 
-ann.pred.dbl <- predict.glm(ann.dbl,newdata = annW.df, na.action = na.pass)
-ann.pred.df.dbl <- cbind(ann.pred.dbl, annW.df)
+ann.pred.dbl.imp <- predict.glm(ann.dbl.imp.mod,newdata = annW.dbl.imp.df, na.action = na.pass)
+ann.pred.df.dbl.imp <- cbind(ann.pred.dbl.imp, annW.dbl.imp.df)
 
-out.dbl <- list()
+out.ann.dbl.imp <- list()
 for( i in 1:12){
   empty.raster <- rf
   empty.raster[] <- NA_real_
-  cell.dance <- ann.pred.df.dbl %>%
+  cell.dance <- ann.pred.df.dbl.imp %>%
     filter(month == i)
-  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$ann.pred
+  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$ann.pred.dbl.imp
   names(empty.raster) <- paste0("pred_",i)
-  out.dbl[[i]] <- empty.raster
+  out.ann.dbl.imp[[i]] <- empty.raster
 }
-lapply(out.dbl,plot)
+lapply(out.ann.dbl.imp,plot)
 
 #### Raw ####
     #### creating point object ####
-annOB.W <- pppWeights(ob.col = OB_ann_imp,
+annOB.dbl.raw.W <- pppWeights(ob.col = OB_ann_imp,
                       dataFrame = dat,
                       rasterGrid = rf)
     #### Covariates ####
-ann.CoV <- c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
-              "ptr_dbl_raw_BR_1", "mic_dbl_raw_BR_1", "mol_dbl_raw_BR_1",
-              "ptr_dbl_raw_BR_3", "mic_dbl_raw_BR_3", "mol_dbl_raw_BR_3",
-              "ptr_dbl_raw_BR_5", "mic_dbl_raw_BR_5", "mol_dbl_raw_BR_5",
+ann.dbl.raw.CoV <- c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
+              "ptr_dbl_raw_BR_2", "mic_dbl_raw_BR_2", "mol_dbl_raw_BR_2",
+              "ptr_dbl_raw_BR_4", "mic_dbl_raw_BR_4", "mol_dbl_raw_BR_4",
+              "ptr_dbl_raw_BR_6", "mic_dbl_raw_BR_6", "mol_dbl_raw_BR_6",
               "logPop", "NB_lDiv",
               "fragIndex", "month",
               "OB_ann_imp",  "x", "y", "cell")
 
     #### Weighted dataframe/ weights vector ####
-annW.df <- weightedDf(ob.col = OB_ann_imp,
-                      obWeights.df = annOB.W,
+annW.dbl.raw.df <- weightedDf(ob.col = OB_ann_imp,
+                      obWeights.df = annOB.dbl.raw.W,
                       dataFrame = dat,
-                      cols = ann.CoV)
-annW.v <- annW.df$.mpl.W
+                      cols = ann.dbl.raw.CoV)
+annW.dbl.raw.v <- annW.dbl.raw.df$.mpl.W
 
     #### Model ####
-ann.form <- as.formula(paste(".mpl.Y ","~", paste(ann.CoV[1:(length(ann.CoV)-5)],collapse = "+")))
+ann.dbl.raw.form <- as.formula(paste(".mpl.Y ","~",
+                                     paste(ann.dbl.raw.CoV[1:(length(ann.dbl.raw.CoV)-5)],collapse = "+")))
 
-ann.dbl <- glm(ann.form,
+ann.dbl.raw.mod <- glm(ann.dbl.raw.form,
                family=quasi(link="log", variance="mu"),
-               weights=annW.v,
-               data=annW.df)
-summary(ann.dbl)
+               weights=annW.dbl.raw.v,
+               data=annW.dbl.raw.df)
+summary(ann.dbl.raw.mod)
 
     #### Predict ####
 
-ann.pred.dbl <- predict.glm(ann.dbl,newdata = annW.df, na.action = na.pass)
-ann.pred.df.dbl <- cbind(ann.pred.dbl, annW.df)
+ann.pred.dbl.raw <- predict.glm(ann.dbl.raw.mod, newdata = annW.dbl.raw.df, na.action = na.pass)
+ann.pred.df.dbl.raw <- cbind(ann.pred.dbl.raw, annW.dbl.raw.df)
 
-out.dbl <- list()
+out.ann.dbl.raw <- list()
 for( i in 1:12){
   empty.raster <- rf
   empty.raster[] <- NA_real_
-  cell.dance <- ann.pred.df.dbl %>%
+  cell.dance <- ann.pred.df.dbl.raw %>%
     filter(month == i)
-  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$ann.pred
+  empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$ann.pred.dbl.raw
   names(empty.raster) <- paste0("pred_",i)
-  out.dbl[[i]] <- empty.raster
+  out.ann.dbl.raw[[i]] <- empty.raster
 }
-lapply(out.dbl,plot)
+lapply(out.ann.dbl.raw,plot)

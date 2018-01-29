@@ -144,11 +144,12 @@ for(i in 1:12){
   for(j in 1:3){
     tax <- c(ptr.dbl.imp, mic.dbl.imp, mol.dbl.imp)
     tax.name <- c("ptr", "mic", "mol")
-    v <- 1:12
-    k <- ((v + i) - 2) %% length(v)+1
-    l <- k[2]
-    if(paste0(tax.name[[j]],i,".",tax.name[[j]],l) %in% names(tax[[j]])){
-      br.dbl.imp[[j]] <- tax[[j]][[paste0(tax.name[[j]],i,".",tax.name[[j]],l)]]
+    # Need to use the current month, plus the previous month here.
+    current_month <- i
+    previous_month <- if (i == 1) 12 else i-1
+    dbl_name <- paste0(tax.name[[j]],previous_month,".",tax.name[[j]],current_month)
+    if(dbl_name %in% names(tax[[j]])){
+      br.dbl.imp[[j]] <- tax[[j]][[dbl_name]]
     } else {
       br.dbl.imp[[j]] <- blank
     }
