@@ -208,7 +208,19 @@ hum.sng.raw.spatGLM <- spatGLM(ob.col = OB_hum_imp,
                                              "fragIndex", "OB_ann_imp_1","month",
                                              "OB_hum_imp",  "x", "y", "cell"),
                                   dat = dat)
-
+#### No Micro ####
+hum.sng.raw.NM.spatGLM <- spatGLM(ob.col = OB_hum_imp,
+                               coV.v = c( "ptr_sng_raw_BR", "mol_sng_raw_BR",
+                                          "ptr_sng_raw_BR_1", "mol_sng_raw_BR_1",
+                                          "ptr_sng_raw_BR_2", "mol_sng_raw_BR_2",
+                                          "ptr_sng_raw_BR_3", "mol_sng_raw_BR_3",
+                                          "ptr_sng_raw_BR_4", "mol_sng_raw_BR_4",
+                                          "ptr_sng_raw_BR_5", "mol_sng_raw_BR_5",
+                                          "logPop", "OB_ann_imp", "NB_lDiv",
+                                          "fragIndex", "OB_ann_imp_1","month",
+                                          "OB_hum_imp",  "x", "y", "cell"),
+                               dat = dat)
+summary(hum.sng.raw.NM.spatGLM[[1]])
   #### Double Month ###
 #### Imp ####
 hum.sng.imp.spatGLM <- spatGLM(ob.col =  OB_hum_imp, 
@@ -224,12 +236,22 @@ hum.sng.imp.spatGLM <- spatGLM(ob.col =  OB_hum_imp,
                                dat = dat)
 summary(hum.sng.imp.spatGLM[[1]])
 
-
-
+#### No Micro ####
+hum.sng.imp.NM.spatGLM <- spatGLM(ob.col =  OB_hum_imp, 
+                               coV.v = c( "ptr_sng_imp_BR", "mol_sng_imp_BR",
+                                          "ptr_sng_imp_BR_1", "mol_sng_imp_BR_1",
+                                          "ptr_sng_imp_BR_2", "mol_sng_imp_BR_2",
+                                          "ptr_sng_imp_BR_3", "mol_sng_imp_BR_3",
+                                          "ptr_sng_imp_BR_4", "mol_sng_imp_BR_4",
+                                          "ptr_sng_imp_BR_5", "mol_sng_imp_BR_5",
+                                          "logPop", "OB_ann_imp", "NB_lDiv",
+                                          "fragIndex", "OB_ann_imp_1","month",
+                                          "OB_hum_imp",  "x", "y", "cell"),
+                               dat = dat)
+summary(hum.sng.imp.NM.spatGLM[[1]])
 
   #### Double Month ####
 #### Raw #### 
-# it does have imputed animal, and human outbreak occurence points though. it doesn't work without
     #### creating point object ####
 hum.dbl.raw.spatGLM <- spatGLM(OB_hum_imp,
                                coV.v = c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
@@ -241,6 +263,19 @@ hum.dbl.raw.spatGLM <- spatGLM(OB_hum_imp,
                                           "OB_hum_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(hum.dbl.raw.spatGLM[[1]])
+
+#### No Micro
+hum.dbl.raw.NM.spatGLM <- spatGLM(OB_hum_imp,
+                               coV.v = c( "ptr_dbl_raw_BR", "mol_dbl_raw_BR",
+                                          "ptr_dbl_raw_BR_2", "mol_dbl_raw_BR_2",
+                                          "ptr_dbl_raw_BR_4", "mol_dbl_raw_BR_4",
+                                          "ptr_dbl_raw_BR_6",  "mol_dbl_raw_BR_6",
+                                          "logPop", "OB_ann_imp", "NB_lDiv",
+                                          "fragIndex", "OB_ann_imp_1","month",
+                                          "OB_hum_imp",  "x", "y", "cell"),
+                               dat = dat)
+summary(hum.dbl.raw.NM.spatGLM[[1]])
+
 
 #### Imp #### 
 hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
@@ -254,6 +289,19 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.spatGLM[[1]])
+#### No Micro
+hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
+                              coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
+                                         "ptr_dbl_imp_BR_1", "mol_dbl_imp_BR_1",
+                                         "ptr_dbl_imp_BR_3", "mol_dbl_imp_BR_3",
+                                         "ptr_dbl_imp_BR_5", "mol_dbl_imp_BR_5",
+                                         "logPop", "OB_ann_imp", "NB_lDiv",
+                                         "fragIndex", "OB_ann_imp_1","month",
+                                         "OB_hum_imp",  "x", "y", "cell"),
+                              dat= dat)
+
+summary(hum.dbl.imp.NM.spatGLM[[1]])
+
 
 #### Animal Outbreaks ####
   #### Double Month ####
@@ -271,6 +319,18 @@ ann.dbl.imp.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                dat = dat)
 summary(ann.dbl.imp.spatGLM[[1]])
 
+#### No Micro
+ann.dbl.imp.NM.spatGLM <- spatGLM(ob.col = OB_ann_imp,
+                               coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
+                                          "ptr_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                                          "ptr_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                                          "ptr_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                                          "NB_lDiv",
+                                          "fragIndex", "month",
+                                          "OB_ann_imp",  "x", "y", "cell"),
+                               dat = dat)
+summary(ann.dbl.imp.NM.spatGLM[[1]])
+
 #### Raw ####
 ann.dbl.raw.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                coV.v =  c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
@@ -283,4 +343,14 @@ ann.dbl.raw.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                dat = dat)
 summary(ann.dbl.raw.spatGLM[[1]])
 
- 
+#### No Micro
+ann.dbl.raw.NM.spatGLM <- spatGLM(ob.col = OB_ann_imp,
+                               coV.v =  c( "ptr_dbl_raw_BR", "mol_dbl_raw_BR",
+                                           "ptr_dbl_raw_BR_2", "mol_dbl_raw_BR_2",
+                                           "ptr_dbl_raw_BR_4", "mol_dbl_raw_BR_4",
+                                           "ptr_dbl_raw_BR_6", "mol_dbl_raw_BR_6",
+                                           "NB_lDiv",
+                                           "fragIndex", "month",
+                                           "OB_ann_imp",  "x", "y", "cell"),
+                               dat = dat)
+summary(ann.dbl.raw.NM.spatGLM[[1]])
