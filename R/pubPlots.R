@@ -76,7 +76,7 @@ for(i in 1:nrow(ob.full)){
   col.list[[i]] <- cz[[j]]
 }
 
-#### Pannel 1 Map ####
+#### Pannel 1 Maps ####
 library(rgdal);library(rgeos);library(raster)
 ## accessory layers
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
@@ -98,31 +98,119 @@ ob.plot <- ggplot() +
                aes(long, lat, group = group), 
                colour = "grey20",
                alpha = .25) +
-  coord_fixed()+
-  aes(x=long, y=lat) +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
                colour = "white", 
                alpha = .25,
-               fill = "cornsilk") +
-  coord_cartesian(xlim = c(-20, 53),
-                  ylim = c(-36, 40))
+               fill = "cornsilk")+
+  coord_fixed(xlim = c(-20, 53),ylim = c(-36, 40))
   
   
 for( i in 1:nrow(ob.full)){
-  ob.plot <- ob.plot + add_phylopic(img.list[[i]], 1, 
-                                    ob.full$long[i],
-                                    ob.full$lat[i],
-                                    ysize = 2.5,
-                                    color = col.list[[i]])
+  if(ob.full$Org_smp[i] == "human"){
+    j <- 3
+  } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- 1.9,  j <- 2.5)}
+  ob.plot <- ob.plot + 
+    add_phylopic(img.list[[i]], 1, 
+                 ob.full$long[i],
+                 ob.full$lat[i],
+                 ysize = j,
+                 color = col.list[[i]]) 
+    
 }
-  
-  
-ob.plot + bkg
-# geom_point(data = fortify(ob.full),
-#            aes(x = long, y = lat,
-#                group = Org_smp,
-#                shape = Org_smp,
-#                colour = Org_smp)) +
-# scale_shape_manual(values = c(15:19))+
-# add_phylopic(c.img[[3]])
+
+ob.plot + bkg ## good enough for now...
+
+
+### Insert plot
+## Need for rain mask? just shows low resolution
+ob.insert <- ggplot()+
+  geom_polygon(data = fortify(afr.poly),
+               aes(long, lat, group = group), 
+               colour = "white",
+               alpha = .25,
+               fill = "grey20") +
+  coord_fixed(xlim = c(9, 17.5),ylim = c(2,-2.5 ))
+
+for( i in 1:nrow(ob.full)){
+  if(ob.full$Org_smp[i] == "human"){
+    j <- .3
+  } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- .2,  j <- .25)}
+  ob.insert <- ob.insert + 
+    add_phylopic(img.list[[i]], 1, 
+                 ob.full$long[i],
+                 ob.full$lat[i],
+                 ysize = j, ##humans need bigger, bats smaller
+                 color = col.list[[i]]) 
+}
+
+ob.insert +bkg ## That's pretty good... 
+
+#### Pannel 2 Time line ####
+ob.T <- ob.full
+library(zoo)
+ob.T$Date <- as.yearmon(paste(ob.T$Year_Start, ob.T$Month.Start), "%Y %m")
+ob.a <- ob.T %>%
+  dplyr::arrange(Date)
+ob.a$Month.Start <- as.factor(ob.a$Month.Start)
+
+## Build offset size
+off.list <- list()
+img.T <- list()
+col.T <- list()
+human.T <- list()
+for(i in 1:nrow(ob.T)){
+  j <- match(ob.a[i,"Org_smp"], levels(ob.a$Org_smp)) 
+  off.list[[i]] <- j ##Offset length
+  img.T[[i]] <- c.img[[j]] ## which image to use
+  col.T[[i]] <- cz[[j]] ##which color to use 
+  ifelse(j == 5, human.T[[i]] <- 1, human.T[[i]] <- -1) #directionality
+}
+ob.a$offset <- unlist(off.list) * unlist(human.T)
+
+## Plot 
+## remove vertical lines 
+g.time <- ggplot()+
+  geom_segment(aes(x = Date, y = offset, xend = Date, color = Org_smp),
+               data = ob.a,yend = 0)+
+  geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
+               data = ob.a, arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
+  scale_x_yearmon(format = "%Y %m", n = 10) 
+# 
+# for(i in 1:nrow(ob.a)){
+#   g.time <- g.time +
+#     add_phylopic(img.T[[i]], 1,
+#                  ob.a$Date[i],
+#                  ob.a$offset[i],
+#                  # ysize = .3,
+#                  color = col.T[[i]])
+# }
+g.time
+#### Pannel 3 Bar with Smooth ####
+### If we can start this at setptember we can likely get the bimodal distribution
+### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
+human.B <- list()
+for(i in 1:nrow(ob.a)){
+  j <- match(ob.a[i,"Org_smp"], levels(ob.a$Org_smp)) 
+  ifelse(j == 5, human.B[[i]] <- "Human", human.B[[i]] <- "Animal") #directionality
+}
+ob.a$Org <- unlist(human.B)
+ob.bar <- ob.a %>% 
+  group_by(Org,Month.Start) %>% 
+  summarise(num=n())
+ob.human <- ob.bar %>%
+  filter(Org == "Human")
+ob.animal <- ob.bar %>%
+  filter(Org == "Animal")
+
+
+ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org_smp))+
+  geom_smooth(data = ob.human,aes(x=Month.Start,y=num, color = Org)) +
+  geom_smooth(data = ob.animal,aes(x=Month.Start,y=num, color = Org))+
+  bkg
+
+
+
+df.test= ob.a %>% group_by(Org_smp,Month.Start) %>% summarise(num=n())
+ggplot(df.test) + geom_smooth(aes(x=Month.Start,y=num))
+
