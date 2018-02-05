@@ -221,7 +221,7 @@ hum.sng.raw.NM.spatGLM <- spatGLM(ob.col = OB_hum_imp,
                                           "OB_hum_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(hum.sng.raw.NM.spatGLM[[1]])
-  #### Double Month ###
+
 #### Imp ####
 hum.sng.imp.spatGLM <- spatGLM(ob.col =  OB_hum_imp, 
                                coV.v = c( "ptr_sng_imp_BR", "mic_sng_imp_BR", "mol_sng_imp_BR",

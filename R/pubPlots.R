@@ -111,7 +111,7 @@ for( i in 1:nrow(ob.full)){
     j <- 3
   } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- 1.9,  j <- 2.5)}
   ob.plot <- ob.plot + 
-    add_phylopic(img.list[[i]], 1, 
+    add_phylopic(img.list[[i]], .5, 
                  ob.full$long[i],
                  ob.full$lat[i],
                  ysize = j,
@@ -137,7 +137,7 @@ for( i in 1:nrow(ob.full)){
     j <- .3
   } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- .2,  j <- .25)}
   ob.insert <- ob.insert + 
-    add_phylopic(img.list[[i]], 1, 
+    add_phylopic(img.list[[i]], .5, 
                  ob.full$long[i],
                  ob.full$lat[i],
                  ysize = j, ##humans need bigger, bats smaller
@@ -200,9 +200,13 @@ ob.bar <- ob.a %>%
   summarise(num=n())
 ob.human <- ob.bar %>%
   filter(Org == "Human")
+ob.human$Month.Start <- as.integer(ob.human$Month.Start)
 ob.animal <- ob.bar %>%
   filter(Org == "Animal")
+ob.animal$Month.Start <- as.integer(ob.animal$Month.Start)
 
+## issues: how do I get time to recirculate? is it worth starting the time at 9 to
+## demonstarte the bimodality of the set? Get error bars different colors?
 
 ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org_smp))+
   geom_smooth(data = ob.human,aes(x=Month.Start,y=num, color = Org)) +
@@ -211,6 +215,89 @@ ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org_smp))+
 
 
 
-df.test= ob.a %>% group_by(Org_smp,Month.Start) %>% summarise(num=n())
-ggplot(df.test) + geom_smooth(aes(x=Month.Start,y=num))
+#### Figure 2 ####
+# Map pannel(s) with bat locations, pannel with collaped year & smoots for 
+# each class like above (may need to be seperated by classes if too busy)
 
+  ### Data #### 
+bi <- fread("D://Dropbox/FS/SourceData/BreedingDB__CHECK.csv")
+bi$Class <- as.factor(bi$Class)
+bi$long <- bi$Lon
+bi$lat <- bi$Lat
+
+bat.symbol <- c.img[[1]]
+cols <-  c("green2", "dodgerblue2", "magenta1")
+col.list <- list()
+for (i in 1:nrow(bi)) {
+  j <- match(bi$Class[i], levels(bi$Class))
+  col.list[[i]] <- cols[[j]]
+}
+##Sub frames for smooth
+
+bi.tbl <- bi %>%
+  group_by(Class, Start) %>%
+  summarise(num = n())
+bi.ptr <- filter(bi.tbl, Class == 1)
+bi.mic <- filter(bi.tbl, Class == 3)
+bi.mol <- filter(bi.tbl, Class == 2)
+
+bi.t <- bi %>%
+  group_by(Start) %>%
+  summarise(num = n())
+
+#### Pannel 1 Map ####
+bi.plot <- ggplot()+ bkg +
+  geom_polygon(data = fortify(afr.poly),
+               aes(long, lat, group = group), 
+               colour = "grey20",
+               alpha = .25) +
+  geom_polygon(data = fortify(rf.poly),
+               aes(long, lat, group = group),
+               colour = "white", 
+               alpha = .25,
+               fill = "cornsilk")+
+  coord_fixed(xlim = c(-20, 53),ylim = c(-36, 40))
+
+for(i in 1:nrow(bi)){
+  bi.plot <- bi.plot +
+    add_phylopic(bat.symbol, 1,
+                 x = bi$long[i],
+                 y = bi$lat[i],
+                 ysize = 1.7, 
+                 color = col.list[[i]])
+}
+
+bi.plot ## looks pretty good. still need to sort the ledgends though
+
+#### Pannel 2 Bar with Smooth ####
+bi.bar <- ggplot(data = bi)+ geom_bar(aes(x=Start, fill = Class)) +
+  # geom_smooth(data = bi.ptr, aes(x=Start, y = num, color = Class)) #+
+  # geom_smooth(data = bi.mic, aes(x=Start, y = num, color = Class)) #+
+  # geom_smooth(data = bi.mol, aes(x=Start, y = num, color = Class)) 
+  geom_smooth(data = bi.t, aes(x=Start, y = num))
+### Need to figure out this thing... total looks alright but broken by class it has 
+### huge margins
+
+
+#### Figure 3 ####
+# left column: 3 maps with the annual force of birthing surfaces
+# right column: stratafied seasonality smooths (pulses over the year within 5 classes?)
+# figures should be based on the *.dbl.imp layers I reckon...
+
+sumGen <- function(model.string){
+  ## function for loading rasters and producing an averaged product based on the
+  ## model string argument
+  f.list <- file.path(clean.dir,"BirthForce",list.files(file.path(clean.dir,"BirthForce"),
+                                           pattern = paste0("BR_", model.string)))
+  
+  if(!any(file.exists(f.list))){
+    stop("string not found try again")
+  }
+  stk <- stack(f.list)
+  m.stk <- mean(stk)
+}
+ptr.stk <- sumGen("ptr.dbl.imp")
+mol.stk <- sumGen("mol.dbl.imp")
+mic.stk <- sumGen("mic.dbl.imp")
+
+## is this what we want? they are really smoothed thanks to the log transformation...
