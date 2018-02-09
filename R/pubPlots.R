@@ -205,15 +205,37 @@ ob.animal <- ob.bar %>%
   filter(Org == "Animal")
 ob.animal$Month.Start <- as.integer(ob.animal$Month.Start)
 
+### Attempt to recycle the year to connect 12 and 1
+## David W. idea; repeat year 3 times with counts and go
+triplicate <- function(x){
+  ##funciton for triplicating monthly count data into additional years
+  # previous year
+  p.year <- x
+  p.year$Month.Start <- x$Month.Start - 12
+  #next year 
+  n.year <- x
+  n.year$Month.Start <- x$Month.Start + 12
+  
+  trip <- rbind(p.year, x, n.year)
+  return(trip)
+}
+an.T <- triplicate(ob.animal)
+hu.T <- triplicate(ob.human)
+
 ## issues: how do I get time to recirculate? is it worth starting the time at 9 to
 ## demonstarte the bimodality of the set? Get error bars different colors?
 
 ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org_smp))+
-  geom_smooth(data = ob.human,aes(x=Month.Start,y=num, color = Org)) +
-  geom_smooth(data = ob.animal,aes(x=Month.Start,y=num, color = Org))+
+  geom_smooth(data = hu.T,aes(x=Month.Start,y=num, color = Org)) +
+  geom_smooth(data = an.T,aes(x=Month.Start,y=num, color = Org))+
+  coord_cartesian(xlim = c(1, 12)) +
   bkg
 
+subset(hu.T, Month.Start >=0 & Month.Start <= 13)
+subset(an.T, Month.Start >=0 & Month.Start <= 13)
 
+### The full 3 year set smooths the junk out of the thing. looks real good when 
+### you just crop to 0 &13 though. I don't know how to make it recirculate correctly.
 
 #### Figure 2 ####
 # Map pannel(s) with bat locations, pannel with collaped year & smoots for 
@@ -260,7 +282,7 @@ bi.plot <- ggplot()+ bkg +
 
 for(i in 1:nrow(bi)){
   bi.plot <- bi.plot +
-    add_phylopic(bat.symbol, 1,
+    add_phylopic(bat.symbol, .65,
                  x = bi$long[i],
                  y = bi$lat[i],
                  ysize = 1.7, 
@@ -284,6 +306,7 @@ bi.bar <- ggplot(data = bi)+ geom_bar(aes(x=Start, fill = Class)) +
 # right column: stratafied seasonality smooths (pulses over the year within 5 classes?)
 # figures should be based on the *.dbl.imp layers I reckon...
 
+#### data ####
 sumGen <- function(model.string){
   ## function for loading rasters and producing an averaged product based on the
   ## model string argument
@@ -291,13 +314,56 @@ sumGen <- function(model.string){
                                            pattern = paste0("BR_", model.string)))
   
   if(!any(file.exists(f.list))){
-    stop("string not found try again")
+    stop("string not found try again \n *cough* dumbass *cough*")
   }
   stk <- stack(f.list)
   m.stk <- mean(stk)
+  out.l <- list(stk,m.stk)
+  return(out.l)
 }
-ptr.stk <- sumGen("ptr.dbl.imp")
-mol.stk <- sumGen("mol.dbl.imp")
-mic.stk <- sumGen("mic.dbl.imp")
+ptr.sum <- sumGen("ptr.dbl.imp")
+mol.sum <- sumGen("mol.dbl.imp")
+mic.sum <- sumGen("mic.dbl.imp")
 
-## is this what we want? they are really smoothed thanks to the log transformation...
+#### Pannel 1 (Left) ####
+
+BFgplot <- function(x, source.path = data.source){
+  #### Set Up ####
+  ## accessory layers
+  afr.poly <- readOGR(dsn = file.path(source.path, "Africa"),
+                      layer = "AfricanCountires")
+  rf.poly <- rasterToPolygons(raster(file.path(source.path, "cropMask.tif")),
+                              fun = function(x){x==1}, dissolve = T)
+  
+  ## dataframe for plotting
+  sum.df <- data.frame(rasterToPoints(x[[2]]))
+  colnames(sum.df) <- c("long","lat","Number")
+  
+  g.plot <- ggplot(sum.df) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 alpha = .25) +
+    aes(x=long, y=lat) +
+    scale_fill_gradient(low = "yellow", high = "red4",
+                        limits = c(0,max(sum.df$Number)))+
+    geom_raster(aes(fill = Number), interpolate = T)+
+    
+    #add area modeled
+    geom_polygon(data = fortify(rf.poly),
+                 aes(long, lat, group = group),
+                 colour = "white", 
+                 fill = NA) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 fill = NA,
+                 alpha = .2) +
+    coord_fixed(xlim = c(-20, 53),ylim = c(-36, 40))
+  
+}
+
