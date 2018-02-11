@@ -97,21 +97,33 @@ wgs <- proj4string(c.mask)
 #### human index cases ####
  ## note : bring in the Human_Index_30May. Contains 1 additional point over
  ## the source dataframe provided representing the Inkanamo outbreak
-hum.src <- read.csv(file.path(data.source, "vIndex", "Human_Index_30May.csv"))
+## UPDATE 12.2.018: additional entry for 2017 DRC outbreak
+hum.src <- read.csv(file.path(data.source, "vIndex", "Human_Index_12_2_18.csv"))
 hum.simple <- hum.src %>% dplyr::select(Outbreak_ID, Virus, Month.Start, Month.Start, Month.End , Class)
   
   #### Polygons ####
 hum.poly <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
                     "index_human_case_modified_polygon")
+  ##addition of outbreak 32
+drc.poly <- readOGR(file.path(data.source, "zone_ste_puc"), 
+                    "Zone_Ste_Puc")
+  ##pull out the zone sante
+likati <- drc.poly[drc.poly$Nom_ZS_PUC == "Likati",]
+lik.prj <- spTransform(likati, proj4string(hum.poly))
+lik.prj$OUTBREAK <- 32
 
- ## Extract centroids but maintain the data from the origina; obj
+  ##bind
+hum.poly <- rbind(hum.poly, lik.prj[,"OUTBREAK"])
+
+
+ ## Extract centroids but maintain the data from the original obj
 hum.poly.c <- SpatialPointsDataFrame(gCentroid(hum.poly, byid = T),
                                      hum.poly@data, match.ID = F)
   #### Points ####
  ## Still needs to be added here
 hum.pts <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
                    "index_human_case_modified_point")
-new <- c(-0.616667, 20.433333, 31, 20.433333, -0.616667)
+new <- c(-0.616667, 20.433333, 31, 20.433333, -0.616667) ## outbreak 31
 human.add <- rbind(as.data.frame(hum.pts), new)
 coordinates(human.add) <- ~ coords.x1 + coords.x2
 proj4string(human.add) <- CRS(wgs)
@@ -133,9 +145,11 @@ z.mask <- reclassify(c.mask, c(0,1,0))
 viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
 
 #### Animal Index cases ####
-an.src <- read.csv(file.path(data.source, "vIndex", "latest_animal_case.csv"))
+an.src <- read.csv(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv"))
 an.simple <- an.src %>% dplyr::select(OUTBREAK_ID, Month.Start)
 colnames(an.simple)[1] <- "Outbreak_ID"
+## remove the sero data that does not fit the analysis (ID 45:50)
+an.simple <- an.simple[an.simple$Outbreak_ID %!in% 45:50,]
  
  #### Polygons ####
 an.poly <- readOGR(file.path(data.source, "vIndex", "animalORG"),
@@ -154,7 +168,8 @@ ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
 ## Ammendment for point that fell off the map
 new.xy <- xyFromCell(c.mask, 65453) #extract new xy
 ma.an[1,c("x","y")] <- new.xy
- #### OUT ####
+ 
+#### OUT ####
 anOB.bi <- biGenV(ma.an)
 write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
 anOB.occ <- occGenV(anOB.bi, "ann", c.mask)
