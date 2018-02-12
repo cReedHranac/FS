@@ -11,7 +11,8 @@ getOption("repos")
 
 packs <- rownames(installed.packages()) # names of all installed packages
 req <- c("biomod2", "raster", "rgeos", "rgdal", "RStoolbox",
-         "dplyr", "tidyr", "snowfall", "snow", "gtools")
+         "dplyr", "tidyr", "snowfall", "snow", "gtools", "spatstat",
+         "skimr", "ggplot2", "rlang", "lazyeval")
 
 toInstall <- req[!is.element(req,packs)] # packages needing installation
 
