@@ -3,7 +3,7 @@
 ###############################################################################
 source("R/helperFunctions.R")
 
-library(ggplot2); library(dplyr); library(data.table)
+library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
 #### Figure 1 ####
 #3 pannel figure, 1 pannel, map w/ outbreak locations (symbols for an/hum), 
 # and 2 outbreak time lines, 1 entire history, one collapsed year
@@ -14,14 +14,14 @@ an.sub <- an.an %>%
   dplyr::select(OUTBREAK_ID, Org.smp, Year.Start)
 names(an.sub)[1] <- names(an.ob)[1]
 an.full <- an.sub %>%
-  left_join(an.ob,an.sub, by = "Outbreak_ID")
+  inner_join(an.ob,an.sub, by = "Outbreak_ID")
 
 hum.ob <- fread(file.path(clean.dir, "humOB.PPM.csv"))
 hum.an <- fread(file.path(data.source, "vIndex","Human_Index_12_2_18.csv"))
 hum.sub <- hum.an %>%
   dplyr::select(Outbreak_ID, Year.Start)
 hum.full <- hum.sub %>%
-  left_join(hum.ob, hum.sub, by = "Outbreak_ID")
+  inner_join(hum.ob, hum.sub, by = "Outbreak_ID")
 
 
 hum.full$Org.smp <- "human"
@@ -103,7 +103,7 @@ ob.plot <- ggplot() +
                colour = "white", 
                alpha = .25,
                fill = "cornsilk")+
-  coord_fixed(xlim = c(-20, 53),ylim = c(-36, 40))
+  coord_fixed(xlim = c(-20, 53),ylim = c(-36, 15))
   
   
 for( i in 1:nrow(ob.full)){
@@ -149,7 +149,7 @@ ob.insert +bkg ## That's pretty good...
 #### Pannel 2 Time line ####
 ob.T <- ob.full
 library(zoo)
-ob.T$Date <- as.yearmon(paste(ob.T$Year_Start, ob.T$Month.Start), "%Y %m")
+ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
 ob.a$Month.Start <- as.factor(ob.a$Month.Start)
@@ -176,70 +176,29 @@ g.time <- ggplot()+
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
                data = ob.a, arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
   scale_x_yearmon(format = "%Y %m", n = 10) 
-# 
-# for(i in 1:nrow(ob.a)){
-#   g.time <- g.time +
-#     add_phylopic(img.T[[i]], 1,
-#                  ob.a$Date[i],
-#                  ob.a$offset[i],
-#                  # ysize = .3,
-#                  color = col.T[[i]])
-# }
 g.time
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
 ### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
-human.B <- list()
-for(i in 1:nrow(ob.a)){
-  j <- match(ob.a[i,"Org.smp"], levels(ob.a$Org.smp)) 
-  ifelse(j == 5, human.B[[i]] <- "Human", human.B[[i]] <- "Animal") #directionality
-}
-ob.a$Org <- unlist(human.B)
-ob.bar <- ob.a %>% 
-  group_by(Org,Month.Start) %>% 
-  summarise(num=n())
-ob.human <- ob.bar %>%
-  filter(Org == "Human")
-ob.human$Month.Start <- as.integer(ob.human$Month.Start)
-ob.animal <- ob.bar %>%
-  filter(Org == "Animal")
-ob.animal$Month.Start <- as.integer(ob.animal$Month.Start)
+ob.hist <- ob.a
 
-### Attempt to recycle the year to connect 12 and 1
-## David W. idea; repeat year 3 times with counts and go
-triplicate <- function(x){
-  ##funciton for triplicating monthly count data into additional years
-  # previous year
-  p.year <- x
-  p.year$Month.Start <- x$Month.Start - 12
-  #next year 
-  n.year <- x
-  n.year$Month.Start <- x$Month.Start + 12
-  
-  trip <- rbind(p.year, x, n.year)
-  return(trip)
-}
-an.T <- triplicate(ob.animal)
-hu.T <- triplicate(ob.human)
+org=data.frame(Org.smp=levels(ob.hist$Org.smp),
+               Org=c("Chiroptera",
+                       "Non-Volant Mammals",
+                       "Non-Volant Mammals",
+                       "Non-Volant Mammals",
+                       "Human"))
+ob.hist <- inner_join(ob.hist, org, "Org.smp")
 
-## issues: how do I get time to recirculate? is it worth starting the time at 9 to
-## demonstarte the bimodality of the set? Get error bars different colors?
+ob.hist$Month <- factor(format(ob.hist$Date, "%b"), 
+                        levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 
-ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org.smp))+
-  geom_smooth(data = hu.T,aes(x=Month.Start,y=num, color = Org)) +
-  geom_smooth(data = an.T,aes(x=Month.Start,y=num, color = Org))+
-  coord_cartesian(xlim = c(1, 12)) +
-  bkg
-
-subset(hu.T, Month.Start >=0 & Month.Start <= 13)
-subset(an.T, Month.Start >=0 & Month.Start <= 13)
-
-### The full 3 year set smooths the junk out of the thing. looks real good when 
-### you just crop to 0 &13 though. I don't know how to make it recirculate correctly.
+ggplot(data=ob.hist)+ geom_bar(aes(x=Month,fill=Org.smp))+
+  facet_wrap(~Org, nrow = 3) +
+    bkg
 
 #### Figure 2 ####
-# Map pannel(s) with bat locations, pannel with collaped year & smoots for 
-# each class like above (may need to be seperated by classes if too busy)
+# Map pannel(s) with bat locations, pannel with collaped year joyplots
 
   ### Data #### 
 bi <- fread("D://Dropbox/FS/SourceData/BreedingDB__CHECK.csv")
@@ -316,7 +275,9 @@ sumGen <- function(model.string){
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
-  stk <- stack(f.list)
+  ## stupid hack to order list since names are too complex for mixed sort
+  o.list <- f.list[c(1,5,6,7,8,9,10,11,12,2,3,4)]
+  stk <- stack(o.list)
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
@@ -363,7 +324,39 @@ BFgplot <- function(x, source.path = data.source){
                  colour = "grey20",
                  fill = NA,
                  alpha = .2) +
-    coord_fixed(xlim = c(-20, 53),ylim = c(-36, 40))
+    coord_fixed(xlim = c(-20, 53),ylim = c(-36, 15))
   
 }
 
+ptr.BF <- BFgplot(x = ptr.sum)
+mol.BF <- BFgplot(x = mol.sum)
+mic.BF <- BFgplot(x = mic.sum)
+
+#### Pannel 2 (Right) ####
+sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
+# install_github("cran/ggridges")
+# install.packages("broom")
+library(ggridges); library(broom); library(readr)
+
+### Function in Dev, does not funtion 
+x <- ptr.sum
+n.bin <- 7
+BFridge <- function(x, n.bin, crop.extent = sub.ext){
+  ## Function for creating ridgeline density plots of the breeding force
+  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+  x.crop <- crop(x[[1]], crop.extent)
+  x.cv <- as.data.frame(x.crop)
+  colnames(x.cv) <- c(1:12)
+  x.cv$index <- rownames(x.cv)
+  x.xy <- as.data.frame(xyFromCell(x[[1]],cell = 1:ncell(x[[1]][[1]]))); x.xy$index <- rownames(x.xy)
+  x.df <- left_join(x.xy, x.cv, by = "index")
+  x.df.r <- x.df[complete.cases(x.df),]
+  bf.df <- x.df.r %>%
+    gather("month","BF",4:15) %>%
+    mutate(strata = cut(y, breaks = n.bin)) %>%
+    group_by(strata,month) %>%
+    mutate(Bullshit=median(BF))
+  
+  
+  ggplot(data= bf.df, aes(x= month, height = Bullshit, y=strata))+ geom_density_ridges()
+}
