@@ -9,32 +9,32 @@ library(ggplot2); library(dplyr); library(data.table)
 # and 2 outbreak time lines, 1 entire history, one collapsed year
   #### data ####
 an.ob <- fread(file.path(clean.dir, "annOB.PPM.csv")) #animal points
-an.an <- fread(file.path(data.source, "Animal_Index_Jan2018.csv")) #notes on outbreaks
+an.an <- fread(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv")) #notes on outbreaks
 an.sub <- an.an %>%
-  dplyr::select(OUTBREAK_ID, Org_smp, Year_Start)
+  dplyr::select(OUTBREAK_ID, Org.smp, Year.Start)
 names(an.sub)[1] <- names(an.ob)[1]
 an.full <- an.sub %>%
   left_join(an.ob,an.sub, by = "Outbreak_ID")
 
 hum.ob <- fread(file.path(clean.dir, "humOB.PPM.csv"))
-hum.an <- fread(file.path(data.source, "Human_Index_30May.csv"))
+hum.an <- fread(file.path(data.source, "vIndex","Human_Index_12_2_18.csv"))
 hum.sub <- hum.an %>%
-  dplyr::select(Outbreak_ID, Year_Start)
+  dplyr::select(Outbreak_ID, Year.Start)
 hum.full <- hum.sub %>%
   left_join(hum.ob, hum.sub, by = "Outbreak_ID")
 
 
-hum.full$Org_smp <- "human"
+hum.full$Org.smp <- "human"
 hum.s <- hum.full %>%
   dplyr::select(which(names(hum.full) %in% names(an.full)))
 
 ob.full <- bind_rows(hum.s, an.full)
 colnames(ob.full)[3:4] <- c( "long", "lat")
-ob.full$Org_smp <- as.factor(ob.full$Org_smp)
+ob.full$Org.smp <- as.factor(ob.full$Org.smp)
 
 z <- list()
 for(i in 1:nrow(ob.full)){
-  ifelse(ob.full[i,"Org_smp"] == "human", z[[i]] <- "human",z[[i]] < "animal")  
+  ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] < "animal")  
 }
 
 # library(devtools)
@@ -64,7 +64,7 @@ for(i in 1:length(c.names)){
 ## create vector of images
 img.list <- list()
 for(i in 1:nrow(ob.full)){
-  j <- match(ob.full[i,"Org_smp"], levels(ob.full$Org_smp)) 
+  j <- match(ob.full[i,"Org.smp"], levels(ob.full$Org.smp)) 
   img.list[[i]] <- c.img[[j]]
 }
 
@@ -72,7 +72,7 @@ for(i in 1:nrow(ob.full)){
 cz <- c("darkorange2", "black", "green3", "dodgerblue2", "magenta1")
 col.list <- list()
 for(i in 1:nrow(ob.full)){
-  j <- match(ob.full[i,"Org_smp"], levels(ob.full$Org_smp)) 
+  j <- match(ob.full[i,"Org.smp"], levels(ob.full$Org.smp)) 
   col.list[[i]] <- cz[[j]]
 }
 
@@ -107,9 +107,9 @@ ob.plot <- ggplot() +
   
   
 for( i in 1:nrow(ob.full)){
-  if(ob.full$Org_smp[i] == "human"){
+  if(ob.full$Org.smp[i] == "human"){
     j <- 3
-  } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- 1.9,  j <- 2.5)}
+  } else{ifelse(ob.full$Org.smp[i] == "bat",  j <- 1.9,  j <- 2.5)}
   ob.plot <- ob.plot + 
     add_phylopic(img.list[[i]], .5, 
                  ob.full$long[i],
@@ -133,9 +133,9 @@ ob.insert <- ggplot()+
   coord_fixed(xlim = c(9, 17.5),ylim = c(2,-2.5 ))
 
 for( i in 1:nrow(ob.full)){
-  if(ob.full$Org_smp[i] == "human"){
+  if(ob.full$Org.smp[i] == "human"){
     j <- .3
-  } else{ifelse(ob.full$Org_smp[i] == "bat",  j <- .2,  j <- .25)}
+  } else{ifelse(ob.full$Org.smp[i] == "bat",  j <- .2,  j <- .25)}
   ob.insert <- ob.insert + 
     add_phylopic(img.list[[i]], .5, 
                  ob.full$long[i],
@@ -160,7 +160,7 @@ img.T <- list()
 col.T <- list()
 human.T <- list()
 for(i in 1:nrow(ob.T)){
-  j <- match(ob.a[i,"Org_smp"], levels(ob.a$Org_smp)) 
+  j <- match(ob.a[i,"Org.smp"], levels(ob.a$Org.smp)) 
   off.list[[i]] <- j ##Offset length
   img.T[[i]] <- c.img[[j]] ## which image to use
   col.T[[i]] <- cz[[j]] ##which color to use 
@@ -171,7 +171,7 @@ ob.a$offset <- unlist(off.list) * unlist(human.T)
 ## Plot 
 ## remove vertical lines 
 g.time <- ggplot()+
-  geom_segment(aes(x = Date, y = offset, xend = Date, color = Org_smp),
+  geom_segment(aes(x = Date, y = offset, xend = Date, color = Org.smp),
                data = ob.a,yend = 0)+
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
                data = ob.a, arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
@@ -191,7 +191,7 @@ g.time
 ### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
 human.B <- list()
 for(i in 1:nrow(ob.a)){
-  j <- match(ob.a[i,"Org_smp"], levels(ob.a$Org_smp)) 
+  j <- match(ob.a[i,"Org.smp"], levels(ob.a$Org.smp)) 
   ifelse(j == 5, human.B[[i]] <- "Human", human.B[[i]] <- "Animal") #directionality
 }
 ob.a$Org <- unlist(human.B)
@@ -225,7 +225,7 @@ hu.T <- triplicate(ob.human)
 ## issues: how do I get time to recirculate? is it worth starting the time at 9 to
 ## demonstarte the bimodality of the set? Get error bars different colors?
 
-ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org_smp))+
+ggplot(data=ob.a)+ geom_bar(aes(x=Month.Start,fill=Org.smp))+
   geom_smooth(data = hu.T,aes(x=Month.Start,y=num, color = Org)) +
   geom_smooth(data = an.T,aes(x=Month.Start,y=num, color = Org))+
   coord_cartesian(xlim = c(1, 12)) +
