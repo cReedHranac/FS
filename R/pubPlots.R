@@ -338,25 +338,29 @@ sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
 # install.packages("broom")
 library(ggridges); library(broom); library(readr)
 
-### Function in Dev, does not funtion 
+### Function in Dev, Works, now making the dplyr statments work 
 x <- ptr.sum
-n.bin <- 7
+n.bin <- 40
 BFridge <- function(x, n.bin, crop.extent = sub.ext){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- crop(x[[1]], crop.extent)
-  x.cv <- as.data.frame(x.crop)
-  colnames(x.cv) <- c(1:12)
-  x.cv$index <- rownames(x.cv)
-  x.xy <- as.data.frame(xyFromCell(x[[1]],cell = 1:ncell(x[[1]][[1]]))); x.xy$index <- rownames(x.xy)
-  x.df <- left_join(x.xy, x.cv, by = "index")
-  x.df.r <- x.df[complete.cases(x.df),]
-  bf.df <- x.df.r %>%
-    gather("month","BF",4:15) %>%
+  x.cv <- as.data.frame(rasterToPoints(x.crop))
+  colnames(x.cv)[3:ncol(x.cv)] <- c("January","February","March",
+                      "April","May","June","July","August","September",
+                      "October","November","December")
+  x.df <- x.cv[complete.cases(x.cv),]
+  bf.df <- x.df %>%
+    gather("month","BF",3:14) %>%
     mutate(strata = cut(y, breaks = n.bin)) %>%
-    group_by(strata,month) %>%
-    mutate(Bullshit=median(BF))
+    group_by(strata, month) %>%
+    summarise(bf.mean = mean(BF)) 
+
+   bf.df$month <-  factor(bf.df$month,levels=c("May","June","July","August","September",
+                                          "October","November","December","January","February","March",
+                                          "April"))
   
   
-  ggplot(data= bf.df, aes(x= month, height = Bullshit, y=strata))+ geom_density_ridges()
+  ggplot(data= bf.df, aes(x= month,y= strata,height = bf.mean, group = strata))+
+    geom_density_ridges(stat = "identity")
 }
