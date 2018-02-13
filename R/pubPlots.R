@@ -356,11 +356,32 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
     group_by(strata, month) %>%
     summarise(bf.mean = mean(BF)) 
 
-   bf.df$month <-  factor(bf.df$month,levels=c("May","June","July","August","September",
-                                          "October","November","December","January","February","March",
-                                          "April"))
+   bf.df$month <-  factor(bf.df$month,levels=c("January","February","March",
+                                               "April","May","June","July","August","September",
+                                               "October","November","December"))
   
   
-  ggplot(data= bf.df, aes(x= month,y= strata,height = bf.mean, group = strata))+
-    geom_density_ridges(stat = "identity")
+  bf.ridge <- ggplot(data= bf.df, 
+                     aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
+    geom_density_ridges_gradient(stat = "identity", scale = 2) +
+    scale_fill_gradient(low = "yellow", high = "red4",
+                        limits = c(0,max(bf.df$bf.mean)))
+    
+    
+    
+    bkg <- theme(
+      panel.background = element_rect(fill = "lightblue",
+                                      colour = "lightblue",
+                                      size = 0.5, linetype = "solid"),
+      panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                      colour = "white"),
+      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                      colour = "white"),
+      plot.title = element_text(hjust = 0.5),
+      axis.text.x = element_text(angle = 90, hjust = 1))
+  return(bf.ridge + bkg)
 }
+
+r.ptr <- BFridge(ptr.sum, 40)
+r.mic <- BFridge(mic.sum, 40)
+r.mol <- BFridge(mol.sum, 40)
