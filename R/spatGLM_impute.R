@@ -144,7 +144,7 @@ spatGLM <- function(ob.col, coV.v, dat, rGrid = rf){
     empty.raster[] <- NA_real_
     cell.dance <- pred.df %>%
       filter(month == i)
-    empty.raster[as.numeric(substring(cell.dance$cell,2))] <- cell.dance$pred
+    empty.raster[as.numeric(substring(cell.dance$cell,2))] <- exp(cell.dance$pred)
     names(empty.raster) <- paste0("pred_",i)
     rast[[i]] <- empty.raster
   }
@@ -301,7 +301,9 @@ hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.NM.spatGLM[[1]])
-
+mod.stk <- do.call(stack, hum.dbl.imp.NM.spatGLM[[3]])
+writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
+              bylayer = T, suffix = "numbers", overwrite = T)
 
 #### Animal Outbreaks ####
   #### Double Month ####
@@ -354,3 +356,90 @@ ann.dbl.raw.NM.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                            "OB_ann_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(ann.dbl.raw.NM.spatGLM[[1]])
+
+
+
+
+#### Investigation into the super hight points observed in the Hum Model ####
+
+##Month 6 has the largest spike of 9.38
+obj <- hum.dbl.imp.spatGLM[[3]][[6]]
+obj.max <- cellStats(obj, max)
+
+#where
+loc <- which.max(obj)
+loc.xy <- xyFromCell(obj, loc)
+
+## pull covaiates from that row in the model frame
+res.df <- hum.dbl.imp.spatGLM[[2]]
+
+mx.row <- res.df[which(res.df$pred == max(res.df$pred, na.rm = T)),]
+mx.6 <- mx.row
+
+## subset the df to just that month
+res.sub <- res.df %>%
+  filter(month == 6)
+## looking at the histograms of the important coV to see where they fall
+hist(res.sub$ptr_dbl_imp_BR_2)
+abline(v= mx.row$ptr_dbl_imp_BR_2, col = "yellow", lwd = 4)
+
+hist(res.sub$ptr_dbl_imp_BR_6)
+abline(v= mx.row$ptr_dbl_imp_BR_6, col = "red", lwd = 6)
+
+hist(res.sub$OB_ann_imp)
+abline(v= mx.row$OB_hum_imp, col = "blue", lwd = 6)
+
+hist(res.sub$NB_lDiv)
+abline(v= mx.row$NB_lDiv, col = "green", lwd = 6)
+### over all I would expect these to be on the far right of the distributions for each...
+
+### seeing how much of the outbreak data is around this data
+## stealing the insert plot from the figures
+insert <- ob.insert +bkg
+## adding the peak point
+
+loc.df <- as.data.frame(loc.xy)
+insert + geom_point(data = loc.df, aes(x= x, y =y),color = "red", size = 30, alpha = .5 )
+
+
+#### Month 4 has pretty much the same thing ###
+##Month 6 has the largest spike of 9.38
+obj <- hum.dbl.imp.spatGLM[[3]][[4]]
+obj.max <- cellStats(obj, max)
+
+#where
+loc <- which.max(obj)
+loc.xy <- xyFromCell(obj, loc)
+
+## pull covaiates from that row in the model frame
+res.df <- hum.dbl.imp.spatGLM[[2]]
+head(res.df)
+mx.row <- res.df[which(res.df$pred == log(obj.max)),]
+
+## subset the df to just that month
+res.sub <- res.df %>%
+  filter(month == 4)
+## looking at the histograms of the important coV to see where they fall
+hist(res.sub$ptr_dbl_imp_BR_2)
+abline(v= mx.row$ptr_dbl_imp_BR_2, col = "yellow", lwd = 4)
+
+hist(res.sub$ptr_dbl_imp_BR_6)
+abline(v= mx.row$ptr_dbl_imp_BR_6, col = "red", lwd = 6)
+
+hist(res.sub$OB_ann_imp)
+abline(v= mx.row$OB_hum_imp, col = "blue", lwd = 6)
+
+hist(res.sub$NB_lDiv)
+abline(v= mx.row$NB_lDiv, col = "green", lwd = 6)
+### over all I would expect these to be on the far right of the distributions for each...
+
+### seeing how much of the outbreak data is around this data
+## stealing the insert plot from the figures
+insert <- ob.insert +bkg
+## adding the peak point
+
+loc.df <- as.data.frame(loc.xy)
+insert + geom_point(data = loc.df, aes(x= x, y =y),color = "red", size = 30, alpha = .5 )
+
+
+spikes <- rbind(mx.6, mx.row)

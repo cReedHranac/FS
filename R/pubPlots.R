@@ -260,7 +260,7 @@ bi.bar <- ggplot(data = bi)+ geom_bar(aes(x=Start, fill = Class)) +
 ### huge margins
 
 
-#### Figure 3 ####
+#### Figure 3 BrithForce Model Results####
 # left column: 3 maps with the annual force of birthing surfaces
 # right column: stratafied seasonality smooths (pulses over the year within 5 classes?)
 # figures should be based on the *.dbl.imp layers I reckon...
@@ -333,14 +333,9 @@ mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
 #### Pannel 2 (Right) ####
-sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
 # install_github("cran/ggridges")
-# install.packages("broom")
-library(ggridges); library(broom); library(readr)
-
-### Function in Dev, Works, now making the dplyr statments work 
-x <- ptr.sum
-n.bin <- 40
+library(ggridges); library(readr)
+sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
 BFridge <- function(x, n.bin, crop.extent = sub.ext){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
@@ -363,7 +358,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 2) +
+    geom_density_ridges_gradient(stat = "identity", scale = 3) +
     scale_fill_gradient(low = "yellow", high = "red4",
                         limits = c(0,max(bf.df$bf.mean)))
     
@@ -385,3 +380,127 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
 r.ptr <- BFridge(ptr.sum, 40)
 r.mic <- BFridge(mic.sum, 40)
 r.mol <- BFridge(mol.sum, 40)
+
+
+#### Figure 4 SpatGLM Model results ####
+#Same as birthForce model but obviously, human spatGLM results
+
+#### data ####
+spatHandler <- function(model.string){
+  ## function for loading rasters produced from spatGLM and producing an averaged product based on the
+  ## model string argument
+  f.list <- file.path(mod.out.dir, "spatGLM", list.files(file.path(mod.out.dir,"spatGLM"),
+                                                        pattern = paste0(model.string)))
+  
+  if(!any(file.exists(f.list))){
+    stop("string not found try again \n *cough* dumbass *cough*")
+  }
+  ## stupid hack to order list since names are too complex for mixed sort
+  o.list <- mixedsort(f.list)
+  stk <- stack(o.list)
+  m.stk <- mean(stk)
+  out.l <- list(stk,m.stk)
+  return(out.l)
+}
+
+#### Pannel 1 Average ####
+bkg <- theme(
+  panel.background = element_rect(fill = "lightblue",
+                                  colour = "lightblue",
+                                  size = 0.5, linetype = "solid"),
+  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                  colour = "white"),
+  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                  colour = "white"),
+  plot.title = element_text(hjust = 0.5))
+ERgplot <- function(x, source.path = data.source){
+  #### Set Up ####
+  ## accessory layers
+  afr.poly <- readOGR(dsn = file.path(source.path, "Africa"),
+                      layer = "AfricanCountires")
+  rf.poly <- rasterToPolygons(raster(file.path(source.path, "cropMask.tif")),
+                              fun = function(x){x==1}, dissolve = T)
+  
+  ## dataframe for plotting
+  sum.df <- data.frame(rasterToPoints(x[[2]]))
+  colnames(sum.df) <- c("long","lat","Risk")
+  sum.df$Risk <- round(sum.df$Risk, 3)
+  g.plot <- ggplot(sum.df) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 alpha = .25) +
+    aes(x=long, y=lat) +
+    geom_raster(aes(fill = Risk), interpolate = T)+
+    scale_fill_gradient(name = "Risk", trans = "log10",
+                        low = "yellow", high = "red4",
+                        breaks = c(0,.01,.05,.1,.2,.5))+
+    #add area modeled
+    geom_polygon(data = fortify(rf.poly),
+                 aes(long, lat, group = group),
+                 colour = "white", 
+                 fill = NA) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 fill = NA,
+                 alpha = .2) +
+    coord_fixed(xlim = c(-20, 53),ylim = c(-36, 15))
+  out <- g.plot + bkg
+}
+
+hum.mean <- spatHandler("hum")
+risk.plot <- ERgplot(hum.mean)
+
+#### Pannel 2 (Right) ####
+library(ggridges)
+sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
+ERridge <- function(x, n.bin, crop.extent = sub.ext){
+  ## Function for creating ridgeline density plots of the breeding force
+  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+  x.crop <- crop(x[[1]], crop.extent)
+  x.cv <- as.data.frame(rasterToPoints(x.crop))
+  colnames(x.cv)[3:ncol(x.cv)] <- c("January","February","March",
+                                    "April","May","June","July","August","September",
+                                    "October","November","December")
+  x.df <- x.cv[complete.cases(x.cv),]
+  ER.df <- x.df %>%
+    gather("month","ER",3:14) %>%
+    mutate(strata = cut(y, breaks = n.bin)) %>%
+    group_by(strata, month) %>%
+    summarise(ER.mean = mean(ER)) 
+  
+  ER.df$month <-  factor(ER.df$month,levels=c("January","February","March",
+                                              "April","May","June","July","August","September",
+                                              "October","November","December"))
+  
+  
+  ER.ridge <- ggplot(data= ER.df, 
+                     aes(x= month,y= strata,height = ER.mean, group = strata, fill = ER.mean))+
+    geom_density_ridges_gradient(stat = "identity", scale = 2.5) +
+    # scale_fill_gradient(name = "Risk", trans = "log10",
+    #                     low = "yellow", high = "red4",
+    #                     breaks = c(0,.001,.01))
+    scale_fill_gradient(low = "yellow", high = "red4",
+                        limits = c(0,max(ER.df$ER.mean)))
+
+  
+  
+  bkg <- theme(
+    panel.background = element_rect(fill = "lightblue",
+                                    colour = "lightblue",
+                                    size = 0.5, linetype = "solid"),
+    panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                    colour = "white"),
+    panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                    colour = "white"),
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1))
+  return(ER.ridge + bkg)
+}
+k <- ERridge(hum.mean, n.bin = 40, sub.ext)
+k
