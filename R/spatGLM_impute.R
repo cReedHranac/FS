@@ -190,7 +190,19 @@ windows <- lapply(regions, as.owin)
 #clean
 rm(rf.poly, regions)
 
-
+#### TOTAL INFECTIONS ####
+dat$OB_total <- dat$OB_hum_imp + dat$OB_ann_imp
+  ##N.B. 2 instances where there is 2 in a cell
+inf.total <- spatGLM(ob.col = OB_total,
+                     coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                                "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                                "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                                "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                                "NB_lDiv","fragIndex", "month", "OB_total","x", "y", "cell"),
+                     dat = dat)
+summary(inf.total[[1]])
+inf.mean <- mean(stack(inf.total[[3]]))
+inf.xplot <- BFgplot(c(stack(inf.total[[3]]),inf.mean))
 
 #### HUMAN SPILLOVER ####
 
