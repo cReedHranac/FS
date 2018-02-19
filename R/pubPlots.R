@@ -252,10 +252,11 @@ bi.plot ## looks pretty good. still need to sort the ledgends though
 
 #### Pannel 2 Bar with Smooth ####
 bi.bar <- ggplot(data = bi)+ geom_bar(aes(x=Start, fill = Class)) +
+  facet_wrap(~Class, ncol = 1)
   # geom_smooth(data = bi.ptr, aes(x=Start, y = num, color = Class)) #+
   # geom_smooth(data = bi.mic, aes(x=Start, y = num, color = Class)) #+
   # geom_smooth(data = bi.mol, aes(x=Start, y = num, color = Class)) 
-  geom_smooth(data = bi.t, aes(x=Start, y = num))
+  # geom_smooth(data = bi.t, aes(x=Start, y = num))
 ### Need to figure out this thing... total looks alright but broken by class it has 
 ### huge margins
 
@@ -358,7 +359,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 3) +
+    geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5) +
     scale_fill_gradient(low = "yellow", high = "red4",
                         limits = c(0,max(bf.df$bf.mean)))
     
@@ -436,7 +437,7 @@ ERgplot <- function(x, source.path = data.source){
     geom_raster(aes(fill = Risk), interpolate = T)+
     scale_fill_gradient(name = "Risk", trans = "log10",
                         low = "yellow", high = "red4",
-                        breaks = c(0,.01,.05,.1,.2,.5))+
+                        breaks = c(1e-10,.01,.05,.1,.2,.5))+
     #add area modeled
     geom_polygon(data = fortify(rf.poly),
                  aes(long, lat, group = group),

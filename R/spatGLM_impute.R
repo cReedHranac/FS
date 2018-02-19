@@ -202,7 +202,7 @@ inf.total <- spatGLM(ob.col = OB_total,
                      dat = dat)
 summary(inf.total[[1]])
 inf.mean <- mean(stack(inf.total[[3]]))
-inf.xplot <- BFgplot(c(stack(inf.total[[3]]),inf.mean))
+inf.xplot <- ERgplot(c(stack(inf.total[[3]]),inf.mean))
 
 #### HUMAN SPILLOVER ####
 
