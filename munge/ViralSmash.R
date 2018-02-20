@@ -165,9 +165,7 @@ names(an.pt) <- "Outbreak_ID"
  #### masterFrame ####
 an.ma <- rbind(an.poly.c, an.pt)
 ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
-## Ammendment for point that fell off the map
-new.xy <- xyFromCell(c.mask, 65453) #extract new xy
-ma.an[1,c("x","y")] <- new.xy
+
  
 #### OUT ####
 anOB.bi <- biGenV(ma.an)
