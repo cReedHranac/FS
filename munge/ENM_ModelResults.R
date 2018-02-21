@@ -21,4 +21,4 @@ z <- data.frame(Model = res$m,
 library(gtools)
 ord <- mixedorder(m.list)
 z.1 <- z[ord,]
-write.csv(z.1, file.path(clean.dir, "EMN_ModelResults.csv"), row.names = F)
+write.csv(z.1, file.path(clean.dir, "EMN_ModelResults.csv"), row.names = F, quote = F)

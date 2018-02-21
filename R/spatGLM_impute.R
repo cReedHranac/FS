@@ -264,7 +264,6 @@ summary(hum.sng.imp.NM.spatGLM[[1]])
 
   #### Double Month ####
 #### Raw #### 
-    #### creating point object ####
 hum.dbl.raw.spatGLM <- spatGLM(OB_hum_imp,
                                coV.v = c( "ptr_dbl_raw_BR", "mic_dbl_raw_BR", "mol_dbl_raw_BR",
                                           "ptr_dbl_raw_BR_2", "mic_dbl_raw_BR_2", "mol_dbl_raw_BR_2",
@@ -301,7 +300,7 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.spatGLM[[1]])
-#### No Micro
+#### No Micro ####
 hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
                                          "ptr_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
