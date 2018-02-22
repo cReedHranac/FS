@@ -1,0 +1,166 @@
+Reference,Spec_Binom,Family,Class,Place,Lon,Lat,Place_Notes,Start,End,,Notes
+"McWilliams, 1987",Coleura_afra,Emballonuridae,3,,39.6,-4.14,"Diani Beach, Kenya",4,4,,
+"McWilliams, 1987",Coleura_afra,Emballonuridae,3,,39.6,-4.14,"Diani Beach, Kenya",11,11,,
+"Happold & Happold, 1990",Taphozous_mauritianus,Emballonuridae,3,,35.3,-14.8,"Liwonde National Park, Malawi",11,12,,
+"Happold & Happold, 1990",Taphozous_mauritianus,Emballonuridae,3,,35.3,-14.8,"Liwonde National Park, Malawi",3,4,,
+"O'Shea &  Vaughan, 1980",Taphozous_mauritianus,Emballonuridae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"O'Shea &  Vaughan, 1980",Taphozous_mauritianus,Emballonuridae,3,,38.12,-2.3,"Kibwezi, Kenya",3,5,,
+"Verschuren, 1957",Hipposideros_abae,Hipposideridae,3,,25.1,4.1,"Garamba National Park, DRC",3,4,,
+"Brosset, 1966",Hipposideros_beatus,Hipposideridae,3,,13,0.4,"Makokou, Gabon",10,11,,
+"Verschuren, 1957",Hipposideros_cf_ruber,Hipposideridae,3,,25.1,4.1,"Garamba National Park, DRC",3,4,,
+"Wolton et al., 1982",Hipposideros_cf_ruber,Hipposideridae,3,,-8.41,7.62,Mount Nimbia Liberia,3,3,,
+"Verschuren, 1957",Hipposideros_cyclops,Hipposideridae,3,,25.1,4.1,"Garamba National Park, DRC",3,3,,
+"McWilliam, 1982",Hipposideros_gigas,Hipposideridae,3,,39.38,-4.66,"Shimoni, Kenya",11,11,,
+"Brosset, 1969",Hipposideros_gigas,Hipposideridae,3,,13,0.4,"Makokou, Gabon",10,10,,
+"Howell, 1976",Hipposideros_ruber,Hipposideridae,3,,38.73,-7.25,"Kisarawe, Tanzania",12,12,,
+"Cotterill & Ferguson, 1999",Hipposideros_vittatus,Hipposideridae,3,,29.42,-18.3,Central Zimbabwe,10,11,,
+"Vaughan, 1976",Cardioderma_cor,Megadermatidae,3,,38.12,-2.3,"Kibwezi, Kenya",3,4,,
+"Vaughan, 1976",Cardioderma_cor,Megadermatidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"Vaughan & Vaughan, 1986",Lavia_frons,Megadermatidae,3,,36,0.6,"Kampi ya Samaki, Kenya",4,4,,
+"Vershuren, 1957",Lavia_frons,Megadermatidae,3,,25.1,4.1,"Garamba National Park, DRC",4,4,,
+"Bernard, 1980",Miniopterus_fraterculus,Miniopteridae,3,,30.19,-29.48,Natal Midlands S. Africa,11,12,,
+"Brosset, 1969",Miniopterus_inflatus,Miniopteridae,3,,13,0.6,North-eastern Gabon,10,10,,
+"McWilliams, 1988",Miniopterus_minor,Miniopteridae,3,,39.6,-4.14,Coastal Kenya,11,11,,
+"Monadjem, 1998",Chaerephon_pumilus,Molossidae,2,,32,-26.2,"Mlawula, Swaziland",12,3,,
+"Smithers, 1971",Mops_midas,Molossidae,2,,22.9,-19.6,Okavango Swamps,1,3,,
+"Mutere, 1973",Otomops_harrisoni,Molossidae,2,,37.75,-2.5,Chyulu Hills,12,12,,Previously included in Otomops martiensseni
+"Mutere, 1973",Otomops_harrisoni,Molossidae,2,,36.28,-1.1,Mount Suswa,12,12,,Previously included in Otomops martiensseni
+"Fenton et al., 1987",Nycteris_grandis,Nycteridae,3,,29.4,-15.9,"Mana Pools, Zimbabwe",11,12,,
+"Verschuren, 1957",Nycteris_hispida,Nycteridae,3,,25.1,4.1,"Garamba National Park, DRC",4,4,,
+"Verschuren, 1957",Nycteris_hispida,Nycteridae,3,,25.1,4.1,"Garamba National Park, DRC",9,9,,
+"Verschuren, 1957",Nycteris_nana,Nycteridae,3,,25.1,4.1,"Garamba National Park, DRC",3,5,,
+"Bernard, 1982",Nycteris_thebaica,Nycteridae,3,,30.19,-29.48,"KwaZulu-Natal, South Africa",11,11,,
+"O'Shea &  Vaughan, 1980",Nycteris_thebaica,Nycteridae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"Wolton et al., 1982",Casinycteris_ophiodon,Pteropodidae,1,,-8.41,7.62,Mount Nimbia Liberia,11,12,,Previously in genus Scotonycteris
+"Monadjem & Reside, 2012",Epomophorus_wahlbergi,Pteropodidae,1,,32,-26.2,"Mlawula, Swaziland",10,11,,Based on observations of juveniles entering the population
+"Monadjem & Reside, 2012",Epomophorus_wahlbergi,Pteropodidae,1,,32,-26.2,"Mlawula, Swaziland",4,5,,Based on observations of juveniles entering the population
+"Bradbury, 1977",Hypsignathus_Monstrosus ,Pteropodidae,1,,13,0.4,"Makokou, Gabon",12,2,,
+"Bradbury, 1977",Hypsignathus_Monstrosus ,Pteropodidae,1,,13,0.4,"Makokou, Gabon",6,7,,
+"Coe, 1975",Myonycteris_angolensis,Pteropodidae,1,,-8.41,7.62,Mount Nimbia Liberia,12,12,,Previous in genus Lissonycteris
+"Wolton et al., 1982",Myonycteris_angolensis,Pteropodidae,1,,-8.41,7.62,Mount Nimbia Liberia,9,9,,Previous in genus Lissonycteris
+"Smithers & Wilson, 1979",Rhinolophus_darlingi,Rhinolophidae,3,,30,-18,Zimbabwe,10,12,,There are no specific locations mentioned in Zimbabwe
+"Happold & Happold, 1990",Rhinolophus_fumigatus,Rhinolophidae,3,,35.3,-15.3,"Zomba, Malawi",11,12,,
+"Cotterill, 1998",Rhinolophus_mossambicus,Rhinolophidae,3,,29.42,-18.3,Central Zimbabwe,10,10,,Named Rhinolophus hildebrandtii
+"Cotterill, 1998",Rhinolophus_simulator,Rhinolophidae,3,,29.42,-18.3,Central Zimbabwe,11,11,,
+"O'Shea &  Vaughan, 1980",Rhinolophus_simulator,Rhinolophidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"Happold & Happold, 2013",Eptesicus_hottentotus,Vespertilionidae,3,,32.2,-17.4,"Mutoko, Zimbabwe",11,12,,
+"Brosset, 1966",Myotis_bocageii,Vespertilionidae,3,,13,0.4,"Makokou, Gabon",12,2,,
+"Brosset, 1966",Myotis_bocageii,Vespertilionidae,3,,13,0.4,"Makokou, Gabon",6,6,,
+"Van der Merwe, 1994",Neoromicia_capensis,Vespertilionidae,3,,28.3,-24.15,"Vaalwater, South Africa",10,11,,
+"O'Shea &  Vaughan, 1980",Neoromicia_somalicus,Vespertilionidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"Happold & Happold, 1990",Neoromicia_zuluensis,Vespertilionidae,3,,35.3,-14.8,"Liwonde National Park, Malawi",11,12,,
+"Van der Merwe & Rautenbach, 1987",Nycticeinops_schlieffeni,Vespertilionidae,3,,31.2,-22.42,"Pafuri Region, Kruger National Park",11,12,,
+"Happold & Happold, 1990",Nycticeinops_schlieffeni,Vespertilionidae,3,,35.3,-15.3,"Zomba, Malawi",11,12,,
+"O'Shea &  Vaughan, 1980",Nycticeinops_schlieffeni,Vespertilionidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"O'Shea &  Vaughan, 1980",Scotoecus_hirundo,Vespertilionidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,11,,
+"O'Shea &  Vaughan, 1980",Scotophilus_dinganii,Vespertilionidae,3,,38.12,-2.3,"Kibwezi, Kenya",11,12,,
+"O'Shea &  Vaughan, 1980",Scotophilus_dinganii,Vespertilionidae,3,,38.12,-2.3,"Kibwezi, Kenya",3,4,,
+"Barclay, 1985",Scotophilus_leucogaster,Vespertilionidae,3,,28.21,-18.16,"Sengwa Wildlife Research Area, Zimbabwe",11,12,,
+"Van der Merwe et al., 1988",Scotophilus_viridis,Vespertilionidae,3,,31.2,-22.42,"Pafuri Region, Kruger National Park",11,11,,As Scotophilus borbonicus
+McWilliams 1988,Taphozous_hildegardeae,Emballonuridae,3,pont,39.38,-4.66,"Shimoni, Kenya",12,12,,
+McWilliams 1988,Taphozous_hildegardeae,Emballonuridae,3,pont,39.41,-4.24,"Shimba Hill National Reserve, Kenya",12,12,,
+Bernard & Meester 1982,Hipposideros_caffer,Hipposideridae,3,point,30.19,-29.48,Natal Midlands S. Africa,12,12,,
+"Ansell, 1986",Hipposideros_caffer,Hipposideridae,3,point,28.2,-15.18,Ngwerere Cave,10,12,,
+"Menzies, 1973",Hipposideros_caffer,Hipposideridae,3,point,4.58,10.5,location now under water,4,5,,
+"Viver & Van Der Merwe, 1997",Mops_condylurus,Molossidae,2,point,31.56,-25.26,Komatipoort,12,12,,Birthing peaks coincided with times of greatest inscect numbers and correspond to periods of peak rainfall
+"Viver & Van Der Merwe, 1997",Mops_condylurus,Molossidae,2,point,31.56,-25.26,Komatipoort,3,4,,Birthing peaks coincided with times of greatest inscect numbers and correspond to periods of peak rainfall
+"Viver & Van Der Merwe, 1997",Mops_condylurus,Molossidae,2,point,31.35,-24.59,Kruger national park,12,12,,Birthing peaks coincided with times of greatest inscect numbers and correspond to periods of peak rainfall
+"Viver & Van Der Merwe, 1997",Mops_condylurus,Molossidae,2,point,31.35,-24.59,Kruger national park,3,4,,Birthing peaks coincided with times of greatest inscect numbers and correspond to periods of peak rainfall
+"Happold & Happold, 1989",Mops_condylurus,Molossidae,2,point,34.46,-16.13,"Malawi, Lengwe",11,12,,
+"Happold & Happold, 1989",Mops_condylurus,Molossidae,2,point,34.46,-16.13,"Malawi, Lengwe",2,4,,
+"O'Shea &Vaughan, 1980",Mops_condylurus,Molossidae,2,poly,38.7,-2.18,"Kenya, Masalini",11,12,,lat is off by ~.5
+"O'Shea &Vaughan, 1980",Mops_condylurus,Molossidae,2,poly,38.7,-2.18,"Kenya, Masalini",3,5,,
+"Mutere, 1973",Mops_condylurus,Molossidae,2,poly,32.5,0.43,"Uganda, Bukalasa",7,9,,
+"Mutere, 1973",Mops_condylurus,Molossidae,2,poly,32.5,0.43,"Uganda, Bukalasa",2,4,,
+"Bernard & Tsita, 1995",Tadarida_aegyptiaca,Molossidae,2,point,26.3,-33.2,Grahamstown Eastern Cape Province S. Africa,12,12,,
+Cotterill & Ferguson 1993,Tadarida_fulminans,Molossidae,2,point,31.15,-17.3,"Chikupu Caves, NE Zimbabwe",5,7,,
+Cotterill & Ferguson 1993,Tadarida_fulminans,Molossidae,2,point,31.15,-17.3,"Chikupu Caves, NE Zimbabwe",11,12,,
+"van der Merwe et al, 1986; 1987",Chaerephon_pumila,Molossidae,2,point,27.46,-25.54,Uitkomst S. Africa,3,4,,in the genus Chaerephon
+"van der Merwe et al, 1986; 1987",Chaerephon_pumila,Molossidae,2,point,27.46,-25.54,Uitkomst S. Africa,11,12,,in the genus Chaerephon
+"Happold & Happold, 1989",Chaerephon_pumila,Molossidae,2,point,34.46,-16.13,,1,3,,in the genus Chaerephon
+"Happold & Happold, 1990",Chaerephon_pumila,Molossidae,2,point,34.46,-16.13,,11,12,,in the genus Chaerephon
+"Mutere, 1973b",Chaerephon_pumila,Molossidae,2,point,32.46,0.6,"Entebbe, Uganda",1,3,,in the genus Chaerephon
+"Mutere, 1973b",Chaerephon_pumila,Molossidae,2,point,32.46,0.6,"Entebbe, Uganda",7,9,,in the genus Chaerephon
+McWillian 1987c,Chaerephon_pumila,Molossidae,2,point,-1.15,9.15,,6,7,,in the genus Chaerephon
+McWillian 1987c,Chaerephon_pumila,Molossidae,2,point,-1.15,9.15,,8,9,,in the genus Chaerephon
+McWillian 1987c,Chaerephon_pumila,Molossidae,2,point,-1.15,9.15,,11,12,,in the genus Chaerephon
+"Mutere, 1967",Eidolon_helvum,Pteropodidae,1,point,32,0,Kampalla,2,4,,
+"Thomas, 1983",Eidolon_helvum,Pteropodidae,1,point,-4.05,5.38,Abidjan Ivory Coast* Fixed to be inland,2,4,,
+"Fayenuwo & Halstead, 1974",Eidolon_helvum,Pteropodidae,1,point,4.36,7.24,Ife Campus,4,5,,
+"Fayenuwo & Halstead, 1974",Eidolon_helvum,Pteropodidae,1,point,4.36,7.24,Ife Campus,11,12,,
+Fummilayo 1979,Eidolon_helvum,Pteropodidae,1,point,4.36,7.24,,4,6,,
+"Coe, 1975",Epomophorus_gambianus,Pteropodidae,1,point,-8.31,7.31,,7,9,,
+"Coe, 1975",Epomophorus_gambianus,Pteropodidae,1,point,-8.31,7.31,,11,12,,
+"Thomas & Marshall, 1984",Epomophorus_gambianus,Pteropodidae,1,point,-3.35,9.5,Ivory Coast,4,5,,
+"Thomas & Marshall, 1984",Epomophorus_gambianus,Pteropodidae,1,point,-3.35,9.5,Ivory Coast,10,11,,
+"Marshall & McWilliams, 1982",Epomophorus_gambianus,Pteropodidae,1,pont,1.75,10,Mole National Park N.E. Ghana,4,5,,
+"Okia, 1974",Epomophorus_labiatus,Pteropodidae,1,point,33,0.5,"Entebbe, Uganda",2,4,,epomophorus anurus ancestral name
+"Okia, 1974",Epomophorus_labiatus,Pteropodidae,1,point,33,0.5,"Entebbe, Uganda",8,10,,epomophorus anurus ancestral name
+Wikler & Seibt 1976,Epomophorus_wahlbergi,Pteropodidae,1,point,39.7,-3.82,Kikambala Kenya ,1,2,,
+"Thomas & Marshall, 1984",Epomops_buettikoferi,Pteropodidae,1,point,-5.02,6.13,Latmo,3,5,,
+"Thomas & Marshall, 1984",Epomops_buettikoferi,Pteropodidae,1,point,-5.02,6.13,Latmo,9,11,,
+"Kofron & Chapman, 1994",Epomops_buettikoferi,Pteropodidae,1,point,-9.54,7.03,Cuttington University College liberia *(differs from Bernard&Cumming paper location),2,4,,
+"Kofron & Chapman, 1994",Epomops_buettikoferi,Pteropodidae,1,point,-9.54,7.03,Cuttington University College liberia *(differs from Bernard&Cumming paper location),8,10,,
+"Bergmans, 1979",Epomops_franqueti,Pteropodidae,1,poly,12.86,-3.18,Congo*Averaged from shapefile centroids,9,10,,
+"Bergmans, 1979",Epomops_franqueti,Pteropodidae,1,poly,12.86,-3.18,Congo*Averaged from shapefile centroids,3,4,,
+"King & Dallimer, 2010",Epomops_franqueti,Pteropodidae,1,poly,15.28,-3.16,Lesio-Louna,1,3,,
+"King & Dallimer, 2010",Epomops_franqueti,Pteropodidae,1,poly,15.28,-3.16,Lesio-Louna,7,9,,
+"Okia, 1974",Epomops_franqueti,Pteropodidae,1,point,32,0.5,"Entebbe, Uganda",9,10,,
+"Okia, 1974",Epomops_franqueti,Pteropodidae,1,point,32,0.5,"Entebbe, Uganda",3,4,,
+"Kingdon, 1974",Hypsignathus_Monstrosus ,Pteropodidae,1,poly,30.02,7.34,"Congo, Gambon, Bwamba*",2,3,,"*placeholder coords set to ""bwamba Uganda"""
+"Kingdon, 1974",Hypsignathus_Monstrosus ,Pteropodidae,1,poly,30.02,7.34,"Congo, Gambon, Bwamba*",7,8,,"*placeholder coords set to ""bwamba Uganda"""
+"Wolton et al., 1982",Hypsignathus_Monstrosus ,Pteropodidae,1,poly,-8.41,7.62,Mount Nimbia Liberia,8,10,,Peak fo the rainy season
+"Wolton et al., 1982",Hypsignathus_Monstrosus ,Pteropodidae,1,poly,-8.41,7.62,Mount Nimbia Liberia,11,12,,peak at the end of the rains
+"Bergmans, 1979",Micropteropus_pusillus,Pteropodidae,1,poly,12.86,-3.18,Congo* Averaged from shapefile centroids,2,3,,
+"Bergmans, 1979",Micropteropus_pusillus,Pteropodidae,1,poly,12.86,-3.18,Congo*Averaged from shapefile centroids,9,10,,
+Okia 1987,Micropteropus_pusillus,Pteropodidae,1,point,34,1.3,"Sore, Ughanda",3,4,,
+"Vershuren, 1957",Micropteropus_pusillus,Pteropodidae,1,poly,29.34,4.13,North Eastern Ziare *point taken from what is now Parc National de la Garamba,11,12,,Paper in French (info derived from Owen-Ashley)
+"Vershuren, 1957",Micropteropus_pusillus,Pteropodidae,1,poly,29.34,4.13,North Eastern Ziare *point taken from what is now Parc National de la Garamba,3,3,,
+"Thomas & Marshall, 1984",Micropteropus_pusillus,Pteropodidae,1,poly,-5.02,6.13,Lamto,3,5,,Major and Minor Rains
+"Thomas & Marshall, 1984",Micropteropus_pusillus,Pteropodidae,1,poly,-5.02,6.13,Lamto,9,11,,Major and Minor Rains
+"Marshall & McWilliams, 1982",Micropteropus_pusillus,Pteropodidae,1,point,-1.75,10,Mole National Park N.E. Ghana,4,5,,Beging of rains
+"Marshall & McWilliams, 1982",Micropteropus_pusillus,Pteropodidae,1,point,-1.75,10,Mole National Park N.E. Ghana,9,10,,End of rains
+Walker's bats of the world,Micropteropus_pusillus,Pteropodidae,1,poly,29.51,4.18,Garamba National Park Zaire,3,3,,
+Walker's bats of the world,Micropteropus_pusillus,Pteropodidae,1,poly,29.51,4.18,Garamba National Park Zaire,11,13,,
+"Bergmans, 1976",Myonycteris_torquata,Pteropodidae,1,Poly,10.19,-1.13,Gabon*Averaged from shapefile centroids,12,2,,Captive derived from Brossett 66
+"Bergmans, 1976",Myonycteris_torquata,Pteropodidae,1,poly,10.19,-1.13,Gabon*Averaged from shapefile centroids,6,7,,Captive derived from Brossett 67
+"Thomas, 1983",Myonycteris_leptodon,Pteropodidae,1,point,-7,5.3,Tai Foest,2,4,,
+"Thomas, 1983",Myonycteris_leptodon,Pteropodidae,1,point,-5.02,6.13,Lamto,8,10,,
+"Thomas, 1983",Myonycteris_leptodon,Pteropodidae,1,point,-5.02,6.13,Lamto,2,4,,
+"Wolton et al., 1982",Myonycteris_leptodon,Pteropodidae,1,point,-8.41,7.62,,8,10,,
+"Wolton et al., 1982",Nanonycteris_veldkampi,Pteropodidae,1,point,-8.41,7.62,,11,12,,
+"Marshall & McWilliams, 1982",Nanonycteris_veldkampi,Pteropodidae,1,point,1.75,10,Mole National Park N.E. Ghana,5,6,,"additional cite Mickleburgh et al., 1992"
+"Hertzig-Straschil & Robinson, 1978",Rousettus_aegyptiacus,Pteropodidae,1,point,23.54,-33.98,"Tsitsikama Coastal National Park, South Africa* Fixed to be on land",11,12,,
+"Jacobsen & Du Plessis, 1976",Rousettus_aegyptiacus,Pteropodidae,1,poly,27.26,-25.66,"Taransvaal, South Africa (point taken from town on Google Maps)",11,12,,
+"Penzhorn & Rautenbach, 1988",Rousettus_aegyptiacus,Pteropodidae,1,point,30.16,-22.25,,10,12,,
+Adam & Le Pont,Rousettus_aegyptiacus,Pteropodidae,1,poly,12.86,-3.18,Congo*Averaged from shapefile centroids,8,9,,"Captured wild, gave birth in captivity"
+Adam & Le Pont,Rousettus_aegyptiacus,Pteropodidae,1,poly,12.86,-3.18,Congo*Averaged from shapefile centroids,11,12,,"Captured wild, gave birth in captivity"
+"Kingdon, 1974",Rousettus_aegyptiacus,Pteropodidae,1,pont,31.75,-0.33,Masaka,3,4,,
+"Kingdon, 1974",Rousettus_aegyptiacus,Pteropodidae,1,pont,31.75,-0.33,Masaka,9,10,,
+"Mutere, 1968 ",Rousettus_aegyptiacus,Pteropodidae,1,point,32,-0.22,"Kasokero, Uganda",3,4,,
+"Mutere, 1968 ",Rousettus_aegyptiacus,Pteropodidae,1,point,32,-0.22,"Kasokero, Uganda",9,10,,
+"Okia, 1987",Rousettus_aegyptiacus,Pteropodidae,1,point,32,0.22,Kasokero caves,3,4,,
+"Okia, 1987",Rousettus_aegyptiacus,Pteropodidae,1,point,32,0.22,Kasokero caves,9,10,,
+"Kingdon, 1974",Rousettus_aegyptiacus,Pteropodidae,1,pont,36.08,0.62,"Lake Baingo, Kenya",7,9,,
+"Kingdon, 1974",Rousettus_aegyptiacus,Pteropodidae,1,pont,34.55,1.15,Mt. Elgon,3,4,,
+"Kingdon, 1974",Rousettus_aegyptiacus,Pteropodidae,1,pont,34.55,1.15,Mt. Elgon,9,10,,
+"Coe, 1975",Rousettus_aegyptiacus,Pteropodidae,1,poly,-8.31,7.31,Liberia,12,12,,
+"Anderson & de Winton, 1902",Rousettus_aegyptiacus,Pteropodidae,1,poly,31.89,27.81,Egypt*Averaged from shapefile centroids,2,4,,
+"Happold & Happold, 1990",Rhinolophus_basii,Rhinolophidae,3,point,34.5,-15.2,,11,1,,
+"Bernard, 1985",Rhinolophus_capensis,Rhinolophidae,3,point,26.25,-33.17,Table far Cape Province S. Africa,11,12,,
+"Bernard, 1983; Laycock 1978",Rhinolophus_clivosus,Rhinolophidae,3,point,30.19,-29.48,*point stolen from below,11,12,,*Not sure how to get a hold of
+"Menzies, 1973",Rhinolophus_landeri,Rhinolophidae,3,point,4.58,10.5,Location now under water ,4,6,,
+"Bernard, 1994",Miniopterus_natalensis,Miniopteridae,3,,25.17,-33.58,East cape Region,12,12,,
+"Bernard, 1980",Miniopterus_natalensis,Miniopteridae,3,,19.36,-29,"**Infered from meta-data, point taken from Riemvasmaak communit conservacy in SouthAfrica",11,12,,
+van der Merwe 1979,Miniopterus_natalensis,Miniopteridae,3,point,28.01,-24.37,Averavge of mines mentioned,11,12,,
+"Bernard et al., 1996",Miniopterus_natalensis,Miniopteridae,3,point,29.25,-18.18,Empress Mine Zimbabwe,10,12,,
+Bernard 1982b,Myotis_tricolor,Vespertilionidae,3,point,30.19,-29.48,Natal Midlands S. Africa,11,12,,
+"van der Merwe, 2007",Neoromicia_nanus,Vespertilionidae,3,pont,31.3,-25.3,"Mpumalanga Lowveld, South Africa",11,12,,
+"LaVal & LaVal, 1977",Neoromicia_nanus,Vespertilionidae,3,point,31.49,-28.55,Natal Port Durnford Forest Reserve,11,12,,
+"Bernard et al., 1997",Neoromicia_nanus,Vespertilionidae,3,point,35.16,-15.2,Shire Highlands of se Malawi,11,12,,
+"O'shea &Vaughan, 1980",Neoromicia_nanus,Vespertilionidae,3,point,38.7,-2.18,Masalani Kenya,11,12,,
+"Van der Merwe & Rautenbach, 1990",Pipistrellus_rusticus,Vespertilionidae,3,point,28.09,-23.52,"Lapalala Wilderness Area, Vaakwater district S. Africa",11,12,,
+"Van der Merwe et al, 1988",Scotophilus_borbonicus,Vespertilionidae,3,point,30.16,-22.25,Kruger National Park,11,12,,
+"van der Merwe, 2006",Scotophilus_dinganii,Vespertilionidae,3,pont,30.16,-22.25,"Pafuri Region, Kruger National Park",11,12,,
+"Okia, 1987",Scotophilus_dinganii,Vespertilionidae,3,point,32,0.22,Kasokero caves,4,5,,
+"Okia, 1987",Scotophilus_dinganii,Vespertilionidae,3,point,32,0.22,Kasokero caves,11,12,,

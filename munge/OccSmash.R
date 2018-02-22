@@ -50,7 +50,7 @@ if(length(list.files(file.path(clean.dir), pattern = "*Occ.csv")) == 3 ){
   #### Occurrence/Absence ####
   library(dplyr)
   #Read Complete dataframe
-  dat <- read.csv(file.path(data.source, "BreedingDB_AM.csv"))
+  dat <- read.csv(file.path("data", "afrBatBirthDB.csv"))
   
   #Subset into classes from Cummings and Bernard 1997
   ptr <- filter(dat, Class==1)

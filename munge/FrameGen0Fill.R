@@ -1,5 +1,4 @@
 ## Creating the Super frame 
-clean.env <- list(ls())
 
 ## Need to create long format dataframe for regression analysis of ebola outbreak events 
 source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
@@ -249,5 +248,3 @@ long.table.full <- long.table.br %>%
          NB_lDiv = log((Mam_sum - (Mega_sum + Molo_sum + Micro_sum))+1))
 
 fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))
-#Clean env
-rm(list = setdiff(clean.env,ls()))
