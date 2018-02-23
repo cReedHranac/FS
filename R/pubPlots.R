@@ -34,7 +34,7 @@ ob.full$Org.smp <- as.factor(ob.full$Org.smp)
 
 z <- list()
 for(i in 1:nrow(ob.full)){
-  ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] < "animal")  
+  ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] <-  "animal")  
 }
 
 # library(devtools)
@@ -152,30 +152,26 @@ library(zoo)
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
-ob.a$Month.Start <- as.factor(ob.a$Month.Start)
 
-## Build offset size
-off.list <- list()
-img.T <- list()
-col.T <- list()
-human.T <- list()
-for(i in 1:nrow(ob.T)){
-  j <- match(ob.a[i,"Org.smp"], levels(ob.a$Org.smp)) 
-  off.list[[i]] <- j ##Offset length
-  img.T[[i]] <- c.img[[j]] ## which image to use
-  col.T[[i]] <- cz[[j]] ##which color to use 
-  ifelse(j == 5, human.T[[i]] <- 1, human.T[[i]] <- -1) #directionality
-}
-ob.a$offset <- unlist(off.list) * unlist(human.T)
 
 ## Plot 
-## remove vertical lines 
-g.time <- ggplot()+
-  geom_segment(aes(x = Date, y = offset, xend = Date, color = Org.smp),
-               data = ob.a,yend = 0)+
+
+g.time <- ggplot(data = ob.a, aes(x= Date, y = 0))+
+  geom_point(data = dplyr::select(ob.a, Date), ## Grey points
+             aes(x = Date, y= 0, size = 1.25, alpha = .75),
+             color = "grey",
+             show.legend = F)+
+  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .75, size = 1.25),
+             show.legend = F)+
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
-               data = ob.a, arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
-  scale_x_yearmon(format = "%Y %m", n = 10) 
+                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
+  scale_x_yearmon(format = "%Y", n = 10) +
+  facet_wrap(~Org.smp, ncol = 1) + 
+  theme_bw() + 
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(), 
+        axis.ticks.y = element_blank())
+
 g.time
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
@@ -195,14 +191,20 @@ ob.hist$Month <- factor(format(ob.hist$Date, "%b"),
 
 ggplot(data=ob.hist)+ geom_bar(aes(x=Month,fill=Org.smp))+
   facet_wrap(~Org, nrow = 3) +
-    bkg
+    bkg + 
+  theme(
+    axis.ticks.x = element_blank()
+  )
 
 #### Figure 2 ####
 # Map pannel(s) with bat locations, pannel with collaped year joyplots
 
   ### Data #### 
-bi <- fread("D://Dropbox/FS/SourceData/BreedingDB__CHECK.csv")
-bi$Class <- as.factor(bi$Class)
+bi <- fread("data/afrBatBirthDB.csv")
+bi$Class <- factor(bi$Class,
+                      labels= c("Pteropodiae", "Molosidae", "Non-Molosid Microbats"))
+bi$Start <- factor(bi$Start,
+                   labels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 bi$long <- bi$Lon
 bi$lat <- bi$Lat
 
@@ -213,14 +215,7 @@ for (i in 1:nrow(bi)) {
   j <- match(bi$Class[i], levels(bi$Class))
   col.list[[i]] <- cols[[j]]
 }
-##Sub frames for smooth
 
-bi.tbl <- bi %>%
-  group_by(Class, Start) %>%
-  summarise(num = n())
-bi.ptr <- filter(bi.tbl, Class == 1)
-bi.mic <- filter(bi.tbl, Class == 3)
-bi.mol <- filter(bi.tbl, Class == 2)
 
 bi.t <- bi %>%
   group_by(Start) %>%
@@ -251,16 +246,15 @@ for(i in 1:nrow(bi)){
 bi.plot ## looks pretty good. still need to sort the ledgends though
 
 #### Pannel 2 Bar with Smooth ####
-bi.bar <- ggplot(data = bi)+ geom_bar(aes(x=Start, fill = Class)) +
-  facet_wrap(~Class, ncol = 1)
-  # geom_smooth(data = bi.ptr, aes(x=Start, y = num, color = Class)) #+
-  # geom_smooth(data = bi.mic, aes(x=Start, y = num, color = Class)) #+
-  # geom_smooth(data = bi.mol, aes(x=Start, y = num, color = Class)) 
-  # geom_smooth(data = bi.t, aes(x=Start, y = num))
-### Need to figure out this thing... total looks alright but broken by class it has 
-### huge margins
-
-
+bi.bar <- ggplot(data = bi)+
+  geom_bar(aes(x=Start, fill = Class),
+           show.legend = F) +
+  facet_wrap(~Class, ncol = 1, scales = "free") +
+  bkg +
+  theme(
+    axis.ticks.x = element_blank())
+  
+bi.bar
 #### Figure 3 BrithForce Model Results####
 # left column: 3 maps with the annual force of birthing surfaces
 # right column: stratafied seasonality smooths (pulses over the year within 5 classes?)
@@ -342,9 +336,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- crop(x[[1]], crop.extent)
   x.cv <- as.data.frame(rasterToPoints(x.crop))
-  colnames(x.cv)[3:ncol(x.cv)] <- c("January","February","March",
-                      "April","May","June","July","August","September",
-                      "October","November","December")
+  colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   x.df <- x.cv[complete.cases(x.cv),]
   bf.df <- x.df %>%
     gather("month","BF",3:14) %>%
@@ -352,9 +344,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
     group_by(strata, month) %>%
     summarise(bf.mean = mean(BF)) 
 
-   bf.df$month <-  factor(bf.df$month,levels=c("January","February","March",
-                                               "April","May","June","July","August","September",
-                                               "October","November","December"))
+   bf.df$month <-  factor(bf.df$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
   
   
   bf.ridge <- ggplot(data= bf.df, 

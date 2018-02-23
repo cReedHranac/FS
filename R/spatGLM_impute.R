@@ -300,6 +300,12 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.spatGLM[[1]])
+mod.stk <- do.call(stack, hum.dbl.imp.spatGLM[[3]])
+writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
+
+
+
 #### No Micro ####
 hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
@@ -312,9 +318,6 @@ hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.NM.spatGLM[[1]])
-mod.stk <- do.call(stack, hum.dbl.imp.NM.spatGLM[[3]])
-writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
-              bylayer = T, suffix = "numbers", overwrite = T)
 
 #### Animal Outbreaks ####
   #### Double Month ####
