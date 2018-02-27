@@ -300,6 +300,10 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.spatGLM[[1]])
+library(broom)
+hum.mod <- tidy(hum.dbl.imp.spatGLM[[1]])
+tz <- round(hum.mod[,2:ncol(hum.mod)], 2)
+cbind(hum.mod$term, tz)
 mod.stk <- do.call(stack, hum.dbl.imp.spatGLM[[3]])
 writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)

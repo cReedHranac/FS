@@ -158,10 +158,10 @@ ob.a <- ob.T %>%
 
 g.time <- ggplot(data = ob.a, aes(x= Date, y = 0))+
   geom_point(data = dplyr::select(ob.a, Date), ## Grey points
-             aes(x = Date, y= 0, size = 1.25, alpha = .75),
-             color = "grey",
+             aes(x = Date, y= 0, size = 1.25, alpha = .5),
+             color = "grey70", shape=20,
              show.legend = F)+
-  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .75, size = 1.25),
+  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5, size = 1.25),
              show.legend = F)+
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
                 arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
@@ -338,20 +338,22 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   x.cv <- as.data.frame(rasterToPoints(x.crop))
   colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   x.df <- x.cv[complete.cases(x.cv),]
+  x.df$Jan2 <- x.df$Jan
   bf.df <- x.df %>%
-    gather("month","BF",3:14) %>%
+    gather("month","BF",3:ncol(x.df)) %>%
     mutate(strata = cut(y, breaks = n.bin)) %>%
     group_by(strata, month) %>%
     summarise(bf.mean = mean(BF)) 
 
-   bf.df$month <-  factor(bf.df$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+   bf.df$month <-  factor(bf.df$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan2"))
   
   
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
     geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5) +
     scale_fill_gradient(low = "yellow", high = "red4",
-                        limits = c(0,max(bf.df$bf.mean)))
+                        limits = c(0,max(bf.df$bf.mean))) +
+    scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
     
     
     
@@ -364,11 +366,11 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
       panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                       colour = "white"),
       plot.title = element_text(hjust = 0.5),
-      axis.text.x = element_text(angle = 90, hjust = 1))
+      axis.text.x = element_text( hjust = .5))
   return(bf.ridge + bkg)
 }
 
-r.ptr <- BFridge(ptr.sum, 40)
+r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
 r.mic <- BFridge(mic.sum, 40)
 r.mol <- BFridge(mol.sum, 40)
 
@@ -404,6 +406,10 @@ bkg <- theme(
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                   colour = "white"),
   plot.title = element_text(hjust = 0.5))
+mylog = scales::trans_new('mylog',
+                          transform=function(x) { log(x+1) },
+                          inverse=function(x) { exp(x)-1 })
+
 ERgplot <- function(x, source.path = data.source){
   #### Set Up ####
   ## accessory layers
@@ -425,9 +431,9 @@ ERgplot <- function(x, source.path = data.source){
                  alpha = .25) +
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradient(name = "Risk", trans = "log10",
+    scale_fill_gradient(name = "Risk", trans = mylog,
                         low = "yellow", high = "red4",
-                        breaks = c(1e-10,.01,.05,.1,.2,.5))+
+                        breaks = c(1e-10,.0001,.005,.01,.2,.5))+
     #add area modeled
     geom_polygon(data = fortify(rf.poly),
                  aes(long, lat, group = group),
