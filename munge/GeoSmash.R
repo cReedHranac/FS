@@ -1,23 +1,27 @@
 ##Geo munge from source 
 source("R/helperFunctions.R")
-## African extent
+
+## African extent shapefile manipulations
 library(rgdal); library(rgeos); library(maptools)
 # afr <- readOGR(dsn = path.expand(file.path(data.source, "Africa")),
-#                layer = "AfricanCountires") 
-# afr <- gUnaryUnion(afr, id = afr@data$CONTINENT)
-# afr.sp <- as(afr, "SpatialPolygonsDataFrame")
-# class(afr.sp)
+#                layer = "AfricanCountires")
+# #only mainland zones & not madagascar either
+# afr <- afr[afr$Land_Type =="Primary land",]
+# afr <- afr[which(afr$COUNTRY %!in% c("Madagascar", "Seychelles")),]
+# afr.u <- gUnaryUnion(afr, id = afr$CONTINENT)
+# afr.sp <- as(afr.u, "SpatialPolygonsDataFrame")
 # 
 # writeOGR(afr.sp, dsn = path.expand(file.path(data.source, "Africa")),
-#          layer = "AfricaUnion", driver = "ESRI Shapefile")
-
-# afr.u <- readOGR(dsn = file.path(data.source, "Africa"),
-#                  layer = "AfricaUnion")
+#          layer = "AfricaUnion", driver = "ESRI Shapefile", overwrite_layer = T)
+# 
+afr.u <- readOGR(dsn = file.path(data.source, "Africa"),
+                 layer = "AfricaUnion")
 
 ##
 library(raster)
 
-  ##Method idea from Fhar 2016
+  ##Need to find where this comes from
+## define areas with >500mm rainfall
 # prec.wc <- file.path(data.source, "wc2.0_5m")
 # prec.ls <- lapply(paste0(prec.wc, "/", list.files(prec.wc)), raster)
 # prec.stk <- do.call(stack, prec.ls)
@@ -29,6 +33,8 @@ library(raster)
 #                        crs = proj4string(rf.mask.500), method = "ngb")
 # rf.c <- crop(rf.25, afr.u, snap = "out")
 # rf <- mask(rf.c, afr.u)
+# sub.ext <- extent(-20, 53, -36, 16)
+# rf.c <- crop(rf, sub.ext) ## removing north Africa
 # writeRaster(rf, paste0(data.source,"/cropMask.tif"), overwrite = T)
 crop.mask <- raster(paste0(data.source,"/cropMask.tif"))
 
@@ -61,12 +67,14 @@ writeRaster(bio.clean, paste0(clean.dir,"/", names(bio.clean),".tif"),
 rm(bclim, bio.ls, bio.stk, bio.clean)
 
 ## Diversity rasters Data generated from the IUCN Data set (see gen script)
-div <- file.path(data.source, "DiversityRasters")
-div.ls <- lapply(paste0(div,"/",list.files(div)),raster)
-div.stk <- do.call(stack, div.ls)
+source("munge/DiversityRasters.R")
+div.stk <- do.call(stack, c(ptr.beta, mic.beta, mol.beta, mam.beta))
+names(div.stk) <- c("ptr.div", "mic.div", "mol.div", "mam.div")
 div.clean <- mask(projectRaster(div.stk, crop.mask), crop.mask)
-writeRaster(div.clean, paste0(clean.dir,"/", names(div.clean),".tif"),
-            bylayer = T, overwrite = T)
+div.clean$nBm.div <- div.clean$mam.div - 
+  (div.clean$ptr.div + div.clean$mic.div + div.clean$mol.div)
+writeRaster(div.clean, file.path(clean.dir), format = "GTiff", 
+            bylayer = T, overwrite = T, suffix = "names")
 rm(div, div.ls, div.stk, div.clean)
 
 ## Potential Evapotransporation See read me for info
