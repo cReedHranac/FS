@@ -55,7 +55,7 @@ staticStkLoad <- function(path.to.dir = clean.dir){
   require(raster)
   
   static <- c( sub.files <- paste0("bio",c(2,4,7,15),".tif"), #BClim subset
-               list.files(clean.dir, pattern = "*_sum.tif"),  #Diversity Rasters
+               list.files(clean.dir, pattern = "*.div.tif")[c(2:5)],  #Diversity Rasters
                "LandCover.tif")                               #LandCover
   stk <- do.call(stack, lapply(file.path(clean.dir, static), raster))
   assign("static.stk", stk, envir = .GlobalEnv)

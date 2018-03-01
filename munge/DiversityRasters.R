@@ -99,4 +99,4 @@ mam.beta <- betaNator(all.mam)
 ### Clean ####
 c.list <- c(mega, mega.genera, molo, molo.genera, micro, micro.genera, chiro, 
             chiro.genera, mam, mega.not.found, micro.not.found, molo.not.found)
-rm(list= c.list)
+rm(c.list)

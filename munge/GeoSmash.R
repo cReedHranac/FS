@@ -22,20 +22,20 @@ library(raster)
 
   ##Need to find where this comes from
 ## define areas with >500mm rainfall
-# prec.wc <- file.path(data.source, "wc2.0_5m")
-# prec.ls <- lapply(paste0(prec.wc, "/", list.files(prec.wc)), raster)
-# prec.stk <- do.call(stack, prec.ls)
-# prec.ann <- sum(prec.stk)
-# #Create mask
-# m <-c(-1,500,NA, 500,cellStats(prec.ann, max),1)
-# rf.mask.500 <- reclassify(prec.ann,m)
-# rf.25 <- projectRaster(rf.mask.500, res = c(res(rf.mask.500)*2.5),
-#                        crs = proj4string(rf.mask.500), method = "ngb")
-# rf.c <- crop(rf.25, afr.u, snap = "out")
-# rf <- mask(rf.c, afr.u)
-# sub.ext <- extent(-20, 53, -36, 16)
-# rf.c <- crop(rf, sub.ext) ## removing north Africa
-# writeRaster(rf, paste0(data.source,"/cropMask.tif"), overwrite = T)
+prec.wc <- file.path(data.source, "wc2.0_5m")
+prec.ls <- lapply(paste0(prec.wc, "/", list.files(prec.wc)), raster)
+prec.stk <- do.call(stack, prec.ls)
+prec.ann <- sum(prec.stk)
+#Create mask
+m <-c(-1,500,NA, 500,cellStats(prec.ann, max),1)
+rf.mask.500 <- reclassify(prec.ann,m)
+rf.25 <- projectRaster(rf.mask.500, res = c(res(rf.mask.500)*2.5),
+                       crs = proj4string(rf.mask.500), method = "ngb")
+rf.c <- crop(rf.25, afr.u, snap = "out")
+rf <- mask(rf.c, afr.u)
+sub.ext <- extent(-20, 53, -36, 16)
+rf.c <- crop(rf, sub.ext) ## removing north Africa
+writeRaster(rf.c, paste0(data.source,"/cropMask.tif"), overwrite = T)
 crop.mask <- raster(paste0(data.source,"/cropMask.tif"))
 
 ## RainFall Data Sourced from worldclim
@@ -75,7 +75,7 @@ div.clean$nBm.div <- div.clean$mam.div -
   (div.clean$ptr.div + div.clean$mic.div + div.clean$mol.div)
 writeRaster(div.clean, file.path(clean.dir), format = "GTiff", 
             bylayer = T, overwrite = T, suffix = "names")
-rm(div, div.ls, div.stk, div.clean)
+rm( div.stk, div.clean)
 
 ## Potential Evapotransporation See read me for info
 pet <- file.path(data.source, "PET_he_monthly")

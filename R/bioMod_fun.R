@@ -62,13 +62,13 @@ bioMod <- function(mod.id, occ.db, nrep = 5, run.id, dbl = T,...){
   myBiomodOption <- BIOMOD_ModelingOptions(MAXENT.Phillips = list(path_to_maxent.jar = getwd(),
                                                                   memory_allocated = 4096,
                                                                   maximumiterations = 1000))
+  
   ## Send to log
   cat(capture.output(myBiomodOption), file = out.log, fill = T, append = T)
   #### Modeling ####
   myBiomodModelOut <- BIOMOD_Modeling(myBiomodData,
                                       models = c('GLM','CTA','ANN','GBM',
-                                                 'SRE','FDA','RF','MAXENT.Phillips',
-                                                 "MAXENT.Tsuruoka"),
+                                                 'SRE','FDA','RF'),
                                       models.options = myBiomodOption,
                                       NbRunEval= nrep,
                                       DataSplit=70,
