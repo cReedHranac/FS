@@ -1,22 +1,22 @@
 #### Force of birthing rasters ####
 source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
 # #### Breeding probability rasters without imputation ####
-ptr.sng.raw <- resRasterLoad("ptr", "SNG_2",F,  mod.out.dir)
-mic.sng.raw <- resRasterLoad("mic", "SNG_2",F,  mod.out.dir)
-mol.sng.raw <- resRasterLoad("mol", "SNG_2",F,  mod.out.dir)
+ptr.sng.raw <- resRasterLoad("ptr", "SNG_3",F,  mod.out.dir)
+mic.sng.raw <- resRasterLoad("mic", "SNG_3",F,  mod.out.dir)
+mol.sng.raw <- resRasterLoad("mol", "SNG_3",F,  mod.out.dir)
 
-ptr.dbl.raw <- resRasterLoad("ptr", "DBL_2",T,  mod.out.dir)
-mic.dbl.raw <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
-mol.dbl.raw <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
+ptr.dbl.raw <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
+mic.dbl.raw <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
+mol.dbl.raw <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
 
 #### Adding 0 where necessary ####
-ptr.sng.imp <- resRasterLoad("ptr", "SNG_2",F,  mod.out.dir)
-mic.sng.imp <- resRasterLoad("mic", "SNG_2",F,  mod.out.dir)
-mol.sng.imp <- resRasterLoad("mol", "SNG_2",F,  mod.out.dir)
+ptr.sng.imp <- resRasterLoad("ptr", "SNG_3",F,  mod.out.dir)
+mic.sng.imp <- resRasterLoad("mic", "SNG_3",F,  mod.out.dir)
+mol.sng.imp <- resRasterLoad("mol", "SNG_3",F,  mod.out.dir)
 
-ptr.dbl.imp <- resRasterLoad("ptr", "DBL_2",T,  mod.out.dir)
-mic.dbl.imp <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
-mol.dbl.imp <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
+ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
+mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
+mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
 #
 ## iterates through all classes, checks which ones exist, and deals with them appropriatly where they do not
 tax <- c("ptr", "mol", "mic")
@@ -54,7 +54,7 @@ for(i in 1:length(tax)){
 }
 
 div.stk <- do.call(stack,
-                   lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*_sum.tif")),
+                   lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*.div.tif")[c(2,3,5)]),
                            raster))
 
 
@@ -113,9 +113,9 @@ div.stk <- do.call(stack,
  }
 
  ## add force of birthing
- p.stks.br <- lapply(p.stks, br.force, y = div.stk$Mega_sum, write = T)
- mi.stks.br <- lapply(mi.stks, br.force, y = div.stk$Micro_sum, write = T)
- mo.stks.br <- lapply(mo.stks, br.force, y = div.stk$Molo_sum, write = T)
+ p.stks.br <- lapply(p.stks, br.force, y = div.stk$ptr.div, write = T)
+ mi.stks.br <- lapply(mi.stks, br.force, y = div.stk$mic.div, write = T)
+ mo.stks.br <- lapply(mo.stks, br.force, y = div.stk$mol.div, write = T)
 
 ## check to make sure the length of above is correct ##
 # sum(unlist(lapply(c(p.stks,mo.stks, mi.stks),function(x)(sum(nlayers(x))))))

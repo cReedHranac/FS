@@ -294,8 +294,8 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                                          "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                          "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                          "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                         "logPop", "OB_ann_imp", "NB_lDiv",
-                                         "fragIndex", "OB_ann_imp_1","month",
+                                         "logPop", "OB_ann_imp", "lnBm.div",
+                                         "lFrag", "OB_ann_imp_1","month",
                                          "OB_hum_imp",  "x", "y", "cell"),
                               dat= dat)
 

@@ -22,20 +22,20 @@ library(raster)
 
   ##Need to find where this comes from
 ## define areas with >500mm rainfall
-prec.wc <- file.path(data.source, "wc2.0_5m")
-prec.ls <- lapply(paste0(prec.wc, "/", list.files(prec.wc)), raster)
-prec.stk <- do.call(stack, prec.ls)
-prec.ann <- sum(prec.stk)
-#Create mask
-m <-c(-1,500,NA, 500,cellStats(prec.ann, max),1)
-rf.mask.500 <- reclassify(prec.ann,m)
-rf.25 <- projectRaster(rf.mask.500, res = c(res(rf.mask.500)*2.5),
-                       crs = proj4string(rf.mask.500), method = "ngb")
-rf.c <- crop(rf.25, afr.u, snap = "out")
-rf <- mask(rf.c, afr.u)
-sub.ext <- extent(-20, 53, -36, 16)
-rf.c <- crop(rf, sub.ext) ## removing north Africa
-writeRaster(rf.c, paste0(data.source,"/cropMask.tif"), overwrite = T)
+# prec.wc <- file.path(data.source, "wc2.0_5m")
+# prec.ls <- lapply(paste0(prec.wc, "/", list.files(prec.wc)), raster)
+# prec.stk <- do.call(stack, prec.ls)
+# prec.ann <- sum(prec.stk)
+# #Create mask
+# m <-c(-1,500,NA, 500,cellStats(prec.ann, max),1)
+# rf.mask.500 <- reclassify(prec.ann,m)
+# rf.25 <- projectRaster(rf.mask.500, res = c(res(rf.mask.500)*2.5),
+#                        crs = proj4string(rf.mask.500), method = "ngb")
+# rf.c <- crop(rf.25, afr.u, snap = "out")
+# rf <- mask(rf.c, afr.u)
+# sub.ext <- extent(-20, 53, -36, 16)
+# rf.c <- crop(rf, sub.ext) ## removing north Africa
+# writeRaster(rf.c, paste0(data.source,"/cropMask.tif"), overwrite = T)
 crop.mask <- raster(paste0(data.source,"/cropMask.tif"))
 
 ## RainFall Data Sourced from worldclim
@@ -116,10 +116,10 @@ pop.den <- raster(file.path(data.source, "af_gpwv3_pdens_00_ascii_25", "afds00ag
 proj4string(pop.den) <- proj4string(crop.mask)
 pop.prj <- projectRaster(pop.den, crop.mask)
 pop.m <- mask(pop.prj, crop.mask)
-writeRaster(pop.m, file.path(clean.dir,"popDen.tif"), format = "GTiff")
+writeRaster(pop.m, file.path(clean.dir,"popDen.tif"), format = "GTiff", overwrite = T)
 
 ## Fragmentation index
 frag <- raster(file.path(data.source, "fragIndexSourceRes.tif"))
 frag.prj <- projectRaster(frag, crop.mask)
 frag.m <- mask(frag.prj, crop.mask)
-writeRaster(frag.m, file.path(clean.dir, "fragIndex.tif"), format = "GTiff")
+writeRaster(frag.m, file.path(clean.dir, "fragIndex.tif"), format = "GTiff", overwrite = T)

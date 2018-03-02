@@ -1,7 +1,7 @@
 #### Extracting and forming the results from biomod modeling ####
 source("R/helperFunctions.R")
 library(dplyr)
-mod.path <- file.path(mod.out.dir, "DBL_2")
+mod.path <- file.path(mod.out.dir, "DBL_3")
 m.list <- list.dirs(mod.path, recursive = F, full.names = F)
 m.path <- list.dirs(mod.path, recursive = F)
 

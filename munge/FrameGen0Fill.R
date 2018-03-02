@@ -23,22 +23,22 @@ ann.stk <- do.call(stack, lapply(
   ,raster))
 
 #### Breeding probability rasters without imputation #### 
-ptr.sng.raw <- resRasterLoad("ptr", "SNG_2",F,  mod.out.dir)
-mic.sng.raw <- resRasterLoad("mic", "SNG_2",F,  mod.out.dir)
-mol.sng.raw <- resRasterLoad("mol", "SNG_2",F,  mod.out.dir)
+ptr.sng.raw <- resRasterLoad("ptr", "SNG_3",F,  mod.out.dir)
+mic.sng.raw <- resRasterLoad("mic", "SNG_3",F,  mod.out.dir)
+mol.sng.raw <- resRasterLoad("mol", "SNG_3",F,  mod.out.dir)
 
-ptr.dbl.raw <- resRasterLoad("ptr", "DBL_2",T,  mod.out.dir)
-mic.dbl.raw <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
-mol.dbl.raw <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
+ptr.dbl.raw <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
+mic.dbl.raw <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
+mol.dbl.raw <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
 
 #### Adding 0 where necessary ####
-ptr.sng.imp <- resRasterLoad("ptr", "SNG_2",F,  mod.out.dir)
-mic.sng.imp <- resRasterLoad("mic", "SNG_2",F,  mod.out.dir)
-mol.sng.imp <- resRasterLoad("mol", "SNG_2",F,  mod.out.dir)
+ptr.sng.imp <- resRasterLoad("ptr", "SNG_3",F,  mod.out.dir)
+mic.sng.imp <- resRasterLoad("mic", "SNG_3",F,  mod.out.dir)
+mol.sng.imp <- resRasterLoad("mol", "SNG_3",F,  mod.out.dir)
 
-ptr.dbl.imp <- resRasterLoad("ptr", "DBL_2",T,  mod.out.dir)
-mic.dbl.imp <- resRasterLoad("mic", "DBL_2",T,  mod.out.dir)
-mol.dbl.imp <- resRasterLoad("mol", "DBL_2",T,  mod.out.dir)
+ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
+mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
+mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
 
 tax <- c("ptr", "mol", "mic")
 rf <- raster(file.path(data.source, "cropMask.tif"))
@@ -79,7 +79,7 @@ for(i in 1:length(tax)){
 pop.den <- raster(file.path(clean.dir, "popDen.tif"))
 land.cover <- raster(file.path(clean.dir, "LandCover.tif"))
 div.stk <- do.call(stack, 
-                   lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*_sum.tif")),
+                   lapply(file.path(clean.dir, list.files(clean.dir, pattern = "*.div.tif")[2:5]),
                           raster))
 frag <- raster(file.path(clean.dir, "fragIndex.tif"))
 sttc.stk <- do.call(stack, c(pop.den, land.cover, div.stk, frag))
@@ -173,7 +173,6 @@ long.table <- left_join(long.table, xy, "cell")
 
 #### Add force of breeding ####
 tax <- c("ptr", "mic", "mol") #taxonomic group
-tx <- c("Mega", "Micro", "Molo")
 grp <- c("sng", "dbl") #temporal grouping
 hndl <- c("raw", "imp") #handle as raw or imputed
 
@@ -184,7 +183,7 @@ for(i in 1:length(tax)){ #tax
     for(k in 1:length(hndl)){ #handle
       nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "BR",sep="_")
       breed.prob <- paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")
-      class.div <- paste0(tx[[i]],"_sum")
+      class.div <- paste0(tax[[i]],".div")
       item[[q]] <- long.table %>% 
         mutate_(.dots = setNames(list(lazyeval::interp(~log(breed.prob * class.div + 1),
                                                        breed.prob = as.name(breed.prob),
@@ -245,6 +244,7 @@ lagz <- as.data.table(do.call(cbind, item))
 long.table.full <- long.table.br %>%
   bind_cols(lagz) %>%
   mutate(logPop = log(popDen + 1),
-         NB_lDiv = log((Mam_sum - (Mega_sum + Molo_sum + Micro_sum))+1))
+         lFrag = log(fragIndex +1),
+         lnBm.div = log(nBm.div +1))
 
 fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))

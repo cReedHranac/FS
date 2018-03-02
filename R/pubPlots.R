@@ -407,8 +407,8 @@ bkg <- theme(
                                   colour = "white"),
   plot.title = element_text(hjust = 0.5))
 mylog = scales::trans_new('mylog',
-                          transform=function(x) { log(x+1) },
-                          inverse=function(x) { exp(x)-1 })
+                          transform=function(x) { log(x+1e-5) },
+                          inverse=function(x) { exp(x)-1e-5})
 
 ERgplot <- function(x, source.path = data.source){
   #### Set Up ####
@@ -431,9 +431,10 @@ ERgplot <- function(x, source.path = data.source){
                  alpha = .25) +
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradient(name = "Risk", trans = mylog,
-                        low = "yellow", high = "red4",
-                        breaks = c(1e-10,.0001,.005,.01,.2,.5))+
+    scale_fill_gradientn(name = "Risk", trans = mylog,
+                         colors = terrain.colors(10)) +
+                        # low = "yellow", high = "red4",
+                        # breaks = c(1e-4,.01, .05, .07, .1))+
     #add area modeled
     geom_polygon(data = fortify(rf.poly),
                  aes(long, lat, group = group),
@@ -452,7 +453,7 @@ ERgplot <- function(x, source.path = data.source){
 
 hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
-
+risk.plot
 #### Pannel 2 (Right) ####
 library(ggridges)
 sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
