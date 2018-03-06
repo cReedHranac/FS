@@ -152,7 +152,7 @@ library(zoo)
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
-## Functions to sort the phylo pics accordingly 
+## Functions to sort the phylo pics accordingly addapted from https://stackoverflow.com/questions/27637455/display-custom-image-as-geom-point
 library(grid)
 library(EBImage)
 RlogoGrob <- function(x, y, size, img, col, alpha) {
@@ -450,26 +450,18 @@ mylog = scales::trans_new('mylog',
 
 
 
+afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
+                    layer = "AfricanCountires")
+rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
+                            fun = function(x){x==1}, dissolve = T)
 
-ERgplot <- function(x, source.path = data.source){
-  #### Set Up ####
-  ## accessory layers
-  afr.poly <- readOGR(dsn = file.path(source.path, "Africa"),
-                      layer = "AfricanCountires")
-  rf.poly <- rasterToPolygons(raster(file.path(source.path, "cropMask.tif")),
-                              fun = function(x){x==1}, dissolve = T)
-  
+ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Risk")
   sum.df$Risk <- round(sum.df$Risk, 3)
   g.plot <- ggplot(sum.df) +
     
-    #create african continent background
-    geom_polygon(data = fortify(afr.poly),
-                 aes(long, lat, group = group), 
-                 colour = "grey20",
-                 alpha = .25) +
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
     scale_fill_gradientn(name = "Risk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
@@ -477,13 +469,13 @@ ERgplot <- function(x, source.path = data.source){
                         # low = "yellow", high = "red4",
                         # breaks = c(1e-4,.01, .05, .07, .1))+
     #add area modeled
-    geom_polygon(data = fortify(rf.poly),
+    geom_polygon(data = fortify(rf),
                  aes(long, lat, group = group),
                  colour = "white", 
                  fill = NA) +
     
     #create african continent background
-    geom_polygon(data = fortify(afr.poly),
+    geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = "grey20",
                  fill = NA,
@@ -492,7 +484,7 @@ ERgplot <- function(x, source.path = data.source){
   out <- g.plot + bkg
 }
 
-# hum.mean <- spatHandler("hum")
+ hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
@@ -545,3 +537,35 @@ risk.plot
 # }
 # k <- ERridge(hum.mean, n.bin = 40, sub.ext)
 # k
+
+#### Pannel 2 Facetted monthly ####
+
+facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly){
+  ## results dataframe
+  res <- data.frame(rasterToPoints(x[[1]]))
+  colnames(res) <- c("long","lat","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  res.long <- gather(data = res, key = "Month", value = "Risk", Jan:Dec, factor_key = T)
+  res.long$Risk <- round(res.long$Risk, 3)
+  monthly.plot <- ggplot(res.long) +
+    ### Monthly rasters
+    aes(x=long, y=lat) +
+    geom_raster(aes(fill = Risk), interpolate = T)+
+    scale_fill_gradientn(name = "Risk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
+                         colors = terrain.colors(10)) +
+    #add area modeled
+    geom_polygon(data = fortify(rf),
+                 aes(long, lat, group = group),
+                 colour = "white", 
+                 fill = NA) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 fill = NA,
+                 alpha = .1) +
+    coord_fixed(xlim = c(-20, 53),ylim = c(-36, 15)) +
+    theme_minimal() + 
+    facet_wrap(~ Month, ncol = 3)
+  return(monthly.plot)
+}

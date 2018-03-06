@@ -198,7 +198,7 @@ inf.total <- spatGLM(ob.col = OB_total,
                                 "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                 "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                 "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                "NB_lDiv","fragIndex", "month", "OB_total","x", "y", "cell"),
+                                "lnBm.div","lFrag", "month", "OB_total","x", "y", "cell"),
                      dat = dat)
 summary(inf.total[[1]])
 inf.mean <- mean(stack(inf.total[[3]]))
@@ -333,13 +333,12 @@ ann.dbl.imp.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                           "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                           "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                           "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                          "NB_lDiv",
-                                          "fragIndex", "month",
+                                          "lnBm.div","lFrag", "month",
                                           "OB_ann_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(ann.dbl.imp.spatGLM[[1]])
 
-#### No Micro
+#### No Micro ####
 ann.dbl.imp.NM.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
                                           "ptr_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
