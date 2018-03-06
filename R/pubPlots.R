@@ -459,13 +459,13 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Risk")
-  sum.df$Risk <- round(sum.df$Risk, 3)
+  # sum.df$Risk <- round(sum.df$Risk, 3)
   g.plot <- ggplot(sum.df) +
     
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
     scale_fill_gradientn(name = "Risk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
-                        colors = terrain.colors(10)) +
+                        colors = terrain.colors(10), limits = c(1e-4, 12)) +
                         # low = "yellow", high = "red4",
                         # breaks = c(1e-4,.01, .05, .07, .1))+
     #add area modeled
@@ -539,19 +539,34 @@ risk.plot
 # k
 
 #### Pannel 2 Facetted monthly ####
+#nullFacet theme
+nullFacet <- theme_minimal() + theme(
+  #remove all axis info... it's for the birds
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  axis.title = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  #get them in close (real close)
+  panel.spacing.x = unit(-1.8, "lines"),
+  panel.spacing.y = unit(-1.75, "lines"),
+  #hack off names and put them in the Atlantic somewhere
+  strip.text = element_text(size = rel(1.4), vjust = .9, hjust = .9)
+)
 
 facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly){
   ## results dataframe
   res <- data.frame(rasterToPoints(x[[1]]))
   colnames(res) <- c("long","lat","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   res.long <- gather(data = res, key = "Month", value = "Risk", Jan:Dec, factor_key = T)
-  res.long$Risk <- round(res.long$Risk, 3)
+  # res.long$Risk <- round(res.long$Risk, 3)
   monthly.plot <- ggplot(res.long) +
     ### Monthly rasters
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
     scale_fill_gradientn(name = "Risk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
-                         colors = terrain.colors(10)) +
+                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
     #add area modeled
     geom_polygon(data = fortify(rf),
                  aes(long, lat, group = group),
@@ -565,7 +580,9 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
                  fill = NA,
                  alpha = .1) +
     coord_fixed(xlim = c(-20, 53),ylim = c(-36, 15)) +
-    theme_minimal() + 
-    facet_wrap(~ Month, ncol = 3)
+    facet_wrap(~ Month, ncol = 3, strip.position = "left", dir = "v")+
+    nullFacet 
+  
   return(monthly.plot)
 }
+z <- facetRisk(hum.mean)
