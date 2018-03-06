@@ -152,17 +152,50 @@ library(zoo)
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
+## Functions to sort the phylo pics accordingly 
+library(grid)
+library(EBImage)
+RlogoGrob <- function(x, y, size, img, col, alpha) {
+  mat = rphylopic:::recolor_phylopic(img, alpha, col)
+  aspratio <- ncol(mat)/nrow(mat)
+  rasterGrob(x = x, y = y, image = mat, default.units = "native", 
+               height = size*2.5, 
+               width = size*aspratio/2.5)
+}
 
+GeomRlogo <- ggproto("GeomRlogo", Geom, draw_panel = function(data, panel_scales, 
+                                                              coord, img, colour, alpha, na.rm = FALSE) {
+  coords <- coord$transform(data, panel_scales)
+  ggplot2:::ggname("geom_Rlogo", RlogoGrob(coords$x, coords$y, coords$size, 
+                                           img, colour, alpha))
+}, non_missing_aes = c("Rlogo", "size"), required_aes = c("x", "y"), default_aes = aes(size = 0.05), 
+icon = function(.) {
+}, desc_params = list(), seealso = list(geom_point = GeomPoint$desc), 
+examples = function(.) {
+})
+
+geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity", 
+                       position = "identity", na.rm = FALSE, show.legend = NA, inherit.aes = TRUE, 
+                       img,size,  ...) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomRlogo, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(na.rm = na.rm, img = img, size = size,  ...))
+}
 
 ## Plot 
 
 g.time <- ggplot(data = ob.a, aes(x= Date, y = 0))+
-  geom_point(data = dplyr::select(ob.a, Date), ## Grey points
+  geom_point(data = filter(ob.a, Org.smp == "human") %>% dplyr::select(Date), ## Grey points
              aes(x = Date, y= 0, size = 1.25, alpha = .5),
              color = "grey70", shape=20,
              show.legend = F)+
-  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5, size = 1.25),
-             show.legend = F)+
+  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5), size = 5,
+             show.legend = F)+ 
+  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col='red', size = .09, data=data.frame(x=1975, y=0, Org.smp = "bat" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col='red', size = .1, data=data.frame(x=1975, y=0, Org.smp = "chimpanzee" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='red', size = .1, data=data.frame(x=1975, y=0, Org.smp = "duiker" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='red', size = .1, data=data.frame(x=1975, y=0, Org.smp = "gorilla" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = .14, data=data.frame(x=1975, y=0, Org.smp = "human" )) + 
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
                 arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
   scale_x_yearmon(format = "%Y", n = 10) +
@@ -406,9 +439,17 @@ bkg <- theme(
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                   colour = "white"),
   plot.title = element_text(hjust = 0.5))
+
+
+
 mylog = scales::trans_new('mylog',
                           transform=function(x) { log(x+1e-5) },
-                          inverse=function(x) { exp(x)-1e-5})
+                          inverse=function(x) { exp(x)-1e-5},
+                          breaks = scales::log_breaks(base=exp(1)),
+                          domain=c(1e-20, 100))
+
+
+
 
 ERgplot <- function(x, source.path = data.source){
   #### Set Up ####
@@ -431,8 +472,8 @@ ERgplot <- function(x, source.path = data.source){
                  alpha = .25) +
     aes(x=long, y=lat) +
     geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradientn(name = "Risk", trans = mylog,
-                         colors = terrain.colors(10)) +
+    scale_fill_gradientn(name = "Risk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
+                        colors = terrain.colors(10)) +
                         # low = "yellow", high = "red4",
                         # breaks = c(1e-4,.01, .05, .07, .1))+
     #add area modeled
@@ -451,54 +492,56 @@ ERgplot <- function(x, source.path = data.source){
   out <- g.plot + bkg
 }
 
-hum.mean <- spatHandler("hum")
+# hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
 risk.plot
-#### Pannel 2 (Right) ####
-library(ggridges)
-sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
-ERridge <- function(x, n.bin, crop.extent = sub.ext){
-  ## Function for creating ridgeline density plots of the breeding force
-  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
-  x.crop <- crop(x[[1]], crop.extent)
-  x.cv <- as.data.frame(rasterToPoints(x.crop))
-  colnames(x.cv)[3:ncol(x.cv)] <- c("January","February","March",
-                                    "April","May","June","July","August","September",
-                                    "October","November","December")
-  x.df <- x.cv[complete.cases(x.cv),]
-  ER.df <- x.df %>%
-    gather("month","ER",3:14) %>%
-    mutate(strata = cut(y, breaks = n.bin)) %>%
-    group_by(strata, month) %>%
-    summarise(ER.mean = mean(ER)) 
-  
-  ER.df$month <-  factor(ER.df$month,levels=c("January","February","March",
-                                              "April","May","June","July","August","September",
-                                              "October","November","December"))
-  
-  
-  ER.ridge <- ggplot(data= ER.df, 
-                     aes(x= month,y= strata,height = ER.mean, group = strata, fill = ER.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 2.5) +
-    # scale_fill_gradient(name = "Risk", trans = "log10",
-    #                     low = "yellow", high = "red4",
-    #                     breaks = c(0,.001,.01))
-    scale_fill_gradient(low = "yellow", high = "red4",
-                        limits = c(0,max(ER.df$ER.mean)))
 
-  
-  
-  bkg <- theme(
-    panel.background = element_rect(fill = "lightblue",
-                                    colour = "lightblue",
-                                    size = 0.5, linetype = "solid"),
-    panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                    colour = "white"),
-    panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                    colour = "white"),
-    plot.title = element_text(hjust = 0.5),
-    axis.text.x = element_text(angle = 90, hjust = 1))
-  return(ER.ridge + bkg)
-}
-k <- ERridge(hum.mean, n.bin = 40, sub.ext)
-k
+
+# #### Pannel 2 (Right) ####
+# library(ggridges)
+# sub.ext <- c(-20, 53, -36, 15) #extent subset like that of the other map figures
+# ERridge <- function(x, n.bin, crop.extent = sub.ext){
+#   ## Function for creating ridgeline density plots of the breeding force
+#   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+#   x.crop <- crop(x[[1]], crop.extent)
+#   x.cv <- as.data.frame(rasterToPoints(x.crop))
+#   colnames(x.cv)[3:ncol(x.cv)] <- c("January","February","March",
+#                                     "April","May","June","July","August","September",
+#                                     "October","November","December")
+#   x.df <- x.cv[complete.cases(x.cv),]
+#   ER.df <- x.df %>%
+#     gather("month","ER",3:14) %>%
+#     mutate(strata = cut(y, breaks = n.bin)) %>%
+#     group_by(strata, month) %>%
+#     summarise(ER.mean = mean(ER)) 
+#   
+#   ER.df$month <-  factor(ER.df$month,levels=c("January","February","March",
+#                                               "April","May","June","July","August","September",
+#                                               "October","November","December"))
+#   
+#   
+#   ER.ridge <- ggplot(data= ER.df, 
+#                      aes(x= month,y= strata,height = ER.mean, group = strata, fill = ER.mean))+
+#     geom_density_ridges_gradient(stat = "identity", scale = 2.5) +
+#     # scale_fill_gradient(name = "Risk", trans = "log10",
+#     #                     low = "yellow", high = "red4",
+#     #                     breaks = c(0,.001,.01))
+#     scale_fill_gradient(low = "yellow", high = "red4",
+#                         limits = c(0,max(ER.df$ER.mean)))
+# 
+#   
+#   
+#   bkg <- theme(
+#     panel.background = element_rect(fill = "lightblue",
+#                                     colour = "lightblue",
+#                                     size = 0.5, linetype = "solid"),
+#     panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+#                                     colour = "white"),
+#     panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+#                                     colour = "white"),
+#     plot.title = element_text(hjust = 0.5),
+#     axis.text.x = element_text(angle = 90, hjust = 1))
+#   return(ER.ridge + bkg)
+# }
+# k <- ERridge(hum.mean, n.bin = 40, sub.ext)
+# k
