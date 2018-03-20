@@ -282,7 +282,7 @@ bi.plot ## looks pretty good. still need to sort the ledgends though
 bi.bar <- ggplot(data = bi)+
   geom_bar(aes(x=Start, fill = Class),
            show.legend = F) +
-  facet_wrap(~Class, ncol = 1, scales = "free") +
+  facet_wrap(~Class, ncol = 1, scales = "free_y") +
   bkg +
   theme(
     axis.ticks.x = element_blank())
