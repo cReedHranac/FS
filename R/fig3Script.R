@@ -1,0 +1,161 @@
+###############################
+#### Figure 3              ####
+###############################
+source("R/helperFunctions.R")
+library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
+
+sumGen <- function(model.string){
+  ## function for loading rasters and producing an averaged product based on the
+  ## model string argument
+  f.list <- file.path(clean.dir,"BirthForce",list.files(file.path(clean.dir,"BirthForce"),
+                                                        pattern = paste0("BR_", model.string)))
+  
+  if(!any(file.exists(f.list))){
+    stop("string not found try again \n *cough* dumbass *cough*")
+  }
+  ## stupid hack to order list since names are too complex for mixed sort
+  o.list <- f.list[c(1,5,6,7,8,9,10,11,12,2,3,4)]
+  stk <- stack(o.list)
+  m.stk <- mean(stk)
+  out.l <- list(stk,m.stk)
+  return(out.l)
+}
+ptr.sum <- sumGen("ptr.dbl.imp")
+mol.sum <- sumGen("mol.dbl.imp")
+mic.sum <- sumGen("mic.dbl.imp")
+
+
+afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
+                    layer = "AfricanCountires")
+rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
+                            fun = function(x){x==1}, dissolve = T)
+bkg <- theme(
+  panel.background = element_rect(fill = "lightblue",
+                                  colour = "lightblue",
+                                  size = 0.5, linetype = "solid"),
+  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                  colour = "white"),
+  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                  colour = "white"),
+  plot.title = element_text(hjust = 0.5))
+
+BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
+  #### Set Up ####
+  afr.poly <- afr
+  rf.poly <- rf
+  
+  ## dataframe for plotting
+  sum.df <- data.frame(rasterToPoints(x[[2]]))
+  colnames(sum.df) <- c("long","lat","Number")
+  
+  g.plot <- ggplot(sum.df) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 alpha = .25) +
+    aes(x=long, y=lat) +
+    scale_fill_gradient(low = "yellow", high = "red4",
+                        limits = c(0,max(sum.df$Number)))+
+    geom_raster(aes(fill = Number), interpolate = T)+
+    
+    #add area modeled
+    geom_polygon(data = fortify(rf.poly),
+                 aes(long, lat, group = group),
+                 colour = "white", 
+                 fill = NA) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 fill = NA,
+                 alpha = .2) +
+    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) + 
+    themed
+  
+}
+
+ptr.BF <- BFgplot(x = ptr.sum)
+mol.BF <- BFgplot(x = mol.sum)
+mic.BF <- BFgplot(x = mic.sum)
+
+ggsave("figures/fig3_A.pdf",
+       ptr.BF,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig3_B.pdf",
+       mol.BF,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig3_C.pdf",
+       mic.BF,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
+
+
+#### Pannel 2 (Right) ####
+# install_github("cran/ggridges")
+library(ggridges); library(readr)
+sub.ext <- c(-18, 49, -36, 15) #extent subset like that of the other map figures
+BFridge <- function(x, n.bin, crop.extent = sub.ext, themed = bkg){
+  ## Function for creating ridgeline density plots of the breeding force
+  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+  x.crop <- crop(x[[1]], crop.extent)
+  x.cv <- as.data.frame(rasterToPoints(x.crop))
+  colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  x.df <- x.cv[complete.cases(x.cv),]
+  x.df$Jan2 <- x.df$Jan
+  bf.df <- x.df %>%
+    tidyr::gather("month","BF",3:ncol(x.df)) %>%
+    mutate(strata = cut(y, breaks = n.bin)) %>%
+    group_by(strata, month) %>%
+    summarise(bf.mean = mean(BF)) 
+  
+  bf.df$month <-  factor(bf.df$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan2"))
+  
+  
+  bf.ridge <- ggplot(data= bf.df, 
+                     aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
+    geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5) +
+    scale_fill_gradient(low = "yellow", high = "red4",
+                        limits = c(0,max(bf.df$bf.mean)),
+                        name = "Mean \nBirth \nForce") +
+    scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", NULL))+
+   
+     theme(
+      axis.title = element_blank()
+       )
+  
+  return(bf.ridge + themed)
+}
+
+r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
+r.mic <- BFridge(mic.sum, 40)
+r.mol <- BFridge(mol.sum, 40)
+
+ggsave("figures/fig3_D.pdf",
+       r.ptr,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig3_E.pdf",
+       r.mol,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig3_F.pdf",
+       r.mic,
+       device = "pdf",
+       width = 5,
+       height = 5,
+       units = "in")
