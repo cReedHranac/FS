@@ -168,9 +168,9 @@ map.with.insert <- ob.plot + bkg +
                     xmax = 20, 
                     ymin = -Inf,
                     ymax = -12)
-ggsave("figures/fig1_A.pdf",
+ggsave("figures/fig1_A.png",
        map.with.insert,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -245,9 +245,9 @@ g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
 
 g.time
 
-ggsave("figures/fig1_B.pdf",
+ggsave("figures/fig1_B.png",
        g.time,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -286,9 +286,9 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
 g.bar
 
 
-ggsave("figures/fig1_C.pdf",
+ggsave("figures/fig1_C.png",
        g.bar,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")

@@ -80,9 +80,9 @@ hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
-ggsave("figures/fig4_A.pdf",
+ggsave("figures/fig4_A.png",
        risk.plot,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -135,9 +135,9 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
   return(monthly.plot)
 }
 z <- facetRisk(hum.mean)
-ggsave("figures/fig4_B.pdf",
+ggsave("figures/fig4_B.png",
        z,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")

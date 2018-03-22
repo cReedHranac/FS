@@ -71,9 +71,9 @@ for(i in 1:nrow(bi)){
 
 bi.plot ## looks pretty good. still need to sort the ledgends though
 
-ggsave("figures/fig2_A.pdf",
+ggsave("figures/fig2_A.png",
        bi.plot,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -91,9 +91,9 @@ bi.bar <- ggplot(data = bi)+
 
 bi.bar
 
-ggsave("figures/fig2_B.pdf",
+ggsave("figures/fig2_B.png",
        bi.plot,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")

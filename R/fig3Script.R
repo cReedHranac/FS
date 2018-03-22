@@ -57,7 +57,8 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  alpha = .25) +
     aes(x=long, y=lat) +
     scale_fill_gradient(low = "yellow", high = "red4",
-                        limits = c(0,max(sum.df$Number)))+
+                        limits = c(0,max(sum.df$Number)),
+                        name = "Number \nBirthing")+
     geom_raster(aes(fill = Number), interpolate = T)+
     
     #add area modeled
@@ -73,7 +74,7 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  fill = NA,
                  alpha = .2) +
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) + 
-    themed
+    theme_bw()
   
 }
 
@@ -81,21 +82,21 @@ ptr.BF <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
-ggsave("figures/fig3_A.pdf",
+ggsave("figures/fig3_A.png",
        ptr.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_B.pdf",
+ggsave("figures/fig3_B.png",
        mol.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_C.pdf",
+ggsave("figures/fig3_C.png",
        mic.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -141,21 +142,21 @@ r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
 r.mic <- BFridge(mic.sum, 40)
 r.mol <- BFridge(mol.sum, 40)
 
-ggsave("figures/fig3_D.pdf",
+ggsave("figures/fig3_D.png",
        r.ptr,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_E.pdf",
+ggsave("figures/fig3_E.png",
        r.mol,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_F.pdf",
+ggsave("figures/fig3_F.png",
        r.mic,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
