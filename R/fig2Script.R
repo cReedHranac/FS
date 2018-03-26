@@ -92,7 +92,7 @@ bi.bar <- ggplot(data = bi)+
 bi.bar
 
 ggsave("figures/fig2_B.png",
-       bi.plot,
+       bi.bar,
        device = "png",
        width = 5,
        height = 5,
