@@ -92,7 +92,9 @@ bkg <- theme(
                                   colour = "white"),
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                   colour = "white"),
-  plot.title = element_text(hjust = 0.5))
+  plot.title = element_text(hjust = 0.5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank())
 
 ob.plot <- ggplot() +
   geom_polygon(data = fortify(afr.poly),
@@ -165,12 +167,13 @@ ob.insert +bkg ## That's pretty good...
 map.with.insert <- ob.plot + bkg +
   annotation_custom(grob = ggplotGrob(ob.insert+bkg.insert),
                     xmin = -Inf,
-                    xmax = 20, 
+                    xmax = 17.5, 
                     ymin = -Inf,
-                    ymax = -12)
-ggsave("figures/fig1_A.png",
+                    ymax = -14.5)
+
+ggsave("figures/fig1_A.pdf",
        map.with.insert,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
@@ -215,19 +218,19 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 
 g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
   geom_point(data = filter(ob.a, Org.smp == "human") %>% dplyr::select(Date), ## Grey points
-             aes(x = Date, y= 0, size = 1.25, alpha = .5),
+             aes(x = Date, y= 0, size = 1, alpha = .5),
              color = "grey70", shape=20,
              show.legend = F)+
-  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5), size = 5,
+  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
-  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = .09, data=data.frame(x=1975, y=0, Org.smp = "bat" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = .1, data=data.frame(x=1975, y=0, Org.smp = "chimpanzee" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = .12, data=data.frame(x=1975, y=0, Org.smp = "duiker" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = .1, data=data.frame(x=1975, y=0, Org.smp = "gorilla" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = .14, data=data.frame(x=1975, y=0, Org.smp = "human" )) + 
   geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
   scale_x_yearmon(format = "%Y", n = 10) +
+  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = .125, data=data.frame(x=1975, y=0, Org.smp = "bat" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = .125, data=data.frame(x=1975, y=0, Org.smp = "chimpanzee" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = .15, data=data.frame(x=1975, y=0, Org.smp = "duiker" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = .15, data=data.frame(x=1975, y=0, Org.smp = "gorilla" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = .18, data=data.frame(x=1975, y=0, Org.smp = "human" )) + 
   scale_colour_manual(values = c(bat = 'darkorange2',
                                  chimpanzee ='black',
                                  duiker = 'green4',
@@ -240,14 +243,16 @@ g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
                                               "human" = 'Human'))) + 
   theme_bw() + 
   theme(axis.text.y = element_blank(),
-        axis.title.y = element_blank(), 
-        axis.ticks.y = element_blank())
+        axis.ticks.y = element_blank(),
+        axis.title = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank())
 
 g.time
 
-ggsave("figures/fig1_B.png",
+ggsave("figures/fig1_B.pdf",
        g.time,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
@@ -286,9 +291,22 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
 g.bar
 
 
-ggsave("figures/fig1_C.png",
+ggsave("figures/fig1_C.pdf",
        g.bar,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
+       units = "in")
+
+### put them together
+
+fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
+             widths = c(2,1.3), 
+             layout_matrix = rbind(c(1,2),
+                                   c(1,3)))
+ggsave("figures/Fig1Complete.pdf",
+       fig1.complete,
+       device = "pdf", 
+       width = 7.5,
+       height = 7.5,
        units = "in")

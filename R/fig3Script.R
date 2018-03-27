@@ -3,6 +3,7 @@
 ###############################
 source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
+library(raster); library(rgdal); library(tidyverse)
 
 sumGen <- function(model.string){
   ## function for loading rasters and producing an averaged product based on the
@@ -20,7 +21,7 @@ sumGen <- function(model.string){
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-ptr.sum <- sumGen("ptr.dbl.imp")
+ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
 mol.sum <- sumGen("mol.dbl.imp")
 mic.sum <- sumGen("mic.dbl.imp")
 
@@ -37,7 +38,9 @@ bkg <- theme(
                                   colour = "white"),
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                   colour = "white"),
-  plot.title = element_text(hjust = 0.5))
+  plot.title = element_text(hjust = 0.5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank())
 
 BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
   #### Set Up ####
@@ -49,23 +52,16 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
   colnames(sum.df) <- c("long","lat","Number")
   
   g.plot <- ggplot(sum.df) +
-    
     #create african continent background
     geom_polygon(data = fortify(afr.poly),
                  aes(long, lat, group = group), 
                  colour = "grey20",
-                 alpha = .25) +
+                 alpha = .20) +
     aes(x=long, y=lat) +
     scale_fill_gradient(low = "yellow", high = "red4",
                         limits = c(0,max(sum.df$Number)),
                         name = "Number \nBirthing")+
     geom_raster(aes(fill = Number), interpolate = T)+
-    
-    #add area modeled
-    geom_polygon(data = fortify(rf.poly),
-                 aes(long, lat, group = group),
-                 colour = "white", 
-                 fill = NA) +
     
     #create african continent background
     geom_polygon(data = fortify(afr.poly),
@@ -73,8 +69,19 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  colour = "grey20",
                  fill = NA,
                  alpha = .2) +
+    #add area modeled
+    geom_polygon(data = fortify(rf.poly),
+                 aes(long, lat, group = group),
+                 colour = "white", 
+                 fill = NA) +
+    
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) + 
-    theme_bw()
+    theme_bw() + 
+    theme( axis.title.x = element_blank(),
+           axis.title.y = element_blank(),
+           legend.position = c(.2,.4),
+           legend.background = element_blank())+
+  scale_y_continuous(expand = c(0,0))
   
 }
 
@@ -82,21 +89,21 @@ ptr.BF <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
-ggsave("figures/fig3_A.png",
+ggsave("figures/fig3_A.pdf",
        ptr.BF,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_B.png",
+ggsave("figures/fig3_B.pdf",
        mol.BF,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_C.png",
+ggsave("figures/fig3_C.pdf",
        mic.BF,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
@@ -104,9 +111,9 @@ ggsave("figures/fig3_C.png",
 
 #### Pannel 2 (Right) ####
 # install_github("cran/ggridges")
-library(ggridges); library(readr)
+library(ggridges); library(readr); library(tidyr)
 sub.ext <- c(-18, 49, -36, 15) #extent subset like that of the other map figures
-BFridge <- function(x, n.bin, crop.extent = sub.ext, themed = bkg){
+BFridge <- function(x, n.bin, crop.extent = sub.ext){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- crop(x[[1]], crop.extent)
@@ -125,17 +132,20 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext, themed = bkg){
   
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5) +
+    geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5, aes()) +
     scale_fill_gradient(low = "yellow", high = "red4",
                         limits = c(0,max(bf.df$bf.mean)),
                         name = "Mean \nBirth \nForce") +
-    scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", NULL))+
-   
-     theme(
-      axis.title = element_blank()
+    scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan"),
+                     expand = c(0,0))+
+    theme_bw() +
+    theme(
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank()
        )
   
-  return(bf.ridge + themed)
+  return(bf.ridge )
 }
 
 r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
@@ -160,3 +170,15 @@ ggsave("figures/fig3_F.png",
        width = 5,
        height = 5,
        units = "in")
+fig3.complete <- grid.arrange(ptr.BF, r.ptr, 
+             mic.BF, r.mic,
+             mol.BF, r.mol, 
+             layout_matrix= rbind(c(1,2),
+                                  c(3,4),
+                                  c(5,6)))
+ggsave("figures/Fig3Complete.pdf",
+      fig3.complete,
+      device = "pdf", 
+      width = 7.5,
+      height = 7.5,
+      units = "in")

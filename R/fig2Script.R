@@ -39,7 +39,9 @@ bkg <- theme(
                                   colour = "white"),
   panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
                                   colour = "white"),
-  plot.title = element_text(hjust = 0.5))
+  plot.title = element_text(hjust = 0.5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank())
 
 
 
@@ -57,7 +59,7 @@ bi.plot <- ggplot()+ bkg +
                aes(long, lat, group = group),
                colour = "white", 
                alpha = .25,
-               fill = "cornsilk")+
+               fill = "yellow3")+
   coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
 
 for(i in 1:nrow(bi)){
@@ -69,11 +71,11 @@ for(i in 1:nrow(bi)){
                  color = col.list[[i]])
 }
 
-bi.plot ## looks pretty good. still need to sort the ledgends though
+bi.plot 
 
-ggsave("figures/fig2_A.png",
+ggsave("figures/fig2_A.pdf",
        bi.plot,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
@@ -91,9 +93,22 @@ bi.bar <- ggplot(data = bi)+
 
 bi.bar
 
-ggsave("figures/fig2_B.png",
+ggsave("figures/fig2_B.pdf",
        bi.bar,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
+       units = "in")
+
+
+#### All together now ####
+fig2.complete <- grid.arrange(bi.plot, bi.bar,
+             widths = c(2.5, 1.2),
+             layout_matrix = rbind(c(1,2)))
+
+ggsave("figures/Fig2Complete.pdf",
+       fig2.complete,
+       device = "pdf", 
+       width = 7.5,
+       height = 7.5,
        units = "in")
