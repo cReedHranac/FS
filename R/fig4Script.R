@@ -3,7 +3,7 @@
 ##########################
 source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
-
+library(rgdal); library(raster)
 #### data ####
 spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
@@ -22,61 +22,52 @@ spatHandler <- function(model.string){
   return(out.l)
 }
 
+hum.mean <- spatHandler("hum")
+
 #### Pannel 1 Average ####
-bkg <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
-  plot.title = element_text(hjust = 0.5))
-
-
-
-mylog = scales::trans_new('mylog',
-                          transform=function(x) { log(x+1e-5) },
-                          inverse=function(x) { exp(x)-1e-5},
-                          breaks = scales::log_breaks(base=exp(1)),
-                          domain=c(1e-20, 100))
-
-
-
+library(rgdal)
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
 
+scaleFUN <- function(x)sprintf("%.4f", round(x, digits = 4)) 
+                                
 ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Risk")
-  # sum.df$Risk <- round(sum.df$Risk, 3)
+  
   g.plot <- ggplot(sum.df) +
-    
     aes(x=long, y=lat) +
-    geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradientn(name = "Average \nRisk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
-                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
+    
     #create african continent background
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = "grey20",
                  alpha = .2) +
-
+    
+    #fill data values
+    geom_raster(aes(fill = Risk), interpolate = T)+
+    scale_fill_gradientn(name = "Average \nRisk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
+                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
+   
     #add area modeled
     geom_polygon(data = fortify(rf),
                  aes(long, lat, group = group),
                  colour = "white", 
                  fill = NA) +
     
+    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
+    scale_y_continuous(expand = c(0,0), lables = scaleFUN) +
+    theme_bw()+
+    theme(axis.title = element_blank())
     
-    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
-  out <- g.plot + bkg
+  
+  out <- g.plot 
 }
 
-hum.mean <- spatHandler("hum")
+
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
@@ -101,7 +92,8 @@ nullFacet <- theme_minimal() + theme(
   panel.spacing.x = unit(-1, "lines"),
   panel.spacing.y = unit(-.5, "lines"),
   #hack off names and put them in the Atlantic somewhere
-  strip.text = element_text(size = rel(1.4), vjust = .9, hjust = .9)
+  strip.placement = "inside",
+  strip.text = element_text(size = rel(1.4), vjust = .9, hjust = .5)
 )
 
 facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly){
@@ -109,7 +101,7 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
   res <- data.frame(rasterToPoints(x[[1]]))
   colnames(res) <- c("long","lat","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   res.long <- tidyr::gather(data = res, key = "Month", value = "Risk", Jan:Dec, factor_key = T)
-  # res.long$Risk <- round(res.long$Risk, 3)
+
   monthly.plot <- ggplot(res.long) +
     ### Monthly rasters
     aes(x=long, y=lat) +
@@ -135,6 +127,9 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
   return(monthly.plot)
 }
 z <- facetRisk(hum.mean)
+z
+
+
 ggsave("figures/fig4_B.png",
        z,
        device = "png",
