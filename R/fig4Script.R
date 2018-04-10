@@ -3,7 +3,7 @@
 ##########################
 source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
-
+library(rgdal); library(raster)
 #### data ####
 spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
@@ -40,35 +40,43 @@ bkg <- theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
 
+scaleFUN <- function(x)sprintf("%.4f", round(x, digits = 4)) 
+                                
 ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Risk")
-  # sum.df$Risk <- round(sum.df$Risk, 3)
+  
   g.plot <- ggplot(sum.df) +
-    
     aes(x=long, y=lat) +
-    geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradientn(name = "Average \nRisk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
-                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
+    
     #create african continent background
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = "grey20",
                  alpha = .2) +
-
+    
+    #fill data values
+    geom_raster(aes(fill = Risk), interpolate = T)+
+    scale_fill_gradientn(name = "Average \nRisk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
+                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
+   
     #add area modeled
     geom_polygon(data = fortify(rf),
                  aes(long, lat, group = group),
                  colour = "white", 
                  fill = NA) +
     
+    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
+    scale_y_continuous(expand = c(0,0), lables = scaleFUN) +
+    theme_bw()+
+    theme(axis.title = element_blank())
     
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
   out <- g.plot + theme_bw() +bkg
 }
 
-hum.mean <- spatHandler("hum")
+
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
@@ -101,7 +109,7 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
   res <- data.frame(rasterToPoints(x[[1]]))
   colnames(res) <- c("long","lat","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   res.long <- tidyr::gather(data = res, key = "Month", value = "Risk", Jan:Dec, factor_key = T)
-  # res.long$Risk <- round(res.long$Risk, 3)
+
   monthly.plot <- ggplot(res.long) +
     ### Monthly rasters
     aes(x=long, y=lat) +

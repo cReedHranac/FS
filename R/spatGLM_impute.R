@@ -8,7 +8,6 @@ library(data.table); library(dplyr); library(tidyr); library(rlang); library(laz
 
 #### Functions ####
 pppWeights <- function(ob.col, dataFrame, rasterGrid, owin = windows){
-  require(rlang)
   ##Funciton for creating the spatial weights to be applied for the glm
   ##Arguments:
   # ob.col <- colname to be selected from dataFrame
@@ -300,6 +299,7 @@ hum.dbl.imp.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               dat= dat)
 
 summary(hum.dbl.imp.spatGLM[[1]])
+<<<<<<< Updated upstream
 library(broom)
 hum.mod <- tidy(hum.dbl.imp.spatGLM[[1]])
 tz <- round(hum.mod[,2:ncol(hum.mod)], 2)
@@ -310,6 +310,8 @@ writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
 
 
 
+=======
+>>>>>>> Stashed changes
 #### No Micro ####
 hum.dbl.imp.NM.spatGLM <-spatGLM(ob.col = OB_hum_imp,
                               coV.v = c( "ptr_dbl_imp_BR",  "mol_dbl_imp_BR",
@@ -326,8 +328,6 @@ summary(hum.dbl.imp.NM.spatGLM[[1]])
 #### Animal Outbreaks ####
   #### Double Month ####
 #### Imp #### 
-# it does have imputed animal, and human outbreak occurence points though. it doesn't work without
-
 ann.dbl.imp.spatGLM <- spatGLM(ob.col = OB_ann_imp,
                                coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
                                           "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
