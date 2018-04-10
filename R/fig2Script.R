@@ -31,14 +31,7 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
-bkg <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
+bkg <- theme_bw() + theme(
   plot.title = element_text(hjust = 0.5),
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
@@ -58,8 +51,8 @@ bi.plot <- ggplot()+ bkg +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
                colour = "white", 
-               alpha = .25,
-               fill = "yellow3")+
+               alpha = .5,
+               fill = "lightblue2")+
   coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
 
 for(i in 1:nrow(bi)){

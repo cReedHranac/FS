@@ -23,18 +23,6 @@ spatHandler <- function(model.string){
 }
 
 #### Pannel 1 Average ####
-bkg <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
-  plot.title = element_text(hjust = 0.5))
-
-
-
 mylog = scales::trans_new('mylog',
                           transform=function(x) { log(x+1e-5) },
                           inverse=function(x) { exp(x)-1e-5},
@@ -47,6 +35,10 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
+bkg <- theme(
+  plot.title = element_text(hjust = 0.5),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank())
 
 ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
@@ -73,16 +65,16 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
     
     
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
-  out <- g.plot + bkg
+  out <- g.plot + theme_bw() +bkg
 }
 
 hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
-ggsave("figures/fig4_A.png",
+ggsave("figures/fig4_A.pdf",
        risk.plot,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
@@ -101,7 +93,7 @@ nullFacet <- theme_minimal() + theme(
   panel.spacing.x = unit(-1, "lines"),
   panel.spacing.y = unit(-.5, "lines"),
   #hack off names and put them in the Atlantic somewhere
-  strip.text = element_text(size = rel(1.4), vjust = .9, hjust = .9)
+  strip.text = element_blank()
 )
 
 facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly){
@@ -129,12 +121,13 @@ facetRisk <- function(x, source.path = data.source, afr= afr.poly, rf = rf.poly)
                  fill = NA,
                  alpha = .1) +
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
-    facet_wrap(~ Month, ncol = 3, strip.position = "left", dir = "v")+
+    facet_wrap(~ Month, ncol = 3)+
     nullFacet 
   
   return(monthly.plot)
 }
 z <- facetRisk(hum.mean)
+
 ggsave("figures/fig4_B.png",
        z,
        device = "png",

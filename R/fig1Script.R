@@ -84,15 +84,7 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
-bkg <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
-  plot.title = element_text(hjust = 0.5),
+bkg <- theme_bw() + theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
 
@@ -104,9 +96,9 @@ ob.plot <- ggplot() +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
                colour = "white", 
-               alpha = .25,
-               fill = "yellow3")+
-  coord_fixed(xlim = c(-20, 40),ylim = c(-36, 15))+
+               alpha = .5,
+               fill = "lightblue2")+
+  coord_fixed(xlim = c(-20, 42),ylim = c(-36, 15))+
   scale_y_continuous(position = "right") +
   scale_x_continuous(position = "top")
 
@@ -133,8 +125,8 @@ ob.insert <- ggplot()+
   geom_polygon(data = fortify(afr.poly),
                aes(long, lat, group = group), 
                colour = "white",
-               alpha = .25,
-               fill = "yellow3") +
+               alpha = .5,
+               fill = "lightblue2") +
   coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4])
 
 for( i in 1:nrow(ob.full)){
@@ -148,20 +140,12 @@ for( i in 1:nrow(ob.full)){
                  ysize = j, ##humans need bigger, bats smaller
                  color = col.list[[i]]) 
 }
-bkg.insert <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
+bkg.insert <-theme_bw() + theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank(), 
-  axis.ticks = element_blank(),
   plot.margin = unit(c(0,0,0,0,0), "mm"))
 
-ob.insert +bkg ## That's pretty good... 
+ob.insert +bkg.insert ## That's pretty good... 
 
 
 map.with.insert <- ob.plot + bkg +
@@ -241,12 +225,14 @@ g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
                                               "duiker" = 'Duiker',
                                               "gorilla" = 'Gorilla',
                                               "human" = 'Human'))) + 
+  
   theme_bw() + 
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.title = element_blank(),
         strip.background = element_blank(),
-        strip.text.x = element_blank())
+        strip.text.x = element_blank(),
+        plot.margin = margin(r=12, unit = "pt"))
 
 g.time
 

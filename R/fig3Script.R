@@ -31,13 +31,6 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
 bkg <- theme(
-  panel.background = element_rect(fill = "lightblue",
-                                  colour = "lightblue",
-                                  size = 0.5, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                  colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                  colour = "white"),
   plot.title = element_text(hjust = 0.5),
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
@@ -152,21 +145,21 @@ r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
 r.mic <- BFridge(mic.sum, 40)
 r.mol <- BFridge(mol.sum, 40)
 
-ggsave("figures/fig3_D.png",
+ggsave("figures/fig3_D.pdf",
        r.ptr,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_E.png",
+ggsave("figures/fig3_E.pdf",
        r.mol,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_F.png",
+ggsave("figures/fig3_F.pdf",
        r.mic,
-       device = "png",
+       device = "pdf",
        width = 5,
        height = 5,
        units = "in")
