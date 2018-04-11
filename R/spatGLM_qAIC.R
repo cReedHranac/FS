@@ -174,6 +174,11 @@ dfun <- function(object){
   with(object, sum((weights * residuals^2)[weights > 0])/df.residual)
 }
 
+qAIC <- function(x){
+  ## Function for calculating the qAIC by hand since quasi models are funky
+  qAIC <- x[[1]]$deviance * dfun(x[[1]]) + 2 * length(attr(x[[1]]$terms, "variables"))
+  return(qAIC)
+}
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
 # library(skimr)
@@ -225,14 +230,12 @@ hum.null <-spatGLM(ob.col = OB_hum_imp,
 summary(hum.null[[1]])
 
 ### Compare 2 modesl 
-library(AICcmodavg)
-aictab(cand.set = list(hum.full[[1]], hum.null[[1]]),
-       modnames = c("Full", "Null"),
-       c.hat = dfun(hum.full[[1]]))
 
-library(bbmle)
-qAIC(hum.full[[1]], dispersion = dfun(hum.full[[1]]))
+full.qAIC <- qAIC(hum.full)
+null.qAIC <- qAIC(hum.null)
 
+delta.qAIC <- null.qAIC - full.qAIC
+#thats good right?
 
 #### Animal Outbreaks ####
 ann.full <- spatGLM(ob.col = OB_ann_imp,
@@ -250,3 +253,9 @@ ann.null <- spatGLM(ob.col = OB_ann_imp,
                                "OB_ann_imp",  "x", "y", "cell"),
                     dat = dat)
 summary(ann.null[[1]])
+
+## Compare the 2
+fAn.qAIC <- qAIC(ann.full)
+nAn.qAIC <- qAIC(ann.null)
+delta.An <- nAn.qAIC - fAn.qAIC
+
