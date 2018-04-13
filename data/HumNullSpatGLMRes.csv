@@ -1,0 +1,7 @@
+"results[, 1]","estimate","std.error","statistic","p.value"
+"(Intercept)",-29.87,6.03,-4.95,0
+"logPop",-0.23,0.2,-1.17,0.24
+"OB_ann_imp",5.05,1.4,3.61,0
+"lnBm.div",5.62,1.32,4.25,0
+"lFrag",-0.21,0.35,-0.61,0.54
+"OB_ann_imp_1",1.41,1.89,0.75,0.46
