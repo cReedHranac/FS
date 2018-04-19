@@ -82,21 +82,21 @@ ptr.BF <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
-ggsave("figures/fig3_A.pdf",
+ggsave("figures/fig3_A.png",
        ptr.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_B.pdf",
+ggsave("figures/fig3_B.png",
        mol.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_C.pdf",
+ggsave("figures/fig3_C.png",
        mic.BF,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -145,21 +145,21 @@ r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
 r.mic <- BFridge(mic.sum, 40)
 r.mol <- BFridge(mol.sum, 40)
 
-ggsave("figures/fig3_D.pdf",
+ggsave("figures/fig3_D.png",
        r.ptr,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_E.pdf",
+ggsave("figures/fig3_E.png",
        r.mol,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
-ggsave("figures/fig3_F.pdf",
+ggsave("figures/fig3_F.png",
        r.mic,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -169,9 +169,9 @@ fig3.complete <- grid.arrange(ptr.BF, r.ptr,
              layout_matrix= rbind(c(1,2),
                                   c(3,4),
                                   c(5,6)))
-ggsave("figures/Fig3Complete.pdf",
+ggsave("figures/Fig3Complete.png",
       fig3.complete,
-      device = "pdf", 
+      device = "png", 
       width = 7.5,
       height = 7.5,
       units = "in")

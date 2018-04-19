@@ -2,7 +2,7 @@
 
 source("R/helperFunctions.R")
 library(data.table); library(dplyr); library(tidyr); library(rlang); library(lazyeval)
-
+library(broom)
 ## Dave run this!
 #clean.dir <- "."
 #data.source <- "."
@@ -176,8 +176,23 @@ dfun <- function(object){
 
 qAIC <- function(x){
   ## Function for calculating the qAIC by hand since quasi models are funky
-  qAIC <- x[[1]]$deviance * dfun(x[[1]]) + 2 * length(attr(x[[1]]$terms, "variables"))
-  return(qAIC)
+    # number of params
+  k <- length(names(x[[1]]$coefficients))
+    # overdispersion
+  c.hat <- dfun(x[[1]])
+  
+  qAIC <- x[[1]]$deviance * c.hat + 2 * k
+  
+  out <- c(qAIC, c.hat, k)
+  names(out) <- c("qAIC", "c.hat", "k")
+  return(out)
+}
+
+resTabSimple <- function(x){
+  ### FUnction for creating an easy results table 
+  results <- tidy(x[[1]])
+  tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 2))
+  return(tidy.table)
 }
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
@@ -214,9 +229,8 @@ rm(rf.poly, regions)
 summary(hum.full[[1]])
 
 # tidy and write out
-library(broom)
-# hum.mod <- tidy(hum.full[[1]])
-# tz <- round(hum.mod[,2:ncol(hum.mod)], 2)
+humFullTable <- resTabSimple(hum.full)
+write.csv(humFullTable, "data/HumFullSpatGLMRes.csv", row.names = F)
 # cbind(hum.mod$term, tz)
 # mod.stk <- do.call(stack, hum.full[[3]])
 # writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
@@ -228,6 +242,9 @@ hum.null <-spatGLM(ob.col = OB_hum_imp,
                                  "OB_hum_imp",  "x", "y", "cell"),
                       dat= dat)
 summary(hum.null[[1]])
+
+humNullTable <- resTabSimple(hum.null)
+write.csv(humNullTable, "data/HumNullSpatGLMRes.csv", row.names = F)
 
 ### Compare 2 modesl 
 
@@ -247,12 +264,17 @@ ann.full <- spatGLM(ob.col = OB_ann_imp,
                                           "OB_ann_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(ann.full[[1]])
+anFull <- resTabSimple(ann.full)
+write.csv(anFull, "data/AnFullSpatGLMRes.csv", row.names = F)
+
 ## Null
 ann.null <- spatGLM(ob.col = OB_ann_imp,
                     coV.v = c( "lnBm.div","lFrag", "month",
                                "OB_ann_imp",  "x", "y", "cell"),
                     dat = dat)
 summary(ann.null[[1]])
+anNull <- resTabSimple(ann.null)
+write.csv(anNull, "data/AnNullSpatGLMRes.csv", row.names = F)
 
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)

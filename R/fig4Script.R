@@ -68,7 +68,7 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
                  fill = NA) +
     
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
-    scale_y_continuous(expand = c(0,0), lables = scaleFUN) +
+    scale_y_continuous(expand = c(0,0) )#, lables = scaleFUN) +
     theme_bw()+
     theme(axis.title = element_blank())
     
@@ -76,13 +76,13 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   out <- g.plot + theme_bw() +bkg
 }
 
-
+hum.mean <- spatHandler("hum")
 risk.plot <- ERgplot(hum.mean)
 risk.plot
 
-ggsave("figures/fig4_A.pdf",
+ggsave("figures/fig4_A.png",
        risk.plot,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
        units = "in")
@@ -142,3 +142,58 @@ ggsave("figures/fig4_B.png",
        width = 5,
        height = 5,
        units = "in")
+
+
+#### Idea for zoom pannels ####
+insert.ext <- c(-15, 40.5,-5,10)
+
+highRiskZone <- risk.plot + coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4])
+
+library(ggridges)
+
+ERridge <- function(x, n.bin, crop.extent = sub.ext){
+  ## Function for creating ridgeline density plots of the breeding force
+  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+  x.crop <- crop(x[[1]],y = extent(crop.extent))
+  x.cv <- as.data.frame(rasterToPoints(x.crop))
+  colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  x.df <- x.cv[complete.cases(x.cv),]
+  x.df$Jan2 <- x.df$Jan
+  ER.df <- x.df %>%
+    gather("month","ER",3:ncol(x.df)) %>%
+    mutate(strata = cut(y, breaks = n.bin)) %>%
+    group_by(strata, month) %>%
+    summarise(ER.mean = mean(ER))
+
+  ER.df$month <-   factor(ER.df$month,levels=c("Jan","Feb","Mar",
+                                               "Apr","May","Jun",
+                                               "Jul","Aug","Sep",
+                                               "Oct","Nov","Dec", "Jan2"))
+
+  ER.ridge <- ggplot(data= ER.df,
+                     aes(x= month,y= strata,height = ER.mean, group = strata, fill = ER.mean))+
+    geom_density_ridges_gradient(stat = "identity", scale = 35) +
+    scale_fill_gradientn(colors = terrain.colors(10),
+                        limits = c(0,max(ER.df$ER.mean)),
+                        name = "Mean \nEbola \nRisk") +
+    scale_x_discrete(label = c("Jan","Feb","Mar",
+                               "Apr","May","Jun",
+                               "Jul","Aug","Sep",
+                               "Oct","Nov","Dec", "Jan"),
+                     expand = c(0,0))+
+    theme_bw() +
+    theme(
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank()
+    )
+
+  return(ER.ridge)
+}
+k <- ERridge(hum.mean, n.bin = 100, insert.ext)
+k
+
+grid.arrange(risk.plot, highRiskZone, k, 
+             layout_matrix = rbind(c(1,1,3,3),
+                                   c(1,1,3,3),
+                                   c(2,2,3,3)))
