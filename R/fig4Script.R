@@ -272,12 +272,12 @@ ggsave("figures/fig4_F.png",
 fig4.complete <- grid.arrange(risk.plot, afr.ridge,
              CentralZone, central.ridge,
              westernZone, western.ridge,
-            layout_matrix = rbind(c(1,3,5),
-                                  c(1,3,5),
-                                  c(2,4,6)))
+            layout_matrix = rbind(c(1,2),
+                                  c(3,4),
+                                  c(5,6)))
 ggsave("figures/fig4_Complete.png",
        fig4.complete,
        device = "png",
-       width = 7,
-       height = 7,
+       width = 7.5,
+       height = 7.5,
        units = "in")
