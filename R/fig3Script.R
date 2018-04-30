@@ -51,9 +51,12 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  colour = "grey20",
                  alpha = .20) +
     aes(x=long, y=lat) +
-    scale_fill_gradient(low = "#2988bc", high = "#f4eade",
+    
+    #Colors
+    scale_fill_gradient(low = "#f4eade", high = "#2988bc",
                         limits = c(0,max(sum.df$Number)),
                         name = "Number \nBirthing")+
+    #Raster
     geom_raster(aes(fill = Number), interpolate = T)+
     
     #create african continent background
@@ -62,12 +65,14 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  colour = "grey20",
                  fill = NA,
                  alpha = .2) +
+    
     #add area modeled
     geom_polygon(data = fortify(rf.poly),
                  aes(long, lat, group = group),
                  colour = "white", 
                  fill = NA) +
     
+    #Extras
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) + 
     theme_bw() + 
     theme( axis.title.x = element_blank(),
@@ -126,7 +131,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
     geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5, aes()) +
-    scale_fill_gradient(low = "#2988bc", high = "#f4eade",
+    scale_fill_gradient(low = "#f4eade", high = "#2988bc",
                         limits = c(0,max(bf.df$bf.mean)),
                         name = "Mean \nBirth \nForce") +
     scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan"),

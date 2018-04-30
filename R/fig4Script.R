@@ -48,25 +48,34 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   colnames(sum.df) <- c("long","lat","Risk")
   
   g.plot <- ggplot(sum.df) +
-    aes(x=long, y=lat) +
     
     #create african continent background
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = "grey20",
                  alpha = .2) +
+    aes(x=long, y=lat) +
+    
+    #Color
+    scale_fill_gradient(name = "Average \nRisk", trans = scales::log_trans(), na.value = "yellow",
+                         low = "yellow", high = "red4", limits = c(1e-4, 12)) +
     
     #fill data values
     geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradient(name = "Average \nRisk", trans = scales::log_trans(), na.value = "yellow",
-                         low = "yellow", high = "red4", limits = c(1e-4, 12)) +
-   
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = "grey20",
+                 fill = NA,
+                 alpha = .2) +
+    
     #add area modeled
     geom_polygon(data = fortify(rf),
                  aes(long, lat, group = group),
                  colour = "white", 
                  fill = NA) +
-    
+    #Extras
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
     scale_y_continuous(expand = c(0,0) )#, lables = scaleFUN) +
     theme_bw()+
@@ -236,7 +245,7 @@ ggsave("figures/fig4_B.png",
 
 
 centeral.africa <- c(8,35,-5,6)
-CentralZone <- risk.plot + coord_fixed(xlim = centeral.africa[1:2],ylim = centeral.africa[3:4])
+CentralZone <- risk.plot + coord_fixed(xlim = centeral.africa[1:2],ylim = centeral.africa[3:4]) #+ theme(legend.position="none")
 central.ridge <- ERridge(hum.NoAn, n.bin = 50, centeral.africa)
 ggsave("figures/fig4_C.png",
        CentralZone,
@@ -253,7 +262,7 @@ ggsave("figures/fig4_D.png",
 
 
 west.africa <- c(-14,5, 4, 12)
-westernZone <- risk.plot + coord_fixed(xlim = west.africa[1:2],ylim = west.africa[3:4])
+westernZone <- risk.plot + coord_fixed(xlim = west.africa[1:2],ylim = west.africa[3:4]) # + theme(legend.position="none")
 western.ridge <- ERridge(hum.NoAn, n.bin = 100, west.africa)
 ggsave("figures/fig4_E.png",
        westernZone,
@@ -272,11 +281,28 @@ ggsave("figures/fig4_F.png",
 fig4.complete <- grid.arrange(risk.plot, afr.ridge,
              CentralZone, central.ridge,
              westernZone, western.ridge,
-            layout_matrix = rbind(c(1,2),
-                                  c(3,4),
-                                  c(5,6)))
-ggsave("figures/fig4_Complete.png",
+            layout_matrix = rbind(c(1,1,3),
+                                  c(1,1,5),
+                                  c(2,4,6)))
+
+ggsave("figures/fig4_Complete_Alt_1.png",
        fig4.complete,
+       device = "png",
+       width = 7.5,
+       height = 7.5,
+       units = "in")
+
+
+fig4.alt2 <-  grid.arrange(risk.plot, afr.ridge,
+                          CentralZone, central.ridge,
+                          westernZone, western.ridge,
+                          layout_matrix = rbind(c(1,3,5),
+                                                c(1,3,5),
+                                                c(1,3,5),
+                                                c(2,4,6),
+                                                c(2,4,6)))
+ggsave("figures/fig4_Complete_Alt_2.png",
+       fig4.alt2,
        device = "png",
        width = 7.5,
        height = 7.5,
