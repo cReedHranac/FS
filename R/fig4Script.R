@@ -9,7 +9,7 @@ spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
   f.list <- file.path(mod.out.dir, "spatGLM", list.files(file.path(mod.out.dir,"spatGLM"),
-                                                         pattern = paste0(model.string)))
+                                                         pattern = paste0(model.string,"_")))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
@@ -58,8 +58,8 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
     
     #fill data values
     geom_raster(aes(fill = Risk), interpolate = T)+
-    scale_fill_gradientn(name = "Average \nRisk", trans = scales::log_trans(), na.value=terrain.colors(10)[1],
-                         colors = terrain.colors(10), limits = c(1e-4, 12)) +
+    scale_fill_gradient(name = "Average \nRisk", trans = scales::log_trans(), na.value = "yellow",
+                         low = "yellow", high = "red4", limits = c(1e-4, 12)) +
    
     #add area modeled
     geom_polygon(data = fortify(rf),
@@ -76,16 +76,6 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   out <- g.plot + theme_bw() +bkg
 }
 
-hum.mean <- spatHandler("hum")
-risk.plot <- ERgplot(hum.mean)
-risk.plot
-
-ggsave("figures/fig4_A.png",
-       risk.plot,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
 
 #### Pannel 2 Facetted monthly ####
 #nullFacet theme
@@ -154,13 +144,13 @@ library(ggridges)
 ERridge <- function(x, n.bin, crop.extent = sub.ext){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
-  x.crop <- crop(x[[1]],y = extent(crop.extent))
+  x.crop <- raster::crop(x[[1]],y = raster::extent(crop.extent))  
   x.cv <- as.data.frame(rasterToPoints(x.crop))
   colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
   x.df <- x.cv[complete.cases(x.cv),]
   x.df$Jan2 <- x.df$Jan
   ER.df <- x.df %>%
-    gather("month","ER",3:ncol(x.df)) %>%
+    tidyr::gather("month","ER",3:ncol(x.df)) %>%
     mutate(strata = cut(y, breaks = n.bin)) %>%
     group_by(strata, month) %>%
     summarise(ER.mean = mean(ER))
@@ -172,8 +162,8 @@ ERridge <- function(x, n.bin, crop.extent = sub.ext){
 
   ER.ridge <- ggplot(data= ER.df,
                      aes(x= month,y= strata,height = ER.mean, group = strata, fill = ER.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 35) +
-    scale_fill_gradientn(colors = terrain.colors(10),
+    geom_density_ridges_gradient(stat = "identity", scale = 5) +
+    scale_fill_gradient(low= "yellow", high = "red4",
                         limits = c(0,max(ER.df$ER.mean)),
                         name = "Mean \nEbola \nRisk") +
     scale_x_discrete(label = c("Jan","Feb","Mar",
@@ -190,10 +180,104 @@ ERridge <- function(x, n.bin, crop.extent = sub.ext){
 
   return(ER.ridge)
 }
-k <- ERridge(hum.mean, n.bin = 100, insert.ext)
+k <- ERridge(x = hum.mean, n.bin = 100, crop.extent = insert.ext)
 k
 
+ggsave("figures/fig4_B.png",
+       highRiskZone,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+
+
+ggsave("figures/fig4_c.png",
+       k,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
 grid.arrange(risk.plot, highRiskZone, k, 
-             layout_matrix = rbind(c(1,1,3,3),
-                                   c(1,1,3,3),
-                                   c(2,2,3,3)))
+             layout_matrix = rbind(c(1,1,2,2,3,3),
+                                   c(1,1,2,2,3,3)))
+
+
+
+
+#### Alternative human models for ridges ####
+hum.bat <- spatHandler("humBat")
+batRidge <- ERridge(hum.bat, n.bin = 100, insert.ext)
+
+hum.NoAn <- spatHandler("humNoAn") # Go with this one for ridges
+NoAn.risk <- ERgplot(hum.NoAn)
+NoAnRidge <- ERridge(hum.NoAn, n.bin = 100, insert.ext)
+
+#### More Items ####
+hum.mean <- spatHandler("hum") #This for averages 
+risk.plot <- ERgplot(hum.mean)
+
+
+ggsave("figures/fig4_A.png",
+       risk.plot,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+
+Afr.ext <- c(-18, 49, -36, 15)
+afr.ridge <- ERridge(hum.NoAn, n.bin = 50, crop.extent = Afr.ext )
+
+ggsave("figures/fig4_B.png",
+       afr.ridge,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+
+
+centeral.africa <- c(8,35,-5,6)
+CentralZone <- risk.plot + coord_fixed(xlim = centeral.africa[1:2],ylim = centeral.africa[3:4])
+central.ridge <- ERridge(hum.NoAn, n.bin = 50, centeral.africa)
+ggsave("figures/fig4_C.png",
+       CentralZone,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig4_D.png",
+       central.ridge,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+
+
+west.africa <- c(-14,5, 4, 12)
+westernZone <- risk.plot + coord_fixed(xlim = west.africa[1:2],ylim = west.africa[3:4])
+western.ridge <- ERridge(hum.NoAn, n.bin = 100, west.africa)
+ggsave("figures/fig4_E.png",
+       westernZone,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+ggsave("figures/fig4_F.png",
+       western.ridge,
+       device = "png",
+       width = 5,
+       height = 5,
+       units = "in")
+
+
+fig4.complete <- grid.arrange(risk.plot, afr.ridge,
+             CentralZone, central.ridge,
+             westernZone, western.ridge,
+            layout_matrix = rbind(c(1,3,5),
+                                  c(1,3,5),
+                                  c(2,4,6)))
+ggsave("figures/fig4_Complete.png",
+       fig4.complete,
+       device = "png",
+       width = 7,
+       height = 7,
+       units = "in")

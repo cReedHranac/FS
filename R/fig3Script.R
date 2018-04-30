@@ -51,7 +51,7 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  colour = "grey20",
                  alpha = .20) +
     aes(x=long, y=lat) +
-    scale_fill_gradient(low = "yellow", high = "red4",
+    scale_fill_gradient(low = "#2988bc", high = "#f4eade",
                         limits = c(0,max(sum.df$Number)),
                         name = "Number \nBirthing")+
     geom_raster(aes(fill = Number), interpolate = T)+
@@ -126,7 +126,7 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext){
   bf.ridge <- ggplot(data= bf.df, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
     geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5, aes()) +
-    scale_fill_gradient(low = "yellow", high = "red4",
+    scale_fill_gradient(low = "#2988bc", high = "#f4eade",
                         limits = c(0,max(bf.df$bf.mean)),
                         name = "Mean \nBirth \nForce") +
     scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan"),

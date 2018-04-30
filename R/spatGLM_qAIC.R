@@ -194,6 +194,59 @@ resTabSimple <- function(x){
   tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 2))
   return(tidy.table)
 }
+
+spatGLM.AnimalMod <- function(ob.col, coV.v, dat, rGrid = rf){
+  ###Function for applying the hybrid spatGLM to data
+  ###Arguments
+  ### ob.col <- outbreak column from dataframe
+  ### coV.v <- vector of covariate names from dat
+  # Note: last 5 items should include month, ob.col, x,y, and cell
+  ### dat <- dataframe containing the relivent information
+  ### rGrid <- rasterGrid from pppWeights obj (defalut to rf mask)
+  
+  ## Modified function to set animal outbreak beta to 0 for testing
+  
+  #### creating point object ####
+  ob.col <- enquo(ob.col)
+  ppp.ob <- pppWeights(ob.col = UQ(ob.col),
+                       dataFrame = dat,
+                       rasterGrid = rGrid)
+  #### Weighted dataframe/ weights vector ####
+  W.df <- weightedDf(ob.col = UQ(ob.col),
+                     obWeights.df = ppp.ob,
+                     dataFrame = dat,
+                     cols = coV.v)
+  W.v <- W.df$.mpl.W #weights vector
+  #### Model ####
+  form <- as.formula(paste(".mpl.Y ","~",
+                           paste(coV.v[1:(length(coV.v)-5)],collapse = "+")))
+  
+  mod <- glm(form,
+             family=quasi(link="log", variance="mu"),
+             weights=W.v,
+             data=W.df)
+  #### Predict ####
+  ## Modification ##
+  W.df$OB_ann_imp_1 <- 0
+  W.df$OB_ann_imp <- 0
+  ##            ##
+  pred <- predict.glm(mod,newdata = W.df, na.action = na.pass)
+  pred.df <- cbind(pred, W.df)
+  
+  rast <- list()
+  for( i in 1:12){
+    empty.raster <- rGrid
+    empty.raster[] <- NA_real_
+    cell.dance <- pred.df %>%
+      filter(month == i)
+    empty.raster[as.numeric(substring(cell.dance$cell,2))] <- exp(cell.dance$pred)
+    names(empty.raster) <- paste0("pred_",i)
+    rast[[i]] <- empty.raster
+  }
+  
+  items.out <- list(mod, pred.df, rast)
+}
+
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
 # library(skimr)
@@ -253,6 +306,46 @@ null.qAIC <- qAIC(hum.null)
 
 delta.qAIC <- null.qAIC - full.qAIC
 #thats good right?
+
+## Ammend model to no aminal outbreaks 
+hum.bat <-spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                              "logPop", "lnBm.div",
+                              "lFrag","month",
+                              "OB_hum_imp",  "x", "y", "cell"),
+                   dat= dat)
+
+summary(hum.bat[[1]])
+humBatTable <- resTabSimple(hum.bat)
+write.csv(humBatTable, "data/HumBatSpatGLMRes.csv", row.names = F)
+modBat.stk <- do.call(stack, hum.bat[[3]])
+writeRaster(modBat.stk, file.path(mod.out.dir, "spatGLM", "humBat"),format = "GTiff",
+            bylayer = T, suffix = "numbers")
+
+## Modified to remove all animal outbreak information post model fit
+hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                              "logPop", "OB_ann_imp", "lnBm.div",
+                              "lFrag", "OB_ann_imp_1","month",
+                              "OB_hum_imp",  "x", "y", "cell"),
+                   dat= dat)
+
+summary(hum.NoAn[[1]])
+humNoAnTable <- resTabSimple(hum.NoAn)
+write.csv(humNoAnTable, "data/HumNoAnSpatGLMRes.csv", row.names = F)
+modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
+writeRaster(modNoAn.stk, file.path(mod.out.dir, "spatGLM", "humNoAn"),format = "GTiff",
+            bylayer = T, suffix = "numbers")
+
+
+
+
 
 #### Animal Outbreaks ####
 ann.full <- spatGLM(ob.col = OB_ann_imp,
