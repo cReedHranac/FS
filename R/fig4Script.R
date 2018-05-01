@@ -132,26 +132,79 @@ rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
 hum.mean <- spatHandler("hum") #This for averages 
 risk.plot <- ERgplot(hum.mean)
 
+#### Alternative human models for ridges ####
+
+hum.NoAn <- spatHandler("humNoAn") # Go with this one for ridges
+
+n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
+w.ridge <- 0.5 # Width of ridge plot compared to map
+
+Afr.ext <- c(-18, 49, -36, 16)
+afr.ridge <- ERridge(hum.NoAn, n.bin = n.ridge, scale = 2, crop.extent = Afr.ext )
+
+# Arrange the map and ridge on the same plot
+
+# first work out aspect ratio of map
+width_height <- diff(Afr.ext)[c(1,3)]
+aspect_map <- width_height[1] / width_height[2]
+
+# now aspect ratio of ridge plot (this assumes top bin isn't too large)
+aspect_ridge <- 12 / n.ridge
+
+# and fixup the aspect ratio of ridge to that of map
+aspect_match <- aspect_ridge / aspect_map / w.ridge
+
+risk.grob <- ggplotGrob(risk.plot + guides(fill='none') +
+                          theme(plot.margin=unit(rep(0,4), "cm")))
+ridge.grob <- ggplotGrob(afr.ridge + guides(fill='none') +
+                           theme(plot.margin=unit(rep(0,4), "cm")) +
+                           coord_fixed(ratio = aspect_match))
+
+# find the height and left axis width of the risk grob
+index <- risk.grob$layout$t[risk.grob$layout$name == 'panel']
+plot_height <- risk.grob$heights[index]
+index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-l']
+axis_width <- risk.grob$widths[index]
+index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-r']
+risk.grob$widths[index] <- unit(0.5, 'cm')
+
+# set the height the same, the left axis width, and the right
+# axis to the same as the left axis for the map, scaled so that
+# the widths are maintained (when laying out with grid.arrange)
+# the widths are applied to the full objects, so we want everything
+# to be a scaled version of the other (i.e. axis placement/widths)
+# etc scaled perfectly
+index <- ridge.grob$layout$t[ridge.grob$layout$name == 'panel']
+ridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
+index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-l']
+right_axis_width <- unit(
+  grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
+  "cm")
+ridge.grob$widths[index] <- right_axis_width
+index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-r']
+ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
+
+# arrange them side by side
+png("test.png", width=800, height=430)
+grid.arrange(risk.grob,
+             ridge.grob,
+             ncol=2, widths=c(1,w.ridge))
+dev.off()
+
+
+
 ### Subregion plots ###
-  #Central
+#Central
 central.africa <- c(8,35,-5,6)
 CentralZone <- risk.plot + coord_fixed(xlim = central.africa[1:2],ylim = central.africa[3:4]) +
   theme(legend.position="none") + 
   theme(plot.margin=unit(c(0,0,0,0),"cm"))
 
-  #Western
+#Western
 west.africa <- c(-14,5, 4, 12)
 westernZone <- risk.plot + coord_fixed(xlim = west.africa[1:2],ylim = west.africa[3:4]) +
   theme(legend.position="none") + 
   theme(plot.margin=unit(c(0,0,0,0),"cm"))
 
-
-#### Alternative human models for ridges ####
-
-hum.NoAn <- spatHandler("humNoAn") # Go with this one for ridges
-
-Afr.ext <- c(-18, 49, -36, 15)
-afr.ridge <- ERridge(hum.NoAn, n.bin = 50, crop.extent = Afr.ext )
 central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
-
