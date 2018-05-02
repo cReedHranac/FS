@@ -1,6 +1,11 @@
 ##########################
 #### Figure 4         ####
 ##########################
+
+# feel free to specify the path to FS (including the FS folder) in base.path.
+# if not set, it'll use what Reed uses (D:\Dropbox\FS or ~/Dropbox/FS)
+#base.path <- "~/data/Dropbox/FS"
+
 source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges)
@@ -110,6 +115,7 @@ ERridge <- function(x, n.bin, crop.extent = sub.ext){
   
   return(ER.ridge)
 }
+
 #### Pannel 1 Average ####
 
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),

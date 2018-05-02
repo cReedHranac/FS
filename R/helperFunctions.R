@@ -3,17 +3,17 @@
 ############################################
 
 #### Platform specific path assignment #####
-if(.Platform$"OS.type" == "windows"){
-  data.source <-file.path("D:", "Dropbox", "FS", "SourceData")
-  clean.dir <- file.path("D:", "Dropbox", "FS", "Processed")
-  norm.dir <- file.path("D:", "Dropbox", "FS", "Normalized")
-  mod.out.dir <- file.path("D:", "Dropbox", "FS", "ModOut")
-} else{
-  data.source <-file.path("~", "Dropbox", "FS", "SourceData")
-  clean.dir <- file.path("~", "Dropbox", "FS", "Processed")
-  norm.dir <- file.path("~", "Dropbox", "FS", "Normalized")
-  mod.out.dir <- file.path("~", "Dropbox", "FS", "ModOut")
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "FS")
+  } else {
+    base.path = "~/Dropbox/FS"
+  }
 }
+data.source <-file.path(base.path, "SourceData")
+clean.dir <- file.path(base.path, "Processed")
+norm.dir <- file.path(base.path, "Normalized")
+mod.out.dir <- file.path(base.path, "ModOut")
 
 #### Opperators ####
 ## The %!in% opperator 
