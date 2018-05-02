@@ -34,47 +34,51 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Risk")
-  
-  g.plot <- ggplot(sum.df) +
-    
-    #create african continent background
+
+  #create african continent background
+  g.plot <- ggplot(sum.df, aes(x=long, y=lat)) +
+
+    # background
     geom_polygon(data = fortify(afr),
-                 aes(long, lat, group = group), 
-                 colour = "grey20",
+                 aes(group = group), 
+                 colour = NA,
+                 fill = 'black',
                  alpha = .2) +
-    aes(x=long, y=lat) +
-    
-    #Color
+
+    # fill data values
+    geom_raster(aes(fill = Risk), interpolate=TRUE) +
+
+    # color scale
     scale_fill_gradient2(trans = scales::log_trans(),
-                        low = "yellow", mid = "red4",
-                        #limits = c(1e-20, 2),
-                        limits = c(1e-4, 12),
-                        na.value = "yellow", 
-                        name = "Mean \nEbola \nRisk") +
-    
-    #fill data values
-    geom_raster(aes(fill = Risk), interpolate = T)+
-    
-    #create african continent background
+                         low = "yellow", mid = "red4",
+                         #limits = c(1e-20, 2),
+                         limits = c(1e-4, 12),
+                         na.value = "yellow", 
+                         name = "Mean \nEbola \nRisk") +
+
+    # country borders
     geom_polygon(data = fortify(afr.poly),
                  aes(long, lat, group = group), 
-                 colour = "grey20",
+                 colour = "black",
                  fill = NA,
-                 alpha = .2) +
-    
-    #add area modeled
-    geom_polygon(data = fortify(rf),
-                 aes(long, lat, group = group),
-                 colour = "white", 
-                 fill = NA) +
-    #Extras
-    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) +
-    scale_y_continuous(expand = c(0,0) )#, lables = scaleFUN) +
-  theme_bw()+
+                 size=0.1) +
+
+    # add area modeled
+    #  geom_polygon(data = fortify(rf),
+    #               aes(long, lat, group = group),
+    #               colour = "white", 
+    #               fill = NA) +
+
+    # limit coordinates
+    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 16)) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
+
+    # theme
+    theme_bw() +
     theme(axis.title = element_blank())
-  
-  coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
-  out <- g.plot + theme_bw()
+
+  return(g.plot)
 }
 
 ERridge <- function(x, n.bin, scale = 5, crop.extent = sub.ext){
