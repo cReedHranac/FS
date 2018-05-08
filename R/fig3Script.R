@@ -2,8 +2,10 @@
 #### Figure 3              ####
 ###############################
 source("R/helperFunctions.R")
-library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
-library(raster); library(rgdal); library(tidyverse)
+library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
+library(rgdal); library(raster); library(ggridges); library(RcppRoll)
+
+#### Functions ####
 
 sumGen <- function(model.string){
   ## function for loading rasters and producing an averaged product based on the
@@ -21,30 +23,28 @@ sumGen <- function(model.string){
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
-mol.sum <- sumGen("mol.dbl.imp")
-mic.sum <- sumGen("mic.dbl.imp")
-
-
-afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
-                    layer = "AfricanCountires")
-rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
-                            fun = function(x){x==1}, dissolve = T)
-bkg <- theme(
-  plot.title = element_text(hjust = 0.5),
-  axis.title.x = element_blank(),
-  axis.title.y = element_blank())
-
 BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
-  #### Set Up ####
-  afr.poly <- afr
-  rf.poly <- rf
-  
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Number")
   
-  g.plot <- ggplot(sum.df) +
+  g.plot <- ggplot(sum.df, aes(x=long, y=lat)) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr.poly),
+                 aes(long, lat, group = group), 
+                 colour = NA,
+                 fill = 'black',
+                 alpha = .2) +
+    
+    #fill Raster values
+    geom_raster(aes(fill = Number), interpolate = T)+
+    
+    #Colors
+    scale_fill_gradientn(colors = c("#5e3c99", "#b2abd2","#ffffff", "#fdb863","#e66101"), 
+                        limits = c(0,max(sum.df$Number)),
+                        name = "Mean \nNumber \nBirthing")+
+
     #create african continent background
     geom_polygon(data = fortify(afr.poly),
                  aes(long, lat, group = group), 
@@ -52,36 +52,73 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
                  alpha = .20) +
     aes(x=long, y=lat) +
     
-    #Colors
-    scale_fill_gradient(low = "#f4eade", high = "#2988bc",
-                        limits = c(0,max(sum.df$Number)),
-                        name = "Number \nBirthing")+
-    #Raster
-    geom_raster(aes(fill = Number), interpolate = T)+
-    
-    #create african continent background
-    geom_polygon(data = fortify(afr.poly),
-                 aes(long, lat, group = group), 
-                 colour = "grey20",
-                 fill = NA,
-                 alpha = .2) +
-    
-    #add area modeled
-    geom_polygon(data = fortify(rf.poly),
-                 aes(long, lat, group = group),
-                 colour = "white", 
-                 fill = NA) +
+    # limit coordinates
+    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 16)) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     #Extras
-    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15)) + 
     theme_bw() + 
-    theme( axis.title.x = element_blank(),
-           axis.title.y = element_blank(),
-           legend.position = c(.2,.4),
-           legend.background = element_blank())+
-  scale_y_continuous(expand = c(0,0))
+    theme( axis.title = element_blank()) +
+    scale_y_continuous(expand = c(0,0))
   
+  return(g.plot)
 }
+BFridge <- function(x, n.bin, crop.extent = sub.ext, scale){
+  ## Function for creating ridgeline density plots of the breeding force
+  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
+  x.crop <- crop(x[[1]], crop.extent)
+  x.cv <- as.data.frame(rasterToPoints(x.crop))
+  # convert to a data frame and add in a half month at average of Jan+Dec at either end
+  colnames(x.cv)[3:ncol(x.cv)] <- 1:12
+  x.df <- x.cv[complete.cases(x.cv),]
+  x.df$`0.5` <- x.df$`12.5` <- (x.df$`1` + x.df$`12`)/2
+  # gather everything together and compute averages per month across the latitude breaks
+  bf.df <- x.df %>%
+    tidyr::gather("month","BF",3:ncol(x.df), convert=TRUE) %>%
+    mutate(strata = cut(y, breaks = n.bin)) %>%
+    group_by(strata, month) %>%
+    summarise(bf.mean = mean(BF)) 
+  
+  # rolling average for fill colour
+  bf.df2 <- bf.df %>% 
+    group_by(strata) %>%
+    arrange(month) %>%
+    mutate(Roll.mean = roll_mean(bf.mean, n=2, fill=0))
+  
+  #Plot
+  bf.ridge <- ggplot(data= bf.df2, 
+                     aes(x= month,y= strata,height = bf.mean, group = strata, fill = Roll.mean)) +
+    geom_density_ridges_gradient(color="#0000000F", stat = "identity", scale=scale) +
+    scale_fill_gradientn(colors = c("#5e3c99", "#b2abd2","#ffffff", "#fdb863","#e66101"),
+                        limits = c(0,max(bf.df2$bf.mean)),
+                        name = "Mean \nBirth \nForce") +
+    scale_x_continuous(breaks = 1:12, labels=month.abb[1:12],
+                       expand = c(0,0))+
+    scale_y_discrete(expand=c(0,0)) +
+    theme_bw() +
+    theme(
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.major.x = element_line(colour="grey96")
+    )
+  
+  return(bf.ridge )
+}
+
+#### Left Pannels ####
+afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
+                    layer = "AfricanCountires")
+rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
+                            fun = function(x){x==1}, dissolve = T)
+
+ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
+mol.sum <- sumGen("mol.dbl.imp")
+mic.sum <- sumGen("mic.dbl.imp")
+
 
 ptr.BF <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
@@ -108,47 +145,14 @@ ggsave("figures/fig3_C.png",
 
 
 #### Pannel 2 (Right) ####
-# install_github("cran/ggridges")
-library(ggridges); library(readr); library(tidyr)
-sub.ext <- c(-18, 49, -36, 15) #extent subset like that of the other map figures
-BFridge <- function(x, n.bin, crop.extent = sub.ext){
-  ## Function for creating ridgeline density plots of the breeding force
-  ## used on objects creaded from sumGen (since it loads rasterlayers as well)
-  x.crop <- crop(x[[1]], crop.extent)
-  x.cv <- as.data.frame(rasterToPoints(x.crop))
-  colnames(x.cv)[3:ncol(x.cv)] <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-  x.df <- x.cv[complete.cases(x.cv),]
-  x.df$Jan2 <- x.df$Jan
-  bf.df <- x.df %>%
-    tidyr::gather("month","BF",3:ncol(x.df)) %>%
-    mutate(strata = cut(y, breaks = n.bin)) %>%
-    group_by(strata, month) %>%
-    summarise(bf.mean = mean(BF)) 
-  
-  bf.df$month <-  factor(bf.df$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan2"))
-  
-  
-  bf.ridge <- ggplot(data= bf.df, 
-                     aes(x= month,y= strata,height = bf.mean, group = strata, fill = bf.mean))+
-    geom_density_ridges_gradient(stat = "identity", scale = 3, alpha = .5, aes()) +
-    scale_fill_gradient(low = "#f4eade", high = "#2988bc",
-                        limits = c(0,max(bf.df$bf.mean)),
-                        name = "Mean \nBirth \nForce") +
-    scale_x_discrete(label = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", "Jan"),
-                     expand = c(0,0))+
-    theme_bw() +
-    theme(
-      axis.title = element_blank(),
-      axis.text.y = element_blank(),
-      axis.ticks = element_blank()
-       )
-  
-  return(bf.ridge )
-}
+n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
+w.ridge <- 0.5 # Width of ridge plot compared to map
 
-r.ptr <- BFridge(x = ptr.sum, n.bin = 40, crop.extent = sub.ext)
-r.mic <- BFridge(mic.sum, 40)
-r.mol <- BFridge(mol.sum, 40)
+Afr.ext <- c(-18, 49, -36, 16)
+
+r.ptr <- BFridge(x = ptr.sum, n.bin = n.ridge,scale = 2,  crop.extent = Afr.ext)
+r.mic <- BFridge(mic.sum, n.bin = n.ridge,scale = 2,  crop.extent = Afr.ext)
+r.mol <- BFridge(mol.sum, n.bin = n.ridge,scale = 2,  crop.extent = Afr.ext)
 
 ggsave("figures/fig3_D.png",
        r.ptr,
@@ -168,15 +172,64 @@ ggsave("figures/fig3_F.png",
        width = 5,
        height = 5,
        units = "in")
-fig3.complete <- grid.arrange(ptr.BF, r.ptr, 
-             mic.BF, r.mic,
-             mol.BF, r.mol, 
-             layout_matrix= rbind(c(1,2),
-                                  c(3,4),
-                                  c(5,6)))
-ggsave("figures/Fig3Complete.png",
-      fig3.complete,
-      device = "png", 
-      width = 7.5,
-      height = 7.5,
-      units = "in")
+
+# Arrange the map and ridge on the same plot
+# first work out aspect ratio of map
+width_height <- diff(Afr.ext)[c(1,3)]
+aspect_map <- width_height[1] / width_height[2]
+
+# now aspect ratio of ridge plot (this assumes top bin isn't too large)
+aspect_ridge <- 12 / n.ridge
+
+# and fixup the aspect ratio of ridge to that of map
+aspect_match <- aspect_ridge / aspect_map / w.ridge
+
+p.list <- list(ptr.BF, mol.BF, mic.BF, r.ptr, r.mol, r.mic)
+
+grob.list <- lapply(p.list, function(x){ggplotGrob(x + guides(fill='none') +
+                                                     theme(plot.margin=unit(rep(0,4), "cm")))})
+
+# find the height and left axis width of the risk grob
+
+risk.margin.reset <- function(x){
+  index <- x$layout$t[x$layout$name == 'panel']
+  plot_height <- x$heights[index]
+  index <- x$layout$l[x$layout$name == 'axis-l']
+  axis_width <- x$widths[index]
+  index <- x$layout$l[x$layout$name == 'axis-r']
+  x$widths[index] <- unit(0.5, 'cm')
+  return(x)
+}
+
+risk.list <- lapply(grob.list[1:3], risk.margin.reset)
+
+# set the height the same, the left axis width, and the right
+# axis to the same as the left axis for the map, scaled so that
+# the widths are maintained (when laying out with grid.arrange)
+# the widths are applied to the full objects, so we want everything
+# to be a scaled version of the other (i.e. axis placement/widths)
+# etc scaled perfectly
+
+ridge.margit.reset <- function(x){
+  index <- x$layout$t[x$layout$name == 'panel']
+  x$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
+  index <- x$layout$l[x$layout$name == 'axis-l']
+  right_axis_width <- unit(
+    grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
+    "cm")
+  x$widths[index] <- right_axis_width
+  index <- x$layout$l[x$layout$name == 'axis-r']
+  x$widths[index] <- unit(0.5 * w.ridge, 'cm')
+  return(x)
+}
+
+ridge.list <- lapply(grob.list[4:6], ridge.margit.reset)
+
+master.list <- list(risk.list[[1]], ridge.list[[1]],
+                    risk.list[[2]], ridge.list[[2]],
+                    risk.list[[3]], ridge.list[[3]])
+
+png("figures/fig3_Complete.png", width=800, height=430)
+grid.arrange(grobs = master.list,
+             ncol = 2, widths=c(1,w.ridge))
+dev.off()

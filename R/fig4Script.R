@@ -63,12 +63,7 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
                  fill = NA,
                  size=0.1) +
 
-    # add area modeled
-    #  geom_polygon(data = fortify(rf),
-    #               aes(long, lat, group = group),
-    #               colour = "white", 
-    #               fill = NA) +
-
+    
     # limit coordinates
     coord_fixed(xlim = c(-18, 49),ylim = c(-36, 16)) +
     scale_y_continuous(expand = c(0,0)) +
@@ -98,7 +93,10 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = sub.ext){
     summarise(ER.mean = mean(ER))
 
   # rolling average for fill colour
-  ER.df2 <- ER.df %>% group_by(strata) %>% arrange(month) %>% mutate(Roll.mean = roll_mean(ER.mean, n=2, fill=0))
+  ER.df2 <- ER.df %>% 
+    group_by(strata) %>%
+    arrange(month) %>%
+    mutate(Roll.mean = roll_mean(ER.mean, n=2, fill=0))
 
   # plot
   ER.ridge <- ggplot(data= ER.df2,
@@ -185,7 +183,7 @@ index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-r']
 ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
 
 # arrange them side by side
-png("test.png", width=800, height=430)
+png("figures/fig4_Complete.png", width=800, height=430)
 grid.arrange(risk.grob,
              ridge.grob,
              ncol=2, widths=c(1,w.ridge))
