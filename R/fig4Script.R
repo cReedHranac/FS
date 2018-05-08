@@ -208,3 +208,48 @@ westernZone <- risk.plot + coord_fixed(xlim = west.africa[1:2],ylim = west.afric
 
 central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
+
+#### Animal Risk Plot ####
+ann.mean <- spatHandler("ann")
+ann.risk.plot <- ERgplot(ann.mean)
+ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Afr.ext )
+# and fixup the aspect ratio of ridge to that of map
+aspect_match <- aspect_ridge / aspect_map / w.ridge
+
+risk.grob <- ggplotGrob(ann.risk.plot + guides(fill='none') +
+                          theme(plot.margin=unit(rep(0,4), "cm")))
+ridge.grob <- ggplotGrob(ann.ridge + guides(fill='none') +
+                           theme(plot.margin=unit(rep(0,4), "cm")) +
+                           coord_fixed(ratio = aspect_match))
+
+# find the height and left axis width of the risk grob
+index <- risk.grob$layout$t[risk.grob$layout$name == 'panel']
+plot_height <- risk.grob$heights[index]
+index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-l']
+axis_width <- risk.grob$widths[index]
+index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-r']
+risk.grob$widths[index] <- unit(0.5, 'cm')
+
+# set the height the same, the left axis width, and the right
+# axis to the same as the left axis for the map, scaled so that
+# the widths are maintained (when laying out with grid.arrange)
+# the widths are applied to the full objects, so we want everything
+# to be a scaled version of the other (i.e. axis placement/widths)
+# etc scaled perfectly
+index <- ridge.grob$layout$t[ridge.grob$layout$name == 'panel']
+ridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
+index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-l']
+right_axis_width <- unit(
+  grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
+  "cm")
+ridge.grob$widths[index] <- right_axis_width
+index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-r']
+ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
+
+# arrange them side by side
+png("figures/AnnRisk.png", width=800, height=430)
+grid.arrange(risk.grob,
+             ridge.grob,
+             ncol=2, widths=c(1,w.ridge))
+dev.off()
+

@@ -360,6 +360,19 @@ summary(ann.full[[1]])
 anFull <- resTabSimple(ann.full)
 write.csv(anFull, "data/AnFullSpatGLMRes.csv", row.names = F)
 
+##Creating animal rasters without stocastic events
+an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp, 
+                           coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                                      "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                                      "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                                      "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                                      "lnBm.div","lFrag", "month",
+                                      "OB_ann_imp",  "x", "y", "cell"),
+                           dat = dat)
+an.stk <- do.call(stack, an.op[[3]])
+writeRaster(an.stk, file.path(mod.out.dir, "spatGLM", "ann"),format = "GTiff",
+            bylayer = T, suffix = "numbers")
+
 ## Null
 ann.null <- spatGLM(ob.col = OB_ann_imp,
                     coV.v = c( "lnBm.div","lFrag", "month",
