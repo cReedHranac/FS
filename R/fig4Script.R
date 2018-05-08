@@ -156,7 +156,7 @@ risk.grob <- ggplotGrob(risk.plot + guides(fill='none') +
                           theme(plot.margin=unit(rep(0,4), "cm")))
 ridge.grob <- ggplotGrob(afr.ridge + guides(fill='none') +
                            theme(plot.margin=unit(rep(0,4), "cm")) +
-                           coord_fixed(ratio = aspect_match))
+                           coord_fixed(ratio = aspect_match)) # Alternatively see the respect=TRUE below
 
 # find the height and left axis width of the risk grob
 index <- risk.grob$layout$t[risk.grob$layout$name == 'panel']
@@ -181,6 +181,7 @@ right_axis_width <- unit(
 ridge.grob$widths[index] <- right_axis_width
 index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-r']
 ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
+#ridge.grob$respect <- TRUE # This is equivalent to coord_fixed() - i.e. it sets a constant aspect ratio.
 
 # arrange them side by side
 png("figures/fig4_Complete.png", width=800, height=430)
