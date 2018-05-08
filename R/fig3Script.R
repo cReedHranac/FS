@@ -213,7 +213,14 @@ risk.list <- lapply(map.grob, risk.margin.reset)
 # to be a scaled version of the other (i.e. axis placement/widths)
 # etc scaled perfectly
 
-ridge.margit.reset <- function(x){
+# Grab the correct axis width/plot heights from the first map panel
+x <- map.grob[[1]]
+index <- x$layout$t[x$layout$name == 'panel']
+plot_height <- x$heights[index]
+index <- x$layout$l[x$layout$name == 'axis-l']
+axis_width <- x$widths[index]
+
+ridge.margit.reset <- function(x, plot_height, axis_width) {
   index <- x$layout$t[x$layout$name == 'panel']
   x$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
   index <- x$layout$l[x$layout$name == 'axis-l']
@@ -226,7 +233,7 @@ ridge.margit.reset <- function(x){
   return(x)
 }
 
-ridge.list <- lapply(ridge.grob, ridge.margit.reset)
+ridge.list <- lapply(ridge.grob, ridge.margit.reset, plot_height=plot_height, axis_width=axis_width)
 
 master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
