@@ -23,7 +23,7 @@ sumGen <- function(model.string){
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-BFgplot <- function(x, afr = afr.poly, rf = rf.poly, themed = bkg){
+BFgplot <- function(x, afr = afr.poly, rf = rf.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Number")
