@@ -145,8 +145,8 @@ ggsave("figures/fig3_C.png",
 
 
 #### Pannel 2 (Right) ####
-n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
-w.ridge <- 0.5 # Width of ridge plot compared to map
+n.ridge <- 48  # Number of ridgelines. Mess with scale below as well.
+w.ridge <- 1 # Width of ridge plot compared to map
 
 Afr.ext <- c(-18, 49, -36, 16)
 
@@ -240,7 +240,7 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
                     risk.list[[3]], ridge.list[[3]])
 
-png("figures/fig3_Complete.png", width=800, height=430)
+png("figures/fig3_Complete.png", width=600, height=750)
 grid.arrange(grobs = master.list,
              ncol = 2, widths=c(1,w.ridge))
 dev.off()
