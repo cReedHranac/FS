@@ -10,6 +10,9 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
+# Africa extent to use. This is reasonably tight around the data
+Africa.ext <- c(-18, 47, -36, 16)
+
 #### functions ####
 spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
@@ -65,7 +68,7 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
 
     
     # limit coordinates
-    coord_fixed(xlim = c(-18, 49),ylim = c(-36, 16)) +
+    coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
 
@@ -137,13 +140,12 @@ hum.NoAn <- spatHandler("humNoAn") # Go with this one for ridges
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
 
-Afr.ext <- c(-18, 49, -36, 16)
-afr.ridge <- ERridge(hum.NoAn, n.bin = n.ridge, scale = 2, crop.extent = Afr.ext )
+afr.ridge <- ERridge(hum.NoAn, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 
 # Arrange the map and ridge on the same plot
 
 # first work out aspect ratio of map
-width_height <- diff(Afr.ext)[c(1,3)]
+width_height <- diff(Africa.ext)[c(1,3)]
 aspect_map <- width_height[1] / width_height[2]
 
 # now aspect ratio of ridge plot (this assumes top bin isn't too large)
@@ -211,7 +213,7 @@ western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
 #### Animal Risk Plot ####
 ann.mean <- spatHandler("ann")
 ann.risk.plot <- ERgplot(ann.mean)
-ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Afr.ext )
+ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 # and fixup the aspect ratio of ridge to that of map
 aspect_match <- aspect_ridge / aspect_map / w.ridge
 
