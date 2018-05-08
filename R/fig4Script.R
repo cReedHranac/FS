@@ -23,7 +23,7 @@ spatHandler <- function(model.string){
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
-  ## stupid hack to order list since names are too complex for mixed sort
+  ## order and read
   o.list <- mixedsort(f.list)
   stk <- stack(o.list)
   m.stk <- mean(stk)
