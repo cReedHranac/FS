@@ -184,10 +184,13 @@ aspect_ridge <- 12 / n.ridge
 # and fixup the aspect ratio of ridge to that of map
 aspect_match <- aspect_ridge / aspect_map / w.ridge
 
-p.list <- list(ptr.BF, mol.BF, mic.BF, r.ptr, r.mol, r.mic)
+map.list <- list(ptr.BF, mol.BF, mic.BF)
+ridge.list <- list(r.ptr, r.mol, r.mic)
 
-grob.list <- lapply(p.list, function(x){ggplotGrob(x + guides(fill='none') +
-                                                     theme(plot.margin=unit(rep(0,4), "cm")))})
+map.grob <- lapply(map.list, function(x){ggplotGrob(x + guides(fill='none') +
+                                                     theme(plot.margin=unit(c(0.1,0,0.1,0.1)/2, "cm")))})
+ridge.grob <- lapply(ridge.list, function(x){ggplotGrob(x + guides(fill='none') +
+                                                          theme(plot.margin=unit(c(0.1,0,0.1,0.1*w.ridge)/2, "cm")))})
 
 # find the height and left axis width of the risk grob
 
@@ -201,7 +204,7 @@ risk.margin.reset <- function(x){
   return(x)
 }
 
-risk.list <- lapply(grob.list[1:3], risk.margin.reset)
+risk.list <- lapply(map.grob, risk.margin.reset)
 
 # set the height the same, the left axis width, and the right
 # axis to the same as the left axis for the map, scaled so that
@@ -223,7 +226,7 @@ ridge.margit.reset <- function(x){
   return(x)
 }
 
-ridge.list <- lapply(grob.list[4:6], ridge.margit.reset)
+ridge.list <- lapply(ridge.grob, ridge.margit.reset)
 
 master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
