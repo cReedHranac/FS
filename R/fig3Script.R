@@ -230,6 +230,7 @@ ridge.margit.reset <- function(x, plot_height, axis_width) {
   x$widths[index] <- right_axis_width
   index <- x$layout$l[x$layout$name == 'axis-r']
   x$widths[index] <- unit(0.5 * w.ridge, 'cm')
+  x$respect <- TRUE
   return(x)
 }
 
