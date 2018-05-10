@@ -26,7 +26,7 @@ sumGen <- function(model.string){
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-BFgplot <- function(x, afr = afr.poly, rf = rf.poly){
+BFgplot <- function(x, afr = afr.poly){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Number")
@@ -67,7 +67,7 @@ BFgplot <- function(x, afr = afr.poly, rf = rf.poly){
   
   return(g.plot)
 }
-BFridge <- function(x, n.bin, crop.extent = sub.ext, scale){
+BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- crop(x[[1]], crop.extent)
@@ -115,8 +115,6 @@ BFridge <- function(x, n.bin, crop.extent = sub.ext, scale){
 #### Left Pannels ####
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
-rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
-                            fun = function(x){x==1}, dissolve = T)
 
 ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
 mol.sum <- sumGen("mol.dbl.imp")

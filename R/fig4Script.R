@@ -79,7 +79,7 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
   return(g.plot)
 }
 
-ERridge <- function(x, n.bin, scale = 5, crop.extent = sub.ext){
+ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- raster::crop(x[[1]],y = raster::extent(crop.extent))  

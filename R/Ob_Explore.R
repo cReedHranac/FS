@@ -5,6 +5,15 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra); libra
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
 #### functions ####
+better.names <- function(x){
+  ### function for impoving names accociated with items retrieved from SpatHandler
+  base <- substring(names(x[[1]]), 1, 3)
+  i <- 1:12
+  j <- c(i[12],i[1:11])
+  names(x) <- paste0(base, "_", j, "_", i)
+  return(x)
+}
+
 spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
@@ -17,6 +26,7 @@ spatHandler <- function(model.string){
   ## order and read
   o.list <- mixedsort(f.list)
   stk <- stack(o.list)
+  stk <- better.names(stk)
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
@@ -299,10 +309,7 @@ ob.zone <- drc[drc$PROVINCE == "Equateur" & drc$Nom_ZS_PUC == "Bikoro",]
 zone.cells <- as.data.frame(cellFromPolygon(hum.ob[[2]], ob.zone, weights = T))
 
 ##Make better names for outbreak
-base <- substring(names(hum.ob[[1]]), 1, 3)[1]
-i <- 1:12
-j <- c(i[12],i[1:11])
-names(hum.ob[[1]]) <- paste0(base, "_", j, "_", i)
+
 
 ## Convert to df
 h.ob.df <- as.data.frame(hum.ob[[1]], row.names = 1:ncell(hum.ob[[1]]))
