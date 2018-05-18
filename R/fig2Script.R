@@ -12,7 +12,7 @@ bat.symbol <- image_data(bat.n$same[[1]]$uid, size = 64)[[1]]
 
 bi <- fread("data/afrBatBirthDB.csv")
 bi$Class <- factor(bi$Class,
-                   labels= c("Pteropodiae", "Molosidae", "Non-Molosid Microbats"))
+                   labels= c("Pteropodiae", "Mollosidae", "Non-Mollosid Microbats"))
 bi$Start <- factor(bi$Start,
                    labels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 bi$long <- bi$Lon
@@ -53,7 +53,7 @@ bi.plot <- ggplot()+ bkg +
                colour = "white", 
                alpha = .5,
                fill = "lightblue2")+
-  coord_fixed(xlim = c(-18, 49),ylim = c(-36, 15))
+  coord_fixed(xlim = c(-20, 42),ylim = c(-36, 15))
 
 for(i in 1:nrow(bi)){
   bi.plot <- bi.plot +
@@ -66,12 +66,13 @@ for(i in 1:nrow(bi)){
 
 bi.plot 
 
-ggsave("figures/fig2_A.pdf",
+ggsave("figures/fig2_A.png",
        bi.plot,
-       device = "pdf",
-       width = 5,
-       height = 5,
-       units = "in")
+       device = "png",
+       width = 210,
+       height = 165,
+       units = "mm", 
+       dpi = 300)
 
 #### Pannel 2 Bar with Smooth ####
 bi.bar <- ggplot(data = bi)+
@@ -86,15 +87,16 @@ bi.bar <- ggplot(data = bi)+
 
 bi.bar
 
-ggsave("figures/fig2_B.pdf",
+ggsave("figures/fig2_B.png",
        bi.bar,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
-       units = "in")
+       units = "in",
+       dpi = 300)
 
 
-#### All together now ####
+i#### All together now ####
 fig2.complete <- grid.arrange(bi.plot, bi.bar,
              widths = c(2.5, 1.2),
              layout_matrix = rbind(c(1,2)))

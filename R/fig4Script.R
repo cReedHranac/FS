@@ -14,22 +14,34 @@ library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 Africa.ext <- c(-18, 47, -36, 16)
 
 #### functions ####
+better.names <- function(x){
+  ### function for impoving names accociated with items retrieved from SpatHandler
+  base <- substring(names(x[[1]]), 1, 3)
+  i <- 1:12
+  j <- c(i[12],i[1:11])
+  names(x) <- paste0(base, "_", j, "_", i)
+  return(x)
+}
+
 spatHandler <- function(model.string){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
-  f.list <- file.path(mod.out.dir, "spatGLM", list.files(file.path(mod.out.dir,"spatGLM"),
-                                                         pattern = paste0(model.string,"_")))
+  base <- substring(model.string, 1, 3)
+  
+  f.list <- mixedsort(list.files(file.path(mod.out.dir,"spatGLM"),
+                      pattern = paste0(model.string,"_"), 
+                      full.names = T))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
   ## order and read
-  o.list <- mixedsort(f.list)
-  stk <- stack(o.list)
+  stk <- better.names(stack(f.list))
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
 }
+
 
 scaleFUN <- function(x)sprintf("%.4f", round(x, digits = 4)) 
 
@@ -127,15 +139,13 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
 
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
-rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
-                            fun = function(x){x==1}, dissolve = T)
-
-hum.mean <- spatHandler("hum") #This for averages 
-risk.plot <- ERgplot(hum.mean)
 
 #### Alternative human models for ridges ####
 
-hum.NoAn <- spatHandler("humNoAn") # Go with this one for ridges
+hum.stk <- spatHandler("hum")
+risk.plot <- ERgplot(x = hum.stk)
+
+hum.NoAn <- spatHandler(model.string = "humNoAn") # Go with this one for ridges
 
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
@@ -186,7 +196,7 @@ ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
 #ridge.grob$respect <- TRUE # This is equivalent to coord_fixed() - i.e. it sets a constant aspect ratio.
 
 # arrange them side by side
-png("figures/fig4_Complete.png", width=800, height=430)
+png("figures/fig4_complete.png", width=800, height=430)
 grid.arrange(risk.grob,
              ridge.grob,
              ncol=2, widths=c(1,w.ridge))

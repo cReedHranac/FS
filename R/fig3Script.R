@@ -37,22 +37,22 @@ BFgplot <- function(x, afr = afr.poly){
     geom_polygon(data = fortify(afr.poly),
                  aes(long, lat, group = group), 
                  colour = NA,
-                 fill = 'black',
+                 fill = "#FFFFFF",
                  alpha = .2) +
     
     #fill Raster values
     geom_raster(aes(fill = Number), interpolate = T)+
     
     #Colors
-    scale_fill_gradientn(colors = c("#5e3c99", "#b2abd2","#ffffff", "#fdb863","#e66101"), 
+    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"), 
                         limits = c(0,max(sum.df$Number)),
                         name = "Mean \nNumber \nBirthing")+
 
     #create african continent background
     geom_polygon(data = fortify(afr.poly),
                  aes(long, lat, group = group), 
-                 colour = "grey20",
-                 alpha = .20) +
+                 colour = "#212121",
+                 fill = NA) +
     aes(x=long, y=lat) +
     
     # limit coordinates
@@ -93,7 +93,7 @@ BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
   bf.ridge <- ggplot(data= bf.df2, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = Roll.mean)) +
     geom_density_ridges_gradient(color="#0000000F", stat = "identity", scale=scale) +
-    scale_fill_gradientn(colors = c("#5e3c99", "#b2abd2","#ffffff", "#fdb863","#e66101"),
+    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"),
                         limits = c(0,max(bf.df2$bf.mean)),
                         name = "Mean \nBirth \nForce") +
     scale_x_continuous(breaks = 1:12, labels=month.abb[1:12],
@@ -239,7 +239,7 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
                     risk.list[[3]], ridge.list[[3]])
 
-png("figures/fig3_Complete.png", width=600, height=750)
+png("figures/fig3_big.png", width=600, height=750, units = "mm", res = 300)
 grid.arrange(grobs = master.list,
              ncol = 2, widths=c(1,w.ridge))
 dev.off()

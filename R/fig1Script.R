@@ -100,7 +100,8 @@ ob.plot <- ggplot() +
                fill = "lightblue2")+
   coord_fixed(xlim = c(-20, 42),ylim = c(-36, 15))+
   scale_y_continuous(position = "right") +
-  scale_x_continuous(position = "top")
+  scale_x_continuous(position = "top") + 
+  theme_bw()
 
 
 for( i in 1:nrow(ob.full)){
@@ -116,7 +117,7 @@ for( i in 1:nrow(ob.full)){
   
 }
 
-ob.plot + bkg ## good enough for now...
+ob.plot ## good enough for now...
 
 
 ### Insert plot
@@ -127,7 +128,8 @@ ob.insert <- ggplot()+
                colour = "white",
                alpha = .5,
                fill = "lightblue2") +
-  coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4])
+  coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4]) +
+  theme_bw()
 
 for( i in 1:nrow(ob.full)){
   if(ob.full$Org.smp[i] == "human"){
@@ -152,15 +154,16 @@ map.with.insert <- ob.plot + bkg +
   annotation_custom(grob = ggplotGrob(ob.insert+bkg.insert),
                     xmin = -Inf,
                     xmax = 17.5, 
-                    ymin = -Inf,
+                    ymin = -38,
                     ymax = -14.5)
 
-ggsave("figures/fig1_A.pdf",
+ggsave("figures/fig1_A.png",
        map.with.insert,
-       device = "pdf",
-       width = 5,
-       height = 5,
-       units = "in")
+       device = "png",
+       width = 210,
+       height = 165,
+       units = "mm", 
+       dpi = 300)
 
 #### Pannel 2 Time line ####
 ob.T <- ob.full
@@ -236,12 +239,13 @@ g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
 
 g.time
 
-ggsave("figures/fig1_B.pdf",
+ggsave("figures/fig1_B.png",
        g.time,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
-       units = "in")
+       units = "in",
+       dpi = 300)
 
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
@@ -277,12 +281,13 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
 g.bar
 
 
-ggsave("figures/fig1_C.pdf",
+ggsave("figures/fig1_C.png",
        g.bar,
-       device = "pdf",
+       device = "png",
        width = 5,
        height = 5,
-       units = "in")
+       units = "in",
+       dpi = 300)
 
 ### put them together
 
