@@ -242,7 +242,7 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
                     risk.list[[3]], ridge.list[[3]])
 
-png("figures/fig3_big.png", width=600, height=750, units = "mm", res = 300)
+png("figures/fig3_big.png", width=300, height=480, units = "mm", res = 300)
 grid.arrange(grobs = master.list,
              ncol = 2, widths=c(1,w.ridge))
 dev.off()
