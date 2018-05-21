@@ -125,52 +125,52 @@ ptr.BF <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
-ggsave("figures/fig3_A.png",
-       ptr.BF,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
-ggsave("figures/fig3_B.png",
-       mol.BF,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
-ggsave("figures/fig3_C.png",
-       mic.BF,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
+# ggsave("figures/fig3_A.png",
+#        ptr.BF,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
+# ggsave("figures/fig3_B.png",
+#        mol.BF,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
+# ggsave("figures/fig3_C.png",
+#        mic.BF,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
 
 
 #### Pannel 2 (Right) ####
 n.ridge <- 48  # Number of ridgelines. Mess with scale below as well.
-w.ridge <- 1 # Width of ridge plot compared to map
+w.ridge <- .5 # Width of ridge plot compared to map
 
 r.ptr <- BFridge(x = ptr.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
 r.mic <- BFridge(mic.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
 r.mol <- BFridge(mol.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
 
-ggsave("figures/fig3_D.png",
-       r.ptr,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
-ggsave("figures/fig3_E.png",
-       r.mol,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
-ggsave("figures/fig3_F.png",
-       r.mic,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in")
+# ggsave("figures/fig3_D.png",
+#        r.ptr,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
+# ggsave("figures/fig3_E.png",
+#        r.mol,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
+# ggsave("figures/fig3_F.png",
+#        r.mic,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in")
 
 # Arrange the map and ridge on the same plot
 # first work out aspect ratio of map
@@ -187,9 +187,10 @@ map.list <- list(ptr.BF, mol.BF, mic.BF)
 ridge.list <- list(r.ptr, r.mol, r.mic)
 
 map.grob <- lapply(map.list, function(x){ggplotGrob(x + guides(fill='none') +
-                                                     theme(plot.margin=unit(c(0.1,0,0.1,0.1)/2, "cm")))})
+                                                     theme(plot.margin=unit(rep(0,4), "cm")))})
 ridge.grob <- lapply(ridge.list, function(x){ggplotGrob(x + guides(fill='none') +
-                                                          theme(plot.margin=unit(c(0.1,0,0.1,0.1*w.ridge)/2, "cm")))})
+                                                          theme(plot.margin=unit(rep(0,4), "cm"))+
+                                                          coord_fixed(ratio = aspect_match))})
 
 # find the height and left axis width of the risk grob
 
@@ -218,6 +219,8 @@ index <- x$layout$t[x$layout$name == 'panel']
 plot_height <- x$heights[index]
 index <- x$layout$l[x$layout$name == 'axis-l']
 axis_width <- x$widths[index]
+index <- x$layout$l[x$layout$name == 'axis-r']
+x$widths[index] <- unit(0.5, 'cm')
 
 ridge.margit.reset <- function(x, plot_height, axis_width) {
   index <- x$layout$t[x$layout$name == 'panel']
@@ -229,7 +232,7 @@ ridge.margit.reset <- function(x, plot_height, axis_width) {
   x$widths[index] <- right_axis_width
   index <- x$layout$l[x$layout$name == 'axis-r']
   x$widths[index] <- unit(0.5 * w.ridge, 'cm')
-  x$respect <- TRUE
+  # x$respect <- TRUE
   return(x)
 }
 

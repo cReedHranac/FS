@@ -208,12 +208,7 @@ p3 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
 
 p4 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
   ###Function for plotting new DRC outbreak against entire africa (average)
-  
-  ## Creating names 
-  base <- substring(names(x[[1]]), 1, 3)[1]
-  i <- 1:12
-  j <- c(i[12],i[1:11])
-  names(x[[1]]) <- paste0(base, "_", j, "_", i)
+  base <- substring(names(x[[1]][[1]]),1,3)
   
   if(is.null(region.extent)){
     x.in <- x[[1]]
@@ -320,8 +315,8 @@ res.long <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
                 starts_with(base), factor_key = T) %>%
   mutate(pct.rank = percent_rank(Rank)) %>%
-  dplyr::filter(cell %in% zone.cells$cell,
-                window %in% c("hum_3_4", "hum_4_5")) %>%
+  # dplyr::filter(cell %in% zone.cells$cell,
+  #               window %in% c("hum_3_4", "hum_4_5")) %>%
   dplyr::select(window, pct.rank)
 
 write.csv(res.long, "data/DRC_OB_May2018_Rank.csv", row.names = F)
