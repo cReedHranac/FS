@@ -315,8 +315,8 @@ res.long <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
                 starts_with(base), factor_key = T) %>%
   mutate(pct.rank = percent_rank(Rank)) %>%
-  # dplyr::filter(cell %in% zone.cells$cell,
-  #               window %in% c("hum_3_4", "hum_4_5")) %>%
+  dplyr::filter(cell %in% zone.cells$cell,
+                window %in% c("hum_12_1", "hum_1_2")) %>%
   dplyr::select(window, pct.rank)
 
 write.csv(res.long, "data/DRC_OB_May2018_Rank.csv", row.names = F)

@@ -121,7 +121,7 @@ mol.sum <- sumGen("mol.dbl.imp")
 mic.sum <- sumGen("mic.dbl.imp")
 
 
-ptr.BF <- BFgplot(x = ptr.sum)
+1189 <- BFgplot(x = ptr.sum)
 mol.BF <- BFgplot(x = mol.sum)
 mic.BF <- BFgplot(x = mic.sum)
 
