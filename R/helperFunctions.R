@@ -7,7 +7,7 @@ if (!exists('base.path')) {
   if(.Platform$"OS.type" == "windows"){
     base.path = file.path("D:", "Dropbox", "FS")
   } else {
-    base.path = "~/Dropbox/FS"
+    base.path = path.expand("~/Dropbox/FS")
   }
 }
 data.source <-file.path(base.path, "SourceData")

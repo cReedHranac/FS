@@ -68,7 +68,7 @@ birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devi
     geom_raster(aes(fill = BF), interpolate = T)+
     
     #Colors
-    scale_fill_gradientn(colors = c("#5e3c99", "#b2abd2","#ffffff", "#fdb863","#e66101"), 
+    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"), 
                          limits = c(0,max(res.long$BF)),
                          name = "Number \nBirthing")+
     
@@ -161,11 +161,8 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devic
 }
 
 #### Data for plotting ####
-afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
+afr.poly <- readOGR(dsn = path.expand(file.path(data.source, "Africa")),
                     layer = "AfricanCountires")
-rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
-                            fun = function(x){x==1}, dissolve = T)
-
 Afr.ext <- c(-18, 49, -36, 16)
 
 
