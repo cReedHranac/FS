@@ -283,11 +283,11 @@ summary(hum.full[[1]])
 
 # tidy and write out
 humFullTable <- resTabSimple(hum.full)
-write.csv(humFullTable, "data/HumFullSpatGLMRes.csv", row.names = F)
-# cbind(hum.mod$term, tz)
-# mod.stk <- do.call(stack, hum.full[[3]])
-# writeRaster(mod.stk, file.path(mod.out.dir, "spatGLM", "hum"),format = "GTiff",
-#             bylayer = T, suffix = "numbers", overwrite = T)
+write.csv(humFullTable, "data/HumSpGLMRes_Ani.csv", row.names = F)
+cbind(hum.mod$term, tz)
+mod.stk <- do.call(stack, hum.full[[3]])
+writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "hum"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
 
 hum.null <-spatGLM(ob.col = OB_hum_imp,
                       coV.v = c( "logPop", "OB_ann_imp", "lnBm.div",
@@ -297,7 +297,7 @@ hum.null <-spatGLM(ob.col = OB_hum_imp,
 summary(hum.null[[1]])
 
 humNullTable <- resTabSimple(hum.null)
-write.csv(humNullTable, "data/HumNullSpatGLMRes.csv", row.names = F)
+write.csv(humNullTable, "data/HumNullSpGLMRes_Ani.csv", row.names = F)
 
 ### Compare 2 modesl 
 
@@ -306,24 +306,24 @@ null.qAIC <- qAIC(hum.null)
 
 delta.qAIC <- null.qAIC - full.qAIC
 #thats good right?
-
-## Ammend model to no aminal outbreaks 
-hum.bat <-spatGLM(ob.col = OB_hum_imp,
-                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
-                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
-                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                              "logPop", "lnBm.div",
-                              "lFrag","month",
-                              "OB_hum_imp",  "x", "y", "cell"),
-                   dat= dat)
-
-summary(hum.bat[[1]])
-humBatTable <- resTabSimple(hum.bat)
-write.csv(humBatTable, "data/HumBatSpatGLMRes.csv", row.names = F)
-modBat.stk <- do.call(stack, hum.bat[[3]])
-writeRaster(modBat.stk, file.path(mod.out.dir, "spatGLM", "humBat"),format = "GTiff",
-            bylayer = T, suffix = "numbers")
+# I'm fairly certain this block is no longer needed
+# ## Ammend model to no aminal outbreaks 
+# hum.bat <-spatGLM(ob.col = OB_hum_imp,
+#                    coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+#                               "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+#                               "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+#                               "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+#                               "logPop", "lnBm.div",
+#                               "lFrag","month",
+#                               "OB_hum_imp",  "x", "y", "cell"),
+#                    dat= dat)
+# 
+# summary(hum.bat[[1]])
+# humBatTable <- resTabSimple(hum.bat)
+# write.csv(humBatTable, "data/HumBatSpatGLMRes.csv", row.names = F)
+# modBat.stk <- do.call(stack, hum.bat[[3]])
+# writeRaster(modBat.stk, file.path(mod.out.dir, "spatGLM", "humBat"),format = "GTiff",
+#             bylayer = T, suffix = "numbers")
 
 ## Modified to remove all animal outbreak information post model fit
 hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
@@ -338,9 +338,9 @@ hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
 
 summary(hum.NoAn[[1]])
 humNoAnTable <- resTabSimple(hum.NoAn)
-write.csv(humNoAnTable, "data/HumNoAnSpatGLMRes.csv", row.names = F)
+write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_Ani.csv", row.names = F)
 modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
-writeRaster(modNoAn.stk, file.path(mod.out.dir, "spatGLM", "humNoAn"),format = "GTiff",
+writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "humNoAn"),format = "GTiff",
             bylayer = T, suffix = "numbers")
 
 
@@ -358,7 +358,7 @@ ann.full <- spatGLM(ob.col = OB_ann_imp,
                                dat = dat)
 summary(ann.full[[1]])
 anFull <- resTabSimple(ann.full)
-write.csv(anFull, "data/AnFullSpatGLMRes.csv", row.names = F)
+write.csv(anFull, "data/AnFullSpGLMRes_Ani.csv", row.names = F)
 
 ##Creating animal rasters without stocastic events
 an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp, 
@@ -370,7 +370,7 @@ an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp,
                                       "OB_ann_imp",  "x", "y", "cell"),
                            dat = dat)
 an.stk <- do.call(stack, an.op[[3]])
-writeRaster(an.stk, file.path(mod.out.dir, "spatGLM", "ann"),format = "GTiff",
+writeRaster(an.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "ann"),format = "GTiff",
             bylayer = T, suffix = "numbers")
 
 ## Null
@@ -380,7 +380,7 @@ ann.null <- spatGLM(ob.col = OB_ann_imp,
                     dat = dat)
 summary(ann.null[[1]])
 anNull <- resTabSimple(ann.null)
-write.csv(anNull, "data/AnNullSpatGLMRes.csv", row.names = F)
+write.csv(anNull, "data/AnNullSpGLMRes_Ani.csv", row.names = F)
 
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)

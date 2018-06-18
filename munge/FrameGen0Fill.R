@@ -22,6 +22,11 @@ ann.stk <- do.call(stack, lapply(
   file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann*")))
   ,raster))
 
+# host detection locations (bats with detected virus)
+hdl.stk0 <- do.call(stack, lapply(
+  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hdl0*")))
+  ,raster))
+
 #### Breeding probability rasters without imputation #### 
 ptr.sng.raw <- resRasterLoad("ptr", "SNG_3",F,  mod.out.dir)
 mic.sng.raw <- resRasterLoad("mic", "SNG_3",F,  mod.out.dir)
@@ -91,8 +96,9 @@ values(blank) <- NA
 for(i in 1:12){
   #Outbreak Stack
   ob.stk <- stack(hum.stk0[[paste0("OB_hum0_",i)]], ann.stk0[[paste0("OB_ann0_",i)]],
-                  hum.stk[[paste0("OB_hum",i)]], ann.stk[[paste0("OB_ann",i)]]) 
-  names(ob.stk) <- c("OB_hum_imp", "OB_ann_imp", "OB_hum_raw", "OB_ann_raw")
+                  hum.stk[[paste0("OB_hum",i)]], ann.stk[[paste0("OB_ann",i)]],
+                  hdl.stk0[[paste0("OB_hdl",i)]]) 
+  names(ob.stk) <- c("OB_hum_imp", "OB_ann_imp", "OB_hum_raw", "OB_ann_raw", "hdl")
   #Breeding Stacks
   ####Raw####
     #sng

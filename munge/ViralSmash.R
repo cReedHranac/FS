@@ -146,7 +146,7 @@ viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
 
 #### Animal Index cases ####
 an.src <- read.csv(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv"))
-an.simple <- an.src %>% dplyr::select(OUTBREAK_ID, Month.Start)
+an.simple <- an.src %>% dplyr::select(OUTBREAK_ID, Month.Start, Class)
 colnames(an.simple)[1] <- "Outbreak_ID"
 ## remove the sero data that does not fit the analysis (ID 45:50)
 an.simple <- an.simple[an.simple$Outbreak_ID %!in% 45:50,]
@@ -162,16 +162,30 @@ an.pt <- readOGR(file.path(data.source, "vIndex", "animalORG"),
                    "animal_points")
 an.pt <- an.pt[,1]
 names(an.pt) <- "Outbreak_ID"
- #### masterFrame ####
+ #### join dataFrames ####
 an.ma <- rbind(an.poly.c, an.pt)
 ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
+ ##seperate bat and other animal cases
+mam.an <- ma.an %>%
+  filter(Class == 4)
 
- 
+bat.an <- ma.an %>%
+  filter(Class == 1)
+
+
 #### OUT ####
-anOB.bi <- biGenV(ma.an)
+  ## animal points 
+anOB.bi <- biGenV(mam.an)
 write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
 anOB.occ <- occGenV(anOB.bi, "ann", c.mask)
 write.csv(anOB.occ, file.path(clean.dir, "annOcc.csv"), row.names = F)
 viralRasterGen(anOB.bi, "ann", c.mask, file.path(clean.dir))
 viralRasterGen0(anOB.bi, "ann", z.mask, file.path(clean.dir))
 
+  ## Host detection locations (hdl)
+hdl.bi <- biGenV(bat.an)
+write.csv(hdl.bi, file.path(clean.dir, "hdl.PPM.csv"), row.names = F)
+hdl.occ <- occGenV(hdl.bi, "hdl", c.mask)
+write.csv(hdl.occ, file.path(clean.dir, "hdlOcc.csv"), row.names = F)
+viralRasterGen(hdl.bi, "hdl", c.mask, file.path(clean.dir))
+viralRasterGen0(hdl.bi, "hdl", z.mask, file.path(clean.dir))
