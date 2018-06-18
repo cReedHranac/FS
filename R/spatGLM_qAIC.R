@@ -284,7 +284,7 @@ summary(hum.full[[1]])
 # tidy and write out
 humFullTable <- resTabSimple(hum.full)
 write.csv(humFullTable, "data/HumSpGLMRes_Ani.csv", row.names = F)
-cbind(hum.mod$term, tz)
+
 mod.stk <- do.call(stack, hum.full[[3]])
 writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
