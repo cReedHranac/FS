@@ -106,4 +106,5 @@ ggsave("figures/Fig2Complete.pdf",
        device = "pdf", 
        width = 7.5,
        height = 7.5,
-       units = "in")
+       units = "in",
+       dpi = 300)

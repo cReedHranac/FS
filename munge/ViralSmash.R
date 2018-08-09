@@ -92,6 +92,7 @@ viralRasterGen0 <- function(df, name, z.mask, out.dir = NULL){
 
 ## 
 c.mask <- raster(file.path(data.source, "cropMask.tif"))
+z.mask <- reclassify(c.mask, c(0,1,0))
 wgs <- proj4string(c.mask)
 
 #### human index cases ####
@@ -141,7 +142,6 @@ write.csv(humOB.bi, file.path(clean.dir,"humOB.PPM.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
 write.csv(humOB.occ, file.path(clean.dir,"humOcc.csv"), row.names = F)
 viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir))
-z.mask <- reclassify(c.mask, c(0,1,0))
 viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
 
 #### Animal Index cases ####
@@ -188,4 +188,4 @@ write.csv(hdl.bi, file.path(clean.dir, "hdl.PPM.csv"), row.names = F)
 hdl.occ <- occGenV(hdl.bi, "hdl", c.mask)
 write.csv(hdl.occ, file.path(clean.dir, "hdlOcc.csv"), row.names = F)
 viralRasterGen(hdl.bi, "hdl", c.mask, file.path(clean.dir))
-viralRasterGen0(hdl.bi, "hdl", z.mask, file.path(clean.dir))
+viralRasterGen0(df = hdl.bi, name = "hdl",z.mask =  z.mask,out.dir =  file.path(clean.dir))

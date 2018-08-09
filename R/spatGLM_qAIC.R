@@ -191,7 +191,7 @@ qAIC <- function(x){
 resTabSimple <- function(x){
   ### FUnction for creating an easy results table 
   results <- tidy(x[[1]])
-  tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 2))
+  tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 3))
   return(tidy.table)
 }
 
@@ -269,13 +269,13 @@ windows <- lapply(regions, as.owin)
 rm(rf.poly, regions)
 
 #### Human Model ####
- hum.full <-spatGLM(ob.col = OB_hum_imp,
+hum.full <-spatGLM(ob.col = OB_hum_imp,
                               coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
                                          "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                          "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                          "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
                                          "logPop", "OB_ann_imp", "lnBm.div",
-                                         "lFrag", "OB_ann_imp_1","month",
+                                         "hdl", "lFrag", "OB_ann_imp_1","month",
                                          "OB_hum_imp",  "x", "y", "cell"),
                               dat= dat)
 
@@ -283,21 +283,21 @@ summary(hum.full[[1]])
 
 # tidy and write out
 humFullTable <- resTabSimple(hum.full)
-write.csv(humFullTable, "data/HumSpGLMRes_Ani.csv", row.names = F)
+write.csv(humFullTable, "data/HumSpGLMRes_F.csv", row.names = F)
 
 mod.stk <- do.call(stack, hum.full[[3]])
-writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "hum"),format = "GTiff",
+writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_F", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 hum.null <-spatGLM(ob.col = OB_hum_imp,
                       coV.v = c( "logPop", "OB_ann_imp", "lnBm.div",
-                                 "lFrag", "OB_ann_imp_1","month",
+                                 "hdl","lFrag", "OB_ann_imp_1","month",
                                  "OB_hum_imp",  "x", "y", "cell"),
                       dat= dat)
 summary(hum.null[[1]])
 
 humNullTable <- resTabSimple(hum.null)
-write.csv(humNullTable, "data/HumNullSpGLMRes_Ani.csv", row.names = F)
+write.csv(humNullTable, "data/HumNullSpGLMRes_F.csv", row.names = F)
 
 ### Compare 2 modesl 
 
@@ -332,16 +332,16 @@ hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
                               "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                               "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
                               "logPop", "OB_ann_imp", "lnBm.div",
-                              "lFrag", "OB_ann_imp_1","month",
+                              "hdl","lFrag", "OB_ann_imp_1","month",
                               "OB_hum_imp",  "x", "y", "cell"),
                    dat= dat)
 
 summary(hum.NoAn[[1]])
 humNoAnTable <- resTabSimple(hum.NoAn)
-write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_Ani.csv", row.names = F)
+write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_F.csv", row.names = F)
 modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
-writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "humNoAn"),format = "GTiff",
-            bylayer = T, suffix = "numbers")
+writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_F", "humNoAn"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
 
 
 
@@ -353,12 +353,12 @@ ann.full <- spatGLM(ob.col = OB_ann_imp,
                                           "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                           "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                           "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                          "lnBm.div","lFrag", "month",
+                                          "hdl","lnBm.div","lFrag", "month",
                                           "OB_ann_imp",  "x", "y", "cell"),
                                dat = dat)
 summary(ann.full[[1]])
 anFull <- resTabSimple(ann.full)
-write.csv(anFull, "data/AnFullSpGLMRes_Ani.csv", row.names = F)
+write.csv(anFull, "data/AnFullSpGLMRes_F.csv", row.names = F)
 
 ##Creating animal rasters without stocastic events
 an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp, 
@@ -370,8 +370,8 @@ an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp,
                                       "OB_ann_imp",  "x", "y", "cell"),
                            dat = dat)
 an.stk <- do.call(stack, an.op[[3]])
-writeRaster(an.stk, file.path(mod.out.dir, "SpGLMRes_Ani", "ann"),format = "GTiff",
-            bylayer = T, suffix = "numbers")
+writeRaster(an.stk, file.path(mod.out.dir, "SpGLMRes_F", "ann"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
 
 ## Null
 ann.null <- spatGLM(ob.col = OB_ann_imp,
@@ -380,7 +380,7 @@ ann.null <- spatGLM(ob.col = OB_ann_imp,
                     dat = dat)
 summary(ann.null[[1]])
 anNull <- resTabSimple(ann.null)
-write.csv(anNull, "data/AnNullSpGLMRes_Ani.csv", row.names = F)
+write.csv(anNull, "data/AnNullSpGLMRes_F.csv", row.names = F)
 
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)

@@ -1,0 +1,4 @@
+"results[, 1]","estimate","std.error","statistic","p.value"
+"(Intercept)",-33.947,5.59,-6.073,0
+"lnBm.div",5.911,1.201,4.922,0
+"lFrag",0.566,0.4,1.413,0.158

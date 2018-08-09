@@ -77,6 +77,17 @@ for(i in 1:nrow(ob.full)){
   col.list[[i]] <- cz[[j]]
 }
 
+## lets create a bounding box polygon
+#bounds
+bbx <- c(left = 12.5,
+         bottom= -.25,
+         right= 15.5,
+         top= 1.5)
+
+x <- c(bbx["left"], bbx["left"], bbx["right"], bbx["right"])
+y <- c(bbx["bottom"], bbx["top"], bbx["top"], bbx["bottom"])
+df <- data.frame(x, y)
+
 #### Pannel 1 Maps ####
 library(rgdal);library(rgeos);library(raster)
 ## accessory layers
@@ -84,9 +95,13 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
-bkg <- theme_bw() + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_blank())
+bkg <- theme_bw() + theme( 
+  axis.title.x = element_blank(), 
+  axis.title.y = element_blank()) 
+
+## Extent
+Africa.ext <- c(-18, 47, -36, 16)
+
 
 ob.plot <- ggplot() +
   geom_polygon(data = fortify(afr.poly),
@@ -98,7 +113,7 @@ ob.plot <- ggplot() +
                colour = "white", 
                alpha = .5,
                fill = "lightblue2")+
-  coord_fixed(xlim = c(-20, 42),ylim = c(-36, 15))+
+  coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
   scale_y_continuous(position = "right") +
   scale_x_continuous(position = "top") + 
   theme_bw()
@@ -117,7 +132,9 @@ for( i in 1:nrow(ob.full)){
   
 }
 
-ob.plot ## good enough for now...
+ob.plot <- ob.plot +
+  geom_polygon(aes(x=x, y=y), data=df, color = "red", alpha=.5)
+## good enough for now...
 
 
 ### Insert plot
@@ -145,7 +162,8 @@ for( i in 1:nrow(ob.full)){
 bkg.insert <-theme_bw() + theme(
   axis.title.x = element_blank(),
   axis.title.y = element_blank(), 
-  plot.margin = unit(c(0,0,0,0,0), "mm"))
+  plot.margin = unit(c(0,0,0,0,0), "mm"),
+  panel.border = element_rect(colour = "red", fill=NA, size=1))
 
 ob.insert +bkg.insert ## That's pretty good... 
 
@@ -300,4 +318,5 @@ ggsave("figures/Fig1Complete.pdf",
        device = "pdf", 
        width = 7.5,
        height = 7.5,
-       units = "in")
+       units = "in",
+       dpi = 300)
