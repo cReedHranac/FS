@@ -61,7 +61,7 @@ birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devi
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = NA,
-                 fill = 'black',
+                 fill = "white",
                  alpha = .2) +
     
     #fill Raster values
