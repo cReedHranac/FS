@@ -106,16 +106,16 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
     mutate(strata = cut(y, breaks = n.bin)) %>%
     group_by(strata, month) %>%
     summarise(ER.mean = mean(ER))
-
+  
   # rolling average for fill colour
   ER.df2 <- ER.df %>% 
     group_by(strata) %>%
     arrange(month) %>%
     mutate(Roll.mean = roll_mean(ER.mean, n=2, fill=0))
-
+  
   # plot
   ER.ridge <- ggplot(data= ER.df2,
-         aes(x= month,y= strata,height = ER.mean, group = strata, fill = Roll.mean)) +
+                     aes(x= month,y= strata,height = ER.mean, group = strata, fill = Roll.mean)) +
     geom_density_ridges_gradient(color="#0000000F", stat = "identity", scale = scale) +
     scale_fill_gradient(low= "yellow", high = "red4",
                         limits = c(0,max(ER.df$ER.mean)),
@@ -196,15 +196,20 @@ ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
 #ridge.grob$respect <- TRUE # This is equivalent to coord_fixed() - i.e. it sets a constant aspect ratio.
 
 # arrange them side by side
-png("figures/fig4_complete.png", width=800, height=430)
-grid.arrange(risk.grob,
+hum.fig <- grid.arrange(risk.grob,
              ridge.grob,
              ncol=2, widths=c(1,w.ridge))
-dev.off()
+ggsave(filename = "figures/fig4_complete.pdf",
+       hum.fig,
+       device = cairo_pdf,
+       width=8,
+       height=4.3,
+       units = "in",
+       dpi = 300)
 
 
 
-### Subregion plots ###
+#### Subregion plots ####
 #Central
 central.africa <- c(8,35,-5,6)
 CentralZone <- risk.plot + coord_fixed(xlim = central.africa[1:2],ylim = central.africa[3:4]) +
@@ -227,19 +232,19 @@ ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.
 # and fixup the aspect ratio of ridge to that of map
 aspect_match <- aspect_ridge / aspect_map / w.ridge
 
-risk.grob <- ggplotGrob(ann.risk.plot + guides(fill='none') +
+ANrisk.grob <- ggplotGrob(ann.risk.plot + guides(fill='none') +
                           theme(plot.margin=unit(rep(0,4), "cm")))
-ridge.grob <- ggplotGrob(ann.ridge + guides(fill='none') +
+ANridge.grob <- ggplotGrob(ann.ridge + guides(fill='none') +
                            theme(plot.margin=unit(rep(0,4), "cm")) +
                            coord_fixed(ratio = aspect_match))
 
 # find the height and left axis width of the risk grob
-index <- risk.grob$layout$t[risk.grob$layout$name == 'panel']
-plot_height <- risk.grob$heights[index]
-index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-l']
-axis_width <- risk.grob$widths[index]
-index <- risk.grob$layout$l[risk.grob$layout$name == 'axis-r']
-risk.grob$widths[index] <- unit(0.5, 'cm')
+index <- ANrisk.grob$layout$t[ANrisk.grob$layout$name == 'panel']
+plot_height <- ANrisk.grob$heights[index]
+index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-l']
+axis_width <- ANrisk.grob$widths[index]
+index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-r']
+ANrisk.grob$widths[index] <- unit(0.5, 'cm')
 
 # set the height the same, the left axis width, and the right
 # axis to the same as the left axis for the map, scaled so that
@@ -247,20 +252,28 @@ risk.grob$widths[index] <- unit(0.5, 'cm')
 # the widths are applied to the full objects, so we want everything
 # to be a scaled version of the other (i.e. axis placement/widths)
 # etc scaled perfectly
-index <- ridge.grob$layout$t[ridge.grob$layout$name == 'panel']
-ridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
-index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-l']
+index <- ANridge.grob$layout$t[ANridge.grob$layout$name == 'panel']
+ANridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
+index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-l']
 right_axis_width <- unit(
   grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
   "cm")
-ridge.grob$widths[index] <- right_axis_width
-index <- ridge.grob$layout$l[ridge.grob$layout$name == 'axis-r']
-ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
+ANridge.grob$widths[index] <- right_axis_width
+index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-r']
+ANridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
 
 # arrange them side by side
-png("figures/AnnRisk.png", width=800, height=430)
-grid.arrange(risk.grob,
-             ridge.grob,
+an.risk <- grid.arrange(ANrisk.grob,
+             ANridge.grob,
              ncol=2, widths=c(1,w.ridge))
-dev.off()
+
+ggsave(filename = "figures/AnnRisk.pdf",
+       an.risk,
+       device = "pdf",
+       width=8,
+       height=4.3,
+       units = "in",
+       dpi = 300)
+
+
 
