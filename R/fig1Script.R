@@ -5,6 +5,13 @@
 source("R/helperFunctions.R")
 
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
+# devtools::install_github("sckott/rphylopic")
+library(rphylopic);library(rgdal);library(rgeos);library(raster)
+library(zoo);library(grid)
+
+# Africa extent to use. This is reasonably tight around the data
+Africa.ext <- c(-18, 47, -36, 16)
+
 #### Figure 1 ####
 #3 pannel figure, 1 pannel, map w/ outbreak locations (symbols for an/hum), 
 # and 2 outbreak time lines, 1 entire history, one collapsed year
@@ -38,9 +45,6 @@ for(i in 1:nrow(ob.full)){
   ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] <-  "animal")  
 }
 
-# library(devtools)
-# devtools::install_github("sckott/rphylopic")
-library(rphylopic)
 ## name id ##
 bat <- 	104257
 chimpanzee <- 109082
@@ -89,8 +93,9 @@ y <- c(bbx["bottom"], bbx["top"], bbx["top"], bbx["bottom"])
 df <- data.frame(x, y)
 
 #### Pannel 1 Maps ####
-library(rgdal);library(rgeos);library(raster)
 ## accessory layers
+region_colour <- '#CFD8DC'
+
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
@@ -99,23 +104,19 @@ bkg <- theme_bw() + theme(
   axis.title.x = element_blank(), 
   axis.title.y = element_blank()) 
 
-## Extent
-Africa.ext <- c(-18, 47, -36, 16)
-
-
 ob.plot <- ggplot() +
-  geom_polygon(data = fortify(afr.poly),
-               aes(long, lat, group = group), 
-               colour = "grey20",
-               alpha = .25) +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
-               colour = "white", 
-               alpha = .5,
-               fill = "lightblue2")+
+               colour = "#212121",
+               fill = region_colour,
+               size = 0.1)+
+  geom_polygon(data = fortify(afr.poly),
+               aes(long, lat, group = group), 
+               colour = "#212121",
+               fill = "NA") +
   coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
-  scale_y_continuous(position = "right") +
-  scale_x_continuous(position = "top") + 
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
   theme_bw()
 
 
@@ -134,6 +135,7 @@ for( i in 1:nrow(ob.full)){
 
 ob.plot <- ob.plot +
   geom_polygon(aes(x=x, y=y), data=df, color = "red", alpha=.5)
+  
 ## good enough for now...
 
 
@@ -142,11 +144,12 @@ insert.ext <- c(12.5, 15.5,1.5,-.25)
 ob.insert <- ggplot()+
   geom_polygon(data = fortify(afr.poly),
                aes(long, lat, group = group), 
-               colour = "white",
-               alpha = .5,
-               fill = "lightblue2") +
+               colour = "#212121",
+               fill = region_colour) +
   coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4]) +
-  theme_bw()
+  theme_bw() + theme(axis.text = element_blank(),
+                     axis.ticks = element_blank(),
+                     axis.title = element_blank())
 
 for( i in 1:nrow(ob.full)){
   if(ob.full$Org.smp[i] == "human"){
@@ -159,9 +162,7 @@ for( i in 1:nrow(ob.full)){
                  ysize = j, ##humans need bigger, bats smaller
                  color = col.list[[i]]) 
 }
-bkg.insert <-theme_bw() + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_blank(), 
+bkg.insert <- theme(
   plot.margin = unit(c(0,0,0,0,0), "mm"),
   panel.border = element_rect(colour = "red", fill=NA, size=1))
 
@@ -170,9 +171,9 @@ ob.insert +bkg.insert ## That's pretty good...
 
 map.with.insert <- ob.plot + bkg +
   annotation_custom(grob = ggplotGrob(ob.insert+bkg.insert),
-                    xmin = -Inf,
+                    xmin = -17,
                     xmax = 17.5, 
-                    ymin = -38,
+                    ymin = -36,
                     ymax = -14.5)
 
 ggsave("figures/fig1_A.png",
@@ -185,19 +186,16 @@ ggsave("figures/fig1_A.png",
 
 #### Pannel 2 Time line ####
 ob.T <- ob.full
-library(zoo)
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
 ## Functions to sort the phylo pics accordingly addapted from https://stackoverflow.com/questions/27637455/display-custom-image-as-geom-point
-library(grid)
-library(EBImage)
 RlogoGrob <- function(x, y, size, img, col, alpha) {
   mat = rphylopic:::recolor_phylopic(img, alpha, col)
   aspratio <- ncol(mat)/nrow(mat)
   rasterGrob(x = x, y = y, image = mat, default.units = "native", 
-             height = size*2.5, 
-             width = size*aspratio/2.5)
+             height = size*2.5)#, 
+             #width = size*aspratio*2.5)
 }
 
 GeomRlogo <- ggproto("GeomRlogo", Geom, draw_panel = function(data, panel_scales, 
@@ -220,40 +218,36 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 }
 
 ## Plot 
+y_vals <- 5:1 #seq(20,20*5,by=20)
+s <- 0.05
+ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(Org.smp)])
 
-g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
-  geom_point(data = filter(ob.a, Org.smp == "human") %>% dplyr::select(Date), ## Grey points
-             aes(x = Date, y= 0, size = 1, alpha = .5),
+g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
+  geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
+             aes(x = Date, y= y, size = 1, alpha = .5),
              color = "grey70", shape=20,
              show.legend = F)+
-  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5), size = 4,
+  geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
-  geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
+  geom_segment(data=data.frame(y=1:5), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
-  scale_x_yearmon(format = "%Y", n = 10) +
-  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = .125, data=data.frame(x=1975, y=0, Org.smp = "bat" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = .125, data=data.frame(x=1975, y=0, Org.smp = "chimpanzee" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = .15, data=data.frame(x=1975, y=0, Org.smp = "duiker" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = .15, data=data.frame(x=1975, y=0, Org.smp = "gorilla" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = .18, data=data.frame(x=1975, y=0, Org.smp = "human" )) + 
+  scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2019), expand=c(0,0)) +
+  scale_y_continuous(limits=c(0.5,5.5), expand=c(0,0)) +
+  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = s, data=data.frame(x=1975, y=y_vals[1], Org.smp = "bat" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = s, data=data.frame(x=1975, y=y_vals[2], Org.smp = "chimpanzee" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[3], Org.smp = "duiker" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[4], Org.smp = "gorilla" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = s*0.18/0.125, data=data.frame(x=1975, y=y_vals[5], Org.smp = "human" )) + 
   scale_colour_manual(values = c(bat = 'darkorange2',
                                  chimpanzee ='black',
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red')) +
-  facet_wrap(~Org.smp, ncol = 1, labeller = as_labeller( c("bat" = 'Bat',
-                                              "chimpanzee" ='Chimpanzee',
-                                              "duiker" = 'Duiker',
-                                              "gorilla" = 'Gorilla',
-                                              "human" = 'Human'))) + 
-  
   theme_bw() + 
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.title = element_blank(),
-        strip.background = element_blank(),
-        strip.text.x = element_blank(),
-        plot.margin = margin(r=12, unit = "pt"))
+        panel.grid.minor.y = element_blank())
 
 g.time
 
@@ -289,7 +283,9 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red')) +
+  scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   facet_wrap(~Org, nrow = 3) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,7.2)) +
   theme_bw() +
   theme(
     axis.ticks.x = element_blank(),
@@ -310,13 +306,14 @@ ggsave("figures/fig1_C.png",
 ### put them together
 
 fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
-             widths = c(2,1.3), 
-             layout_matrix = rbind(c(1,2),
-                                   c(1,3)))
+             widths = c(2.5,1), heights = c(2.5,1),
+             layout_matrix = rbind(c(1,3),
+                                   c(2,3)))
+
 ggsave("figures/Fig1Complete.pdf",
        fig1.complete,
        device = "pdf", 
        width = 7.5,
-       height = 7.5,
+       height = 6,
        units = "in",
        dpi = 300)

@@ -5,6 +5,11 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
 ### Data #### 
 library(rphylopic)
+
+# Africa extent to use. This is reasonably tight around the data
+Africa.ext <- c(-18, 47, -36, 16)
+region_colour <- '#CFD8DC'
+
 bat <- 	104257
 bat.u <- ubio_get(bat)
 bat.n <- name_images(bat.u)
@@ -44,16 +49,20 @@ bi.t <- bi %>%
 
 #### Pannel 1 Map ####
 bi.plot <- ggplot()+ bkg +
-  geom_polygon(data = fortify(afr.poly),
-               aes(long, lat, group = group), 
-               colour = "grey20",
-               alpha = .25) +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
-               colour = "white", 
-               alpha = .5,
-               fill = "lightblue2")+
-  coord_fixed(xlim = c(-20, 42),ylim = c(-36, 15))
+               colour = "#212121", 
+               fill = region_colour,
+               size = 0.1)+
+  geom_polygon(data = fortify(afr.poly),
+               aes(long, lat, group = group), 
+               colour = "#212121",
+               alpha = .25,
+               fill = NA) +
+  coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
+  theme_bw() + theme(axis.title = element_blank())
 
 for(i in 1:nrow(bi)){
   bi.plot <- bi.plot +
@@ -64,7 +73,7 @@ for(i in 1:nrow(bi)){
                  color = col.list[[i]])
 }
 
-bi.plot 
+bi.plot
 
 ggsave("figures/fig2_A.png",
        bi.plot,
@@ -80,6 +89,8 @@ bi.bar <- ggplot(data = bi)+
            show.legend = F) +
   scale_fill_manual(values = c("green4", "dodgerblue2", "darkorange2"))+
   facet_wrap(~Class, ncol = 1, scales = "free_y") +
+  scale_y_continuous(expand=c(0,0,0.05,0)) +
+  scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   theme_bw() + 
   theme(
     axis.ticks.x = element_blank(),
@@ -98,13 +109,13 @@ ggsave("figures/fig2_B.png",
 
 i#### All together now ####
 fig2.complete <- grid.arrange(bi.plot, bi.bar,
-             widths = c(2.5, 1.2),
+             widths = c(2.5, 1),
              layout_matrix = rbind(c(1,2)))
 
 ggsave("figures/Fig2Complete.pdf",
        fig2.complete,
        device = "pdf", 
        width = 7.5,
-       height = 7.5,
+       height = 4.3,
        units = "in",
        dpi = 300)
