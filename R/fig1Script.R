@@ -94,6 +94,8 @@ df <- data.frame(x, y)
 
 #### Pannel 1 Maps ####
 ## accessory layers
+region_colour <- '#CFD8DC'
+
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
@@ -103,18 +105,18 @@ bkg <- theme_bw() + theme(
   axis.title.y = element_blank()) 
 
 ob.plot <- ggplot() +
-  geom_polygon(data = fortify(afr.poly),
-               aes(long, lat, group = group), 
-               colour = "grey20",
-               alpha = .25) +
   geom_polygon(data = fortify(rf.poly),
                aes(long, lat, group = group),
-               colour = "white", 
-               alpha = .5,
-               fill = "lightblue2")+
+               colour = "#212121",
+               fill = region_colour,
+               size = 0.1)+
+  geom_polygon(data = fortify(afr.poly),
+               aes(long, lat, group = group), 
+               colour = "#212121",
+               fill = "NA") +
   coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
-  scale_y_continuous(position = "right") +
-  scale_x_continuous(position = "top") + 
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
   theme_bw()
 
 
@@ -133,6 +135,7 @@ for( i in 1:nrow(ob.full)){
 
 ob.plot <- ob.plot +
   geom_polygon(aes(x=x, y=y), data=df, color = "red", alpha=.5)
+  
 ## good enough for now...
 
 
@@ -141,11 +144,12 @@ insert.ext <- c(12.5, 15.5,1.5,-.25)
 ob.insert <- ggplot()+
   geom_polygon(data = fortify(afr.poly),
                aes(long, lat, group = group), 
-               colour = "white",
-               alpha = .5,
-               fill = "lightblue2") +
+               colour = "#212121",
+               fill = region_colour) +
   coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4]) +
-  theme_bw()
+  theme_bw() + theme(axis.text = element_blank(),
+                     axis.ticks = element_blank(),
+                     axis.title = element_blank())
 
 for( i in 1:nrow(ob.full)){
   if(ob.full$Org.smp[i] == "human"){
@@ -158,9 +162,7 @@ for( i in 1:nrow(ob.full)){
                  ysize = j, ##humans need bigger, bats smaller
                  color = col.list[[i]]) 
 }
-bkg.insert <-theme_bw() + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_blank(), 
+bkg.insert <- theme(
   plot.margin = unit(c(0,0,0,0,0), "mm"),
   panel.border = element_rect(colour = "red", fill=NA, size=1))
 
@@ -169,9 +171,9 @@ ob.insert +bkg.insert ## That's pretty good...
 
 map.with.insert <- ob.plot + bkg +
   annotation_custom(grob = ggplotGrob(ob.insert+bkg.insert),
-                    xmin = -Inf,
+                    xmin = -17,
                     xmax = 17.5, 
-                    ymin = -38,
+                    ymin = -36,
                     ymax = -14.5)
 
 ggsave("figures/fig1_A.png",
