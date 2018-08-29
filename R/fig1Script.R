@@ -283,7 +283,9 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red')) +
+  scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   facet_wrap(~Org, nrow = 3) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,7.2)) +
   theme_bw() +
   theme(
     axis.ticks.x = element_blank(),
