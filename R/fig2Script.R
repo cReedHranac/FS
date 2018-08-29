@@ -109,13 +109,13 @@ ggsave("figures/fig2_B.png",
 
 i#### All together now ####
 fig2.complete <- grid.arrange(bi.plot, bi.bar,
-             widths = c(2.5, 1.2),
+             widths = c(2.5, 1),
              layout_matrix = rbind(c(1,2)))
 
 ggsave("figures/Fig2Complete.pdf",
        fig2.complete,
        device = "pdf", 
        width = 7.5,
-       height = 7.5,
+       height = 4.3,
        units = "in",
        dpi = 300)
