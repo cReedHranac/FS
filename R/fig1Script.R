@@ -5,6 +5,13 @@
 source("R/helperFunctions.R")
 
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
+# devtools::install_github("sckott/rphylopic")
+library(rphylopic);library(rgdal);library(rgeos);library(raster)
+library(zoo);library(grid)
+
+# Africa extent to use. This is reasonably tight around the data
+Africa.ext <- c(-18, 47, -36, 16)
+
 #### Figure 1 ####
 #3 pannel figure, 1 pannel, map w/ outbreak locations (symbols for an/hum), 
 # and 2 outbreak time lines, 1 entire history, one collapsed year
@@ -38,9 +45,6 @@ for(i in 1:nrow(ob.full)){
   ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] <-  "animal")  
 }
 
-# library(devtools)
-# devtools::install_github("sckott/rphylopic")
-library(rphylopic)
 ## name id ##
 bat <- 	104257
 chimpanzee <- 109082
@@ -89,7 +93,6 @@ y <- c(bbx["bottom"], bbx["top"], bbx["top"], bbx["bottom"])
 df <- data.frame(x, y)
 
 #### Pannel 1 Maps ####
-library(rgdal);library(rgeos);library(raster)
 ## accessory layers
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
@@ -98,10 +101,6 @@ rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
 bkg <- theme_bw() + theme( 
   axis.title.x = element_blank(), 
   axis.title.y = element_blank()) 
-
-## Extent
-Africa.ext <- c(-18, 47, -36, 16)
-
 
 ob.plot <- ggplot() +
   geom_polygon(data = fortify(afr.poly),
@@ -185,13 +184,10 @@ ggsave("figures/fig1_A.png",
 
 #### Pannel 2 Time line ####
 ob.T <- ob.full
-library(zoo)
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
 ## Functions to sort the phylo pics accordingly addapted from https://stackoverflow.com/questions/27637455/display-custom-image-as-geom-point
-library(grid)
-library(EBImage)
 RlogoGrob <- function(x, y, size, img, col, alpha) {
   mat = rphylopic:::recolor_phylopic(img, alpha, col)
   aspratio <- ncol(mat)/nrow(mat)
