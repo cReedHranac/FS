@@ -194,8 +194,8 @@ RlogoGrob <- function(x, y, size, img, col, alpha) {
   mat = rphylopic:::recolor_phylopic(img, alpha, col)
   aspratio <- ncol(mat)/nrow(mat)
   rasterGrob(x = x, y = y, image = mat, default.units = "native", 
-             height = size*2.5, 
-             width = size*aspratio/2.5)
+             height = size*2.5)#, 
+             #width = size*aspratio*2.5)
 }
 
 GeomRlogo <- ggproto("GeomRlogo", Geom, draw_panel = function(data, panel_scales, 
