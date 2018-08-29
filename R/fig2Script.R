@@ -89,6 +89,8 @@ bi.bar <- ggplot(data = bi)+
            show.legend = F) +
   scale_fill_manual(values = c("green4", "dodgerblue2", "darkorange2"))+
   facet_wrap(~Class, ncol = 1, scales = "free_y") +
+  scale_y_continuous(expand=c(0,0,0.05,0)) +
+  scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   theme_bw() + 
   theme(
     axis.ticks.x = element_blank(),
