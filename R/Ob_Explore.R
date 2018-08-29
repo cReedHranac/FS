@@ -32,10 +32,11 @@ spatHandler <- function(model.string){
   return(out.l)
 }
 
-p1 <- function(x, y = drc, province = NULL, district = NULL){
+p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
   ## function for plotting the DRC health boards with the Risk plots (average)
   ## x <- results from spatHandler
   ## y <- drc
+  ## outbreaks <- list of zones to highlght
   ## level <- variable to determine the level we're looking at
   ## province <- option for province level selection
   ## distric <- option for province level selection
@@ -55,7 +56,7 @@ p1 <- function(x, y = drc, province = NULL, district = NULL){
   x.crop <- mask(crop(x[[2]], extent(y.level)), y.level)
   x.spatial <- rasterToPoints(x.crop, spatial = T)
   y.level$Avg.Risk <- over(y.level, x.spatial, fn = mean)
-  y.level$Bikoro <- y.level$Nom_ZS_PUC =="Bikoro" #add bit for our zone of intrest
+  y.level$Outbreaks <- y.level$Nom_ZS_PUC %in% c(outbreaks) #add bit for our zone of intrest
   
   ## manipulate data structure
   y.level$id <- rownames(y.level@data)
@@ -65,15 +66,15 @@ p1 <- function(x, y = drc, province = NULL, district = NULL){
   y.rank <- y.df %>%
     dplyr::select(-Avg.Risk) %>%
     mutate(rank = percent_rank(Risk))
-  
+  y.rank$Outbreaks[which(y.rank$Outbreaks != F)] <- as.character(y.rank$Nom_ZS_PUC[which(y.rank$Outbreaks != F)])
+  y.rank$Outbreaks[which(y.rank$Outbreaks == F)] <- NA
   ##plot
   p <- ggplot(y.rank) +
-    aes(long,lat,group = group, fill = rank, color = Bikoro) + 
+    aes(long,lat,group = group, fill = rank, color = Outbreaks) + 
     geom_polygon() +
     coord_fixed() +
     scale_fill_gradient2(low = "yellow", high = "red4",
-                         # limits = c(1e-4, 12),
-                         na.value = "yellow", 
+                         na.value = "white", 
                          name = "Ebola \nSpillover \nRisk",
                          guide= "colourbar")+
     theme_bw()
@@ -297,34 +298,65 @@ ann.ob <- spatHandler("ann")
 
 #### Exploration ####
 
+## outbreak 1
 ## we know it's in Equateur provice Bikoro
+ob1.zone <- drc[drc$PROVINCE == "Equateur" & drc$Nom_ZS_PUC == "Bikoro",]
+zone1.cells <- as.data.frame(cellFromPolygon(hum.ob[[2]], ob1.zone, weights = T))
 
-ob.zone <- drc[drc$PROVINCE == "Equateur" & drc$Nom_ZS_PUC == "Bikoro",]
 
-zone.cells <- as.data.frame(cellFromPolygon(hum.ob[[2]], ob.zone, weights = T))
+## outbreak 2
+## North Kivu province, zone mangina
+ob2.zone <- drc[drc$PROVINCE =="Nord Kivu" & drc$Nom_ZS_PUC == "Beni",]
+zone2.cells <- as.data.frame(cellFromPolygon(hum.ob[[2]], ob2.zone, weights = T))
 
 ##Make better names for outbreak
-
-
 ## Convert to df
 h.ob.df <- as.data.frame(hum.ob[[1]], row.names = 1:ncell(hum.ob[[1]]))
 h.ob.df$cell <- rownames(h.ob.df)
 
+base <- "hum"
 
-res.long <- h.ob.df %>%
+res.ob1 <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
                 starts_with(base), factor_key = T) %>%
   mutate(pct.rank = percent_rank(Rank)) %>%
-  dplyr::filter(cell %in% zone.cells$cell,
-                window %in% c("hum_12_1", "hum_1_2")) %>%
-  dplyr::select(window, pct.rank)
+  dplyr::filter(cell %in% zone1.cells$cell,
+                window %in% c("hum_12_1")) %>%
+  dplyr::select(cell, window, pct.rank, Rank)
 
-write.csv(res.long, "data/DRC_OB_May2018_Rank.csv", row.names = F)
+write.csv(res.ob1, "data/DRC_OB_May2018_Rank.csv", row.names = F)
 
+res.ob2 <- h.ob.df %>%
+  tidyr::gather(key = "window", value = "Rank",
+                starts_with(base), factor_key = T) %>%
+  mutate(pct.rank = percent_rank(Rank)) %>%
+  dplyr::filter(cell %in% zone1.cells$cell,
+                window %in% c("hum_6_7")) %>%
+  dplyr::select(cell, window, pct.rank, Rank)
+
+write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
 
 ## Lets plot
-p1(x = hum.ob, y = drc)
+p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
 p2(hum.ob, y = drc)
 p3(hum.ob)
 p4(hum.ob)
 
+#### Creating the violin plots ####
+## build the data frame
+ob1 <- cbind(res.ob1, Outbreak = "Bikoro", id = paste0(ob1$cell,ob1$window))
+ob2 <- cbind(res.ob2, Outbreak = "North Kivu", id = paste0(ob2$cell,ob2$window))
+
+ob.df <- rbind(ob1, ob2)
+ob.df$Outbreak <- as.factor(ob.df$Outbreak)
+
+p <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, fill = Outbreak)) + 
+  geom_violin(trim = F) + 
+  geom_jitter(shape = 16, position = position_jitter(.1))+
+  scale_y_continuous(limits = c(0,1)) + 
+  labs(x = "Outbreak", 
+       y = "Precent Rank")+
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + 
+  theme(legend.position = "none")+
+  theme_bw()
+p

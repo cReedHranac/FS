@@ -8,7 +8,7 @@ library(rgdal);library(rgeos);library(raster);library(dplyr)
  ##Virus OCC functions
 biGenV <- function(x){
   ### Funtion to create monthly occurrence/absence vectors for each record ###
-  ## Argument: x - dataframe of events with location and breeding record
+  ## Argument: x - dataframe of events with location and viral detection
   empty <- as.data.frame(matrix(nrow=nrow(x), ncol=12)) 
   for(i in 1:nrow(empty)){
     for(j in 1:ncol(empty)){
@@ -99,45 +99,47 @@ wgs <- proj4string(c.mask)
  ## note : bring in the Human_Index_30May. Contains 1 additional point over
  ## the source dataframe provided representing the Inkanamo outbreak
 ## UPDATE 12.2.018: additional entry for 2017 DRC outbreak
-hum.src <- read.csv(file.path(data.source, "vIndex", "Human_Index_12_2_18.csv"))
-hum.simple <- hum.src %>% dplyr::select(Outbreak_ID, Virus, Month.Start, Month.Start, Month.End , Class)
+## UPDATE 28/08/2018 updated path to below which is kept up to date with all outbreaks.
+  ## points are all within this database so need for seperate poly and point methods
+hum.src <- read.csv(file.path("data/HumOutbreakDB.csv"))
+# hum.simple <- hum.src %>% dplyr::select(Outbreak_ID, Virus, Month.Start, Month.Start, Month.End , Class)
   
-  #### Polygons ####
-hum.poly <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
-                    "index_human_case_modified_polygon")
-  ##addition of outbreak 32
-drc.poly <- readOGR(file.path(data.source, "zone_ste_puc"), 
-                    "Zone_Ste_Puc")
-  ##pull out the zone sante
-likati <- drc.poly[drc.poly$Nom_ZS_PUC == "Likati",]
-lik.prj <- spTransform(likati, proj4string(hum.poly))
-lik.prj$OUTBREAK <- 32
-
-  ##bind
-hum.poly <- rbind(hum.poly, lik.prj[,"OUTBREAK"])
-
-
- ## Extract centroids but maintain the data from the original obj
-hum.poly.c <- SpatialPointsDataFrame(gCentroid(hum.poly, byid = T),
-                                     hum.poly@data, match.ID = F)
-  #### Points ####
- ## Still needs to be added here
-hum.pts <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
-                   "index_human_case_modified_point")
-new <- c(-0.616667, 20.433333, 31, 20.433333, -0.616667) ## outbreak 31
-human.add <- rbind(as.data.frame(hum.pts), new)
-coordinates(human.add) <- ~ coords.x1 + coords.x2
-proj4string(human.add) <- CRS(wgs)
- ## Remove the lat and long cols
-hum.add <- human.add[,3]
-
-  #### masterFrame ####
-hu.ma <- rbind(hum.poly.c, hum.add)
-names(hu.ma) <- "Outbreak_ID"
-
-ma.hu <- inner_join(as.data.frame(hu.ma), hum.simple, by = "Outbreak_ID")
+#   #### Polygons ####
+# hum.poly <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
+#                     "index_human_case_modified_polygon")
+#   ##addition of outbreak 32
+# drc.poly <- readOGR(file.path(data.source, "zone_ste_puc"), 
+#                     "Zone_Ste_Puc")
+#   ##pull out the zone sante
+# likati <- drc.poly[drc.poly$Nom_ZS_PUC == "Likati",]
+# lik.prj <- spTransform(likati, proj4string(hum.poly))
+# lik.prj$OUTBREAK <- 32
+# 
+#   ##bind
+# hum.poly <- rbind(hum.poly, lik.prj[,"OUTBREAK"])
+# 
+# 
+#  ## Extract centroids but maintain the data from the original obj
+# hum.poly.c <- SpatialPointsDataFrame(gCentroid(hum.poly, byid = T),
+#                                      hum.poly@data, match.ID = F)
+#   #### Points ####
+#  ## Still needs to be added here
+# hum.pts <- readOGR(file.path(data.source, "vIndex", "humanORG"), 
+#                    "index_human_case_modified_point")
+# new <- c(-0.616667, 20.433333, 31, 20.433333, -0.616667) ## outbreak 31
+# human.add <- rbind(as.data.frame(hum.pts), new)
+# coordinates(human.add) <- ~ coords.x1 + coords.x2
+# proj4string(human.add) <- CRS(wgs)
+#  ## Remove the lat and long cols
+# hum.add <- human.add[,3]
+# 
+#   #### masterFrame ####
+# hu.ma <- rbind(hum.poly.c, hum.add)
+# names(hu.ma) <- "Outbreak_ID"
+# 
+# ma.hu <- inner_join(as.data.frame(hu.ma), hum.simple, by = "Outbreak_ID")
   #### OUT ####
-humOB.bi <- biGenV(ma.hu)
+humOB.bi <- biGenV(hum.src)
 write.csv(humOB.bi, file.path(clean.dir,"humOB.PPM.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
 write.csv(humOB.occ, file.path(clean.dir,"humOcc.csv"), row.names = F)
@@ -145,32 +147,33 @@ viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir))
 viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
 
 #### Animal Index cases ####
-an.src <- read.csv(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv"))
-an.simple <- an.src %>% dplyr::select(OUTBREAK_ID, Month.Start, Class)
-colnames(an.simple)[1] <- "Outbreak_ID"
-## remove the sero data that does not fit the analysis (ID 45:50)
-an.simple <- an.simple[an.simple$Outbreak_ID %!in% 45:50,]
- 
- #### Polygons ####
-an.poly <- readOGR(file.path(data.source, "vIndex", "animalORG"),
-                   "animal_polygon")
-an.poly.c <- SpatialPointsDataFrame(gCentroid(an.poly, byid = T),
-                                    an.poly@data, match.ID = F)
-names(an.poly.c) <- "Outbreak_ID"
- #### Points ####
-an.pt <- readOGR(file.path(data.source, "vIndex", "animalORG"),
-                   "animal_points")
-an.pt <- an.pt[,1]
-names(an.pt) <- "Outbreak_ID"
- #### join dataFrames ####
-an.ma <- rbind(an.poly.c, an.pt)
-ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
+## UPDATED 28/08/2018 to the same condtions as animal outbreaks above. 
+an.src <- read.csv(file.path("data/AnOutbreakDB.csv"))
+# an.simple <- an.src %>% dplyr::select(OUTBREAK_ID, Month.Start, Class)
+# colnames(an.simple)[1] <- "Outbreak_ID"
+# ## remove the sero data that does not fit the analysis (ID 45:50)
+# an.simple <- an.simple[an.simple$Outbreak_ID %!in% 45:50,]
+#  
+#  #### Polygons ####
+# an.poly <- readOGR(file.path(data.source, "vIndex", "animalORG"),
+#                    "animal_polygon")
+# an.poly.c <- SpatialPointsDataFrame(gCentroid(an.poly, byid = T),
+#                                     an.poly@data, match.ID = F)
+# names(an.poly.c) <- "Outbreak_ID"
+#  #### Points ####
+# an.pt <- readOGR(file.path(data.source, "vIndex", "animalORG"),
+#                    "animal_points")
+# an.pt <- an.pt[,1]
+# names(an.pt) <- "Outbreak_ID"
+#  #### join dataFrames ####
+# an.ma <- rbind(an.poly.c, an.pt)
+# ma.an <- inner_join(as.data.frame(an.ma), an.simple, by = "Outbreak_ID")
  ##seperate bat and other animal cases
-mam.an <- ma.an %>%
+mam.an <- an.src %>%
   filter(Class == 4)
 
-bat.an <- ma.an %>%
-  filter(Class == 1)
+bat.an <- an.src %>%
+  filter(Class %in% c(1:3))
 
 
 #### OUT ####
