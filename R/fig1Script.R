@@ -306,13 +306,14 @@ ggsave("figures/fig1_C.png",
 ### put them together
 
 fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
-             widths = c(2,1.3), 
-             layout_matrix = rbind(c(1,2),
-                                   c(1,3)))
+             widths = c(2.5,1), heights = c(2.5,1),
+             layout_matrix = rbind(c(1,3),
+                                   c(2,3)))
+
 ggsave("figures/Fig1Complete.pdf",
        fig1.complete,
        device = "pdf", 
        width = 7.5,
-       height = 7.5,
+       height = 6,
        units = "in",
        dpi = 300)
