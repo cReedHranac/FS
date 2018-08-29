@@ -218,40 +218,36 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 }
 
 ## Plot 
+y_vals <- 5:1 #seq(20,20*5,by=20)
+s <- 0.05
+ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(Org.smp)])
 
-g.time <- ggplot(data = ob.a, aes(x= Date, y = 0)) +
-  geom_point(data = filter(ob.a, Org.smp == "human") %>% dplyr::select(Date), ## Grey points
-             aes(x = Date, y= 0, size = 1, alpha = .5),
+g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
+  geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
+             aes(x = Date, y= y, size = 1, alpha = .5),
              color = "grey70", shape=20,
              show.legend = F)+
-  geom_point(aes(x = Date, y= 0, color = Org.smp, alpha = .5), size = 4,
+  geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
-  geom_segment(aes(x = 1975, y = 0, xend = 2018, yend = 0),
+  geom_segment(data=data.frame(y=1:5), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
-  scale_x_yearmon(format = "%Y", n = 10) +
-  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = .125, data=data.frame(x=1975, y=0, Org.smp = "bat" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = .125, data=data.frame(x=1975, y=0, Org.smp = "chimpanzee" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = .15, data=data.frame(x=1975, y=0, Org.smp = "duiker" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = .15, data=data.frame(x=1975, y=0, Org.smp = "gorilla" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = .18, data=data.frame(x=1975, y=0, Org.smp = "human" )) + 
+  scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2019), expand=c(0,0)) +
+  scale_y_continuous(limits=c(0.5,5.5), expand=c(0,0)) +
+  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = s, data=data.frame(x=1975, y=y_vals[1], Org.smp = "bat" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = s, data=data.frame(x=1975, y=y_vals[2], Org.smp = "chimpanzee" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[3], Org.smp = "duiker" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[4], Org.smp = "gorilla" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = s*0.18/0.125, data=data.frame(x=1975, y=y_vals[5], Org.smp = "human" )) + 
   scale_colour_manual(values = c(bat = 'darkorange2',
                                  chimpanzee ='black',
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red')) +
-  facet_wrap(~Org.smp, ncol = 1, labeller = as_labeller( c("bat" = 'Bat',
-                                              "chimpanzee" ='Chimpanzee',
-                                              "duiker" = 'Duiker',
-                                              "gorilla" = 'Gorilla',
-                                              "human" = 'Human'))) + 
-  
   theme_bw() + 
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.title = element_blank(),
-        strip.background = element_blank(),
-        strip.text.x = element_blank(),
-        plot.margin = margin(r=12, unit = "pt"))
+        panel.grid.minor.y = element_blank())
 
 g.time
 
