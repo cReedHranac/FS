@@ -89,15 +89,6 @@ BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
     arrange(month) %>%
     mutate(Roll.mean = roll_mean(bf.mean, n=2, fill=0))
   
-  ## month break list
-  month.break.list <- list()
-  for( i in 1:12){
-    if(i %in% c(1,3,6,9,12)){
-      month.break.list[[i]] <- month.abb[i]
-    } else{
-      month.break.list[[i]] <- ""
-    }
-  }
   
   #Plot
   bf.ridge <- ggplot(data= bf.df2, 
@@ -106,7 +97,7 @@ BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
     scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"),
                         limits = c(0,max(bf.df2$bf.mean)),
                         name = "Mean \nBirth \nForce") +
-    scale_x_continuous(breaks = 1:12, labels=month.break.list,
+    scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                        expand = c(0,0))+
     scale_y_discrete(expand=c(0,0)) +
     theme_bw() +
@@ -262,7 +253,4 @@ ggsave("figures/fig3_complete.pdf",
        height=9.6,
        units = "in",
        dpi = 300)
-
-## Still looks like junk if written out through above.
-## ** If you plot, then export with the cairo_pdf option ticked it looks just fine (aside from the months)
 

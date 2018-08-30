@@ -377,7 +377,7 @@ p.vol <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, color = Outbreak)) +
   scale_color_manual(values=c("#56B4E9","#E69F00")) + 
   theme_bw()+
   theme(legend.position = "none",
-        axis.title.x = element_blank())
+        axis.title = element_blank())
   
 p.vol
 
@@ -385,10 +385,20 @@ fig5 <- grid.arrange(grobs = c(p.vol, ob.map),
                      heights = c(1, 2),
                      layout_matrix = rbind(c(1,2)))
 
+
+f5.insert <- ob.map + 
+  annotation_custom(grob = ggplotGrob(p.vol),
+                    xmin = 11,
+                    xmax = 21.75,
+                    ymin = -14.5,
+                    ymax = -8.25)
+
+
+
 ggsave(filename = "figures/Fig5Complete.pdf",
-       plot = fig5,
+       plot = f5.insert,
        device = cairo_pdf,
-       height = 6, 
+       height = 5.5, 
        width = 7.5,
        units = "in",
        dpi = 300)

@@ -113,24 +113,14 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
     arrange(month) %>%
     mutate(Roll.mean = roll_mean(ER.mean, n=2, fill=0))
   
-  ## month break list
-  month.break.list <- list()
-  for( i in 1:12){
-    if(i %in% c(1,3,6,9,12)){
-      month.break.list[[i]] <- month.abb[i]
-    } else{
-      month.break.list[[i]] <- ""
-    }
-  }
-  
-  # plot
+    # plot
   ER.ridge <- ggplot(data= ER.df2,
                      aes(x= month,y= strata,height = ER.mean, group = strata, fill = Roll.mean)) +
     geom_density_ridges_gradient(color="#0000000F", stat = "identity", scale = scale) +
     scale_fill_gradient(low= "yellow", high = "red4",
                         limits = c(0,max(ER.df$ER.mean)),
                         name = "Mean \nEbola \nRisk") +
-    scale_x_continuous(breaks = 1:12, labels=month.break.list,
+    scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                        expand = c(0,0))+
     scale_y_discrete(expand=c(0,0)) +
     theme_bw() +
