@@ -65,19 +65,26 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
   y.df$Risk <- y.df$Avg.Risk$layer
   y.rank <- y.df %>%
     dplyr::select(-Avg.Risk) %>%
-    mutate(rank = percent_rank(Risk))
+    mutate(rank = (percent_rank(Risk)*100))
   y.rank$Outbreaks[which(y.rank$Outbreaks != F)] <- as.character(y.rank$Nom_ZS_PUC[which(y.rank$Outbreaks != F)])
-  y.rank$Outbreaks[which(y.rank$Outbreaks == F)] <- NA
+  y.rank$Outbreaks[which(y.rank$Outbreaks == F)] <- "None"
+  y.rank$Outbreaks <- as.factor(y.rank$Outbreaks)
+  
   ##plot
   p <- ggplot(y.rank) +
-    aes(long,lat,group = group, fill = rank, color = Outbreaks) + 
-    geom_polygon() +
+    aes(long,lat,group = group, fill = rank) + 
+    geom_polygon(aes(color = Outbreaks)) +
+    guides(color = "none")+
     coord_fixed() +
     scale_fill_gradient2(low = "yellow", high = "red4",
                          na.value = "white", 
-                         name = "Ebola \nSpillover \nRisk",
+                         name = "EVD \nSpillover \nPercent\n Rank",
                          guide= "colourbar")+
-    theme_bw()
+    scale_color_manual(values=c("#E69F00", "#56B4E9", "grey20")) +
+    theme_bw()+
+    theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank())
+
   
   return(p)
 }
@@ -330,33 +337,59 @@ res.ob2 <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
                 starts_with(base), factor_key = T) %>%
   mutate(pct.rank = percent_rank(Rank)) %>%
-  dplyr::filter(cell %in% zone1.cells$cell,
+  dplyr::filter(cell %in% zone2.cells$cell,
                 window %in% c("hum_6_7")) %>%
   dplyr::select(cell, window, pct.rank, Rank)
 
 write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
 
 ## Lets plot
-p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
+ob.map <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
 p2(hum.ob, y = drc)
 p3(hum.ob)
 p4(hum.ob)
 
 #### Creating the violin plots ####
 ## build the data frame
-ob1 <- cbind(res.ob1, Outbreak = "Bikoro", id = paste0(ob1$cell,ob1$window))
-ob2 <- cbind(res.ob2, Outbreak = "North Kivu", id = paste0(ob2$cell,ob2$window))
+ob1 <- cbind(res.ob1, Outbreak = "Bikoro", id = paste0(res.ob1$cell,res.ob1$window))
+ob2 <- cbind(res.ob2, Outbreak = "Beni", id = paste0(res.ob2$cell,res.ob2$window))
 
-ob.df <- rbind(ob1, ob2)
-ob.df$Outbreak <- as.factor(ob.df$Outbreak)
+#mean RR human
+hum.mean <- calc(hum.ob[[1]], mean)
+hum.mean.df <- as.data.frame(hum.mean, row.names = 1:ncell(hum.mean))
+hum.mean.df$cell <- rownames(hum.mean.df)
+hum.mean.df$mRR <- percent_rank(hum.mean.df$layer)
 
-p <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, fill = Outbreak)) + 
-  geom_violin(trim = F) + 
-  geom_jitter(shape = 16, position = position_jitter(.1))+
+## extract cells from each of the outbreaks and ammend to outbreak dataframes
+ob1$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob1$cell)]
+ob2$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob2$cell)]
+
+## bind
+ob.df <- rbind(ob1,ob2)
+
+
+p.vol <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, color = Outbreak)) + 
+  geom_boxplot(size = 1) + 
+  geom_jitter(shape = 16, position = position_jitter(.1), color = "black")+
   scale_y_continuous(limits = c(0,1)) + 
   labs(x = "Outbreak", 
        y = "Precent Rank")+
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + 
-  theme(legend.position = "none")+
-  theme_bw()
-p
+  scale_color_manual(values=c("#56B4E9","#E69F00")) + 
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+  
+p.vol
+
+fig5 <- grid.arrange(grobs = c(p.vol, ob.map),
+                     heights = c(1, 2),
+                     layout_matrix = rbind(c(1,2)))
+
+ggsave(filename = "figures/Fig5Complete.pdf",
+       plot = fig5,
+       device = cairo_pdf,
+       height = 6, 
+       width = 7.5,
+       units = "in",
+       dpi = 300)
+
