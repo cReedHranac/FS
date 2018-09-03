@@ -290,8 +290,8 @@ writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_F", "hum"),format = "GTiff
             bylayer = T, suffix = "numbers", overwrite = T)
 
 hum.null <-spatGLM(ob.col = OB_hum_imp,
-                      coV.v = c( "logPop", "OB_ann_imp", "lnBm.div",
-                                 "hdl","lFrag", "OB_ann_imp_1","month",
+                      coV.v = c(  "OB_ann_imp", "OB_ann_imp_1","logPop","lnBm.div",
+                                 "lFrag", "month",
                                  "OB_hum_imp",  "x", "y", "cell"),
                       dat= dat)
 summary(hum.null[[1]])
@@ -305,25 +305,6 @@ full.qAIC <- qAIC(hum.full)
 null.qAIC <- qAIC(hum.null)
 
 delta.qAIC <- null.qAIC - full.qAIC
-#thats good right?
-# I'm fairly certain this block is no longer needed
-# ## Ammend model to no aminal outbreaks 
-# hum.bat <-spatGLM(ob.col = OB_hum_imp,
-#                    coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-#                               "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
-#                               "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
-#                               "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-#                               "logPop", "lnBm.div",
-#                               "lFrag","month",
-#                               "OB_hum_imp",  "x", "y", "cell"),
-#                    dat= dat)
-# 
-# summary(hum.bat[[1]])
-# humBatTable <- resTabSimple(hum.bat)
-# write.csv(humBatTable, "data/HumBatSpatGLMRes.csv", row.names = F)
-# modBat.stk <- do.call(stack, hum.bat[[3]])
-# writeRaster(modBat.stk, file.path(mod.out.dir, "spatGLM", "humBat"),format = "GTiff",
-#             bylayer = T, suffix = "numbers")
 
 ## Modified to remove all animal outbreak information post model fit
 hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,

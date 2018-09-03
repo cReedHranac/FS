@@ -72,18 +72,27 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
   
   ##plot
   p <- ggplot(y.rank) +
+    ##poly fill
     aes(long,lat,group = group, fill = rank) + 
-    geom_polygon(aes(color = Outbreaks)) +
-    guides(color = "none")+
+    ##poly lines
+    geom_polygon(aes(color = Outbreaks), size = 1) +
+    guides(color = "none")+ #kill lables
+    # geom_line(data = data.frame(x = c(rep(min(y.rank$long),100)),
+    #                             y = c(seq(0,1, length.out = 100))),
+    #                             aes(x=x, y=y),
+    #                             size = 2)+
     coord_fixed() +
+    ##color for gradient
     scale_fill_gradient2(low = "yellow", high = "red4",
+                         limits = c(0,100),
                          na.value = "white", 
                          name = "EVD \nSpillover \nPercent\n Rank",
                          guide= "colourbar")+
-    scale_color_manual(values=c("#E69F00", "#56B4E9", "grey20")) +
+    ##color for poly lines (last is transparent)
+    scale_color_manual(values=c("#E69F00", "#56B4E9", "#ffffff00")) +
     theme_bw()+
     theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank())
+          axis.title.y = element_blank())
 
   
   return(p)
@@ -331,7 +340,7 @@ res.ob1 <- h.ob.df %>%
                 window %in% c("hum_12_1")) %>%
   dplyr::select(cell, window, pct.rank, Rank)
 
-write.csv(res.ob1, "data/DRC_OB_May2018_Rank.csv", row.names = F)
+#write.csv(res.ob1, "data/DRC_OB_May2018_Rank.csv", row.names = F)
 
 res.ob2 <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
@@ -341,13 +350,13 @@ res.ob2 <- h.ob.df %>%
                 window %in% c("hum_6_7")) %>%
   dplyr::select(cell, window, pct.rank, Rank)
 
-write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
+#write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
 
 ## Lets plot
 ob.map <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
-p2(hum.ob, y = drc)
-p3(hum.ob)
-p4(hum.ob)
+# p2(hum.ob, y = drc)
+# p3(hum.ob)
+# p4(hum.ob)
 
 #### Creating the violin plots ####
 ## build the data frame
@@ -366,30 +375,31 @@ ob2$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob2$cell)]
 
 ## bind
 ob.df <- rbind(ob1,ob2)
+ob.df$pct.rank <- ob.df$pct.rank*100
 
 
 p.vol <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, color = Outbreak)) + 
-  geom_boxplot(size = 1) + 
+  geom_boxplot(size = 1, width = .5) + 
   geom_jitter(shape = 16, position = position_jitter(.1), color = "black")+
-  scale_y_continuous(limits = c(0,1)) + 
+  scale_y_continuous(limits = c(0,100)) + 
   labs(x = "Outbreak", 
        y = "Precent Rank")+
   scale_color_manual(values=c("#56B4E9","#E69F00")) + 
   theme_bw()+
   theme(legend.position = "none",
-        axis.title = element_blank())
+        axis.title.x = element_blank())
   
 p.vol
 
-fig5 <- grid.arrange(grobs = c(p.vol, ob.map),
-                     heights = c(1, 2),
-                     layout_matrix = rbind(c(1,2)))
+# fig5 <- grid.arrange(grobs = c(p.vol, ob.map),
+#                      heights = c(1, 2),
+#                      layout_matrix = rbind(c(1,2)))
 
 
 f5.insert <- ob.map + 
   annotation_custom(grob = ggplotGrob(p.vol),
                     xmin = 11,
-                    xmax = 21.75,
+                    xmax = 20,
                     ymin = -14.5,
                     ymax = -8.25)
 
