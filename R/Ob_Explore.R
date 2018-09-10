@@ -70,6 +70,11 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
   y.rank$Outbreaks[which(y.rank$Outbreaks == F)] <- "None"
   y.rank$Outbreaks <- as.factor(y.rank$Outbreaks)
   
+  ##create unify for border
+  y.simple <- rgeos::gSimplify(y, tol = .0000001)
+  y.buff <- rgeos::gBuffer(y.simple, width=0)
+  y.uni <- rgeos::gUnaryUnion(y, id = "Province")
+  
   ##plot
   p <- ggplot(y.rank) +
     ##poly fill
@@ -340,7 +345,18 @@ res.ob1 <- h.ob.df %>%
                 window %in% c("hum_12_1")) %>%
   dplyr::select(cell, window, pct.rank, Rank)
 
-#write.csv(res.ob1, "data/DRC_OB_May2018_Rank.csv", row.names = F)
+res.ob1.apr <- h.ob.df %>%
+  tidyr::gather(key = "window", value = "Rank",
+                starts_with(base), factor_key = T) %>%
+  mutate(pct.rank = percent_rank(Rank)) %>%
+  dplyr::filter(cell %in% zone1.cells$cell,
+                window %in% c("hum_3_4")) %>%
+  dplyr::select(cell, window, pct.rank, Rank)
+
+
+write.csv(res.ob1, "data/DRC_OB_Dec2017_Rank.csv", row.names = F)
+write.csv(res.ob1, "data/DRC_OB_Apr2018_Rank.csv", row.names = F)
+
 
 res.ob2 <- h.ob.df %>%
   tidyr::gather(key = "window", value = "Rank",
@@ -360,7 +376,8 @@ ob.map <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
 
 #### Creating the violin plots ####
 ## build the data frame
-ob1 <- cbind(res.ob1, Outbreak = "Bikoro", id = paste0(res.ob1$cell,res.ob1$window))
+ob1 <- cbind(res.ob1, Outbreak = "Bikoro_Dec", id = paste0(res.ob1$cell,res.ob1$window))
+ob1.alt <- cbind(res.ob1.apr, Outbreak = "Bikoro", id = paste0(res.ob1.apr$cell, res.ob1.apr$window))
 ob2 <- cbind(res.ob2, Outbreak = "Beni", id = paste0(res.ob2$cell,res.ob2$window))
 
 #mean RR human
@@ -372,9 +389,9 @@ hum.mean.df$mRR <- percent_rank(hum.mean.df$layer)
 ## extract cells from each of the outbreaks and ammend to outbreak dataframes
 ob1$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob1$cell)]
 ob2$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob2$cell)]
-
+ob1.alt$mRisk <- hum.mean.df$mRR[which(hum.mean.df$cell %in% ob1.alt$cell)]
 ## bind
-ob.df <- rbind(ob1,ob2)
+ob.df <- rbind(ob1.alt,ob2)
 ob.df$pct.rank <- ob.df$pct.rank*100
 
 
