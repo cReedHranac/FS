@@ -14,19 +14,20 @@ better.names <- function(x){
   return(x)
 }
 
-spatHandler <- function(model.string){
+spatHandler <- function(model.string, mod.dir){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
-  f.list <- file.path(mod.out.dir, "spatGLM", list.files(file.path(mod.out.dir,"spatGLM"),
-                                                         pattern = paste0(model.string,"_")))
+  base <- substring(model.string, 1, 3)
+  
+  f.list <- mixedsort(list.files(file.path(mod.out.dir,mod.dir),
+                                 pattern = paste0(model.string,"_"), 
+                                 full.names = T))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
   ## order and read
-  o.list <- mixedsort(f.list)
-  stk <- stack(o.list)
-  stk <- better.names(stk)
+  stk <- better.names(stack(f.list))
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
@@ -313,9 +314,9 @@ wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 ## human outbreak risk w/o animal stocasticity
-hum.ob <- spatHandler("humNoAn")
+hum.ob <- spatHandler("humNoAn", "SpGLMRes_F")
 ## animals outbreak risk
-ann.ob <- spatHandler("ann")
+ann.ob <- spatHandler("ann","SpGLMRes_F")
 
 #### Exploration ####
 
@@ -366,7 +367,7 @@ res.ob2 <- h.ob.df %>%
                 window %in% c("hum_6_7")) %>%
   dplyr::select(cell, window, pct.rank, Rank)
 
-#write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
+write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
 
 ## Lets plot
 ob.map <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
