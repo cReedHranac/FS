@@ -24,23 +24,33 @@ sumGen <- function(model.string){
   return(out.l)
 }
 
-spatHandler <- function(model.string){
+spatHandler <- function(model.string, mod.dir){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
-  f.list <- file.path(mod.out.dir, "spatGLM", list.files(file.path(mod.out.dir,"spatGLM"),
-                                                         pattern = paste0(model.string,"_")))
+  base <- substring(model.string, 1, 3)
+  
+  f.list <- mixedsort(list.files(file.path(mod.out.dir,mod.dir),
+                                 pattern = paste0(model.string,"_"), 
+                                 full.names = T))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
   ## order and read
-  o.list <- mixedsort(f.list)
-  stk <- stack(o.list)
+  stk <- better.names(stack(f.list))
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
 }
 
+better.names <- function(x){
+  ### function for impoving names accociated with items retrieved from SpatHandler
+  base <- substring(names(x[[1]]), 1, 3)
+  i <- 1:12
+  j <- c(i[12],i[1:11])
+  names(x) <- paste0(base, "_", j, "_", i)
+  return(x)
+}
 
 birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, device.out = NULL, ....){
   ###Function for creating facted birthforce maps
@@ -188,8 +198,8 @@ mic.bf1 <- birthForce1(mic.sum, save = T, device.out = "pdf")
 mol.bf1 <- birthForce1(mol.sum, save = T, device.out = "pdf")
 
 #### Monthly Human and Animal Risk Maps
-hum.sum <- spatHandler("humNoAn")
+hum.sum <- spatHandler("humNoAn", "SpGLMRes_F")
 riskForce1(hum.sum, save = T, device.out = "pdf")
 
-ann.sum <- spatHandler("ann")
+ann.sum <- spatHandler("ann", "SpGLMRes_F")
 riskForce1(ann.sum, save = T, device.out = "pdf")
