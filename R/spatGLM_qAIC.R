@@ -190,8 +190,9 @@ qAIC <- function(x){
 
 resTabSimple <- function(x){
   ### FUnction for creating an easy results table 
-  results <- tidy(x[[1]])
-  tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 3))
+  results <- cbind(tidy(x[[1]])[,-4], confint.default(x[[1]])[,1:2])
+  tidy.table <- cbind(results[,1], round(results[,2:ncol(results)], 2))
+  rownames(tidy.table) <- c()
   return(tidy.table)
 }
 
@@ -274,9 +275,10 @@ hum.full <-spatGLM(ob.col = OB_hum_imp,
                                          "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
                                          "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
                                          "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                         "logPop", "OB_ann_imp", "lnBm.div",
-                                         "hdl", "lFrag", "OB_ann_imp_1","month",
-                                         "OB_hum_imp",  "x", "y", "cell"),
+                                         "OB_ann_imp","OB_ann_imp_1",
+                                         "hdl","logPop","lnBm.div","lFrag",
+                                         "OB_hum_imp","month",
+                                         "x", "y", "cell"),
                               dat= dat)
 
 summary(hum.full[[1]])
@@ -290,7 +292,7 @@ writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_F", "hum"),format = "GTiff
             bylayer = T, suffix = "numbers", overwrite = T)
 
 hum.null <-spatGLM(ob.col = OB_hum_imp,
-                      coV.v = c(  "OB_ann_imp", "OB_ann_imp_1","logPop","lnBm.div",
+                      coV.v = c(  "OB_ann_imp", "OB_ann_imp_1","lnBm.div","logPop",
                                  "lFrag", "month",
                                  "OB_hum_imp",  "x", "y", "cell"),
                       dat= dat)
