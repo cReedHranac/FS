@@ -25,7 +25,7 @@ an.full <- an.sub %>%
   inner_join(an.ob,an.sub, by = "Outbreak_ID")
 
 hum.ob <- fread(file.path(clean.dir, "humOB.PPM.csv"))
-hum.an <- fread(file.path(data.source, "vIndex","Human_Index_12_2_18.csv"))
+hum.an <- fread(file.path(data.source, "vIndex", "Human_Index_12_2_18.csv"))
 hum.sub <- hum.an %>%
   dplyr::select(Outbreak_ID, Year.Start)
 hum.full <- hum.sub %>%
@@ -223,10 +223,10 @@ s <- 0.05
 ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(Org.smp)])
 
 g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
-  geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
-             aes(x = Date, y= y, size = 1, alpha = .5),
-             color = "grey70", shape=20,
-             show.legend = F)+
+  # geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
+  #            aes(x = Date, y= y, size = 1, alpha = .5),
+  #            color = "grey70", shape=20,
+  #            show.legend = F)+
   geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
   geom_segment(data=data.frame(y=1:5), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
