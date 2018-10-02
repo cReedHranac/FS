@@ -104,7 +104,9 @@ birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devi
   if(save == T){
     if(device.out == "pdf"){
       dev.ext <- cairo_pdf
-    }else{
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+      } else {
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"BF_SI", ".", device.out)),
@@ -169,7 +171,9 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devic
   if(save == T){
     if(device.out == "pdf"){
       dev.ext <- cairo_pdf
-    }else{
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"Risk_SI", ".", device.out)),
@@ -193,13 +197,13 @@ mic.sum <- sumGen("mic.dbl.imp")
 
 
 
-ptr.bf1 <- birthForce1(ptr.sum, save = T, device.out = "pdf")
-mic.bf1 <- birthForce1(mic.sum, save = T, device.out = "pdf")
-mol.bf1 <- birthForce1(mol.sum, save = T, device.out = "pdf")
+ptr.bf1 <- birthForce1(ptr.sum, save = T, device.out = "eps")
+mic.bf1 <- birthForce1(mic.sum, save = T, device.out = "eps")
+mol.bf1 <- birthForce1(mol.sum, save = T, device.out = "eps")
 
 #### Monthly Human and Animal Risk Maps
 hum.sum <- spatHandler("humNoAn", "SpGLMRes_F")
-riskForce1(hum.sum, save = T, device.out = "pdf")
+riskForce1(hum.sum, save = T, device.out = "eps")
 
 ann.sum <- spatHandler("ann", "SpGLMRes_F")
-riskForce1(ann.sum, save = T, device.out = "pdf")
+riskForce1(ann.sum, save = T, device.out = "eps")

@@ -42,7 +42,6 @@ bkg <- theme_bw() + theme(
   axis.title.y = element_blank())
 
 
-
 bi.t <- bi %>%
   group_by(Start) %>%
   summarise(num = n())
@@ -75,13 +74,13 @@ for(i in 1:nrow(bi)){
 
 bi.plot
 
-ggsave("figures/fig2_A.png",
-       bi.plot,
-       device = "png",
-       width = 210,
-       height = 165,
-       units = "mm", 
-       dpi = 300)
+# ggsave("figures/fig2_A.png",
+#        bi.plot,
+#        device = "png",
+#        width = 210,
+#        height = 165,
+#        units = "mm", 
+#        dpi = 300)
 
 #### Pannel 2 Bar with Smooth ####
 bi.bar <- ggplot(data = bi)+
@@ -98,13 +97,13 @@ bi.bar <- ggplot(data = bi)+
 
 bi.bar
 
-ggsave("figures/fig2_B.png",
-       bi.bar,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in",
-       dpi = 300)
+# ggsave("figures/fig2_B.png",
+#        bi.bar,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in",
+#        dpi = 300)
 
 
 i#### All together now ####
@@ -112,9 +111,9 @@ fig2.complete <- grid.arrange(bi.plot, bi.bar,
              widths = c(2.5, 1),
              layout_matrix = rbind(c(1,2)))
 
-ggsave("figures/Fig2Complete.pdf",
+ggsave("figures/Fig2Complete.eps",
        fig2.complete,
-       device = "pdf", 
+       device = cairo_ps, 
        width = 7.5,
        height = 4.3,
        units = "in",
