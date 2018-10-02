@@ -16,28 +16,38 @@ Africa.ext <- c(-18, 47, -36, 16)
 #3 pannel figure, 1 pannel, map w/ outbreak locations (symbols for an/hum), 
 # and 2 outbreak time lines, 1 entire history, one collapsed year
 #### data ####
-an.ob <- fread(file.path(clean.dir, "annOB.PPM.csv")) #animal points
-an.an <- fread(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv")) #notes on outbreaks
-an.sub <- an.an %>%
-  dplyr::select(OUTBREAK_ID, Org.smp, Year.Start)
-names(an.sub)[1] <- names(an.ob)[1]
-an.full <- an.sub %>%
-  inner_join(an.ob,an.sub, by = "Outbreak_ID")
+an.ob <- fread("data/AnOutbreakDB.csv")
+an.sub <- an.ob %>%
+  dplyr::select(Outbreak_ID, Org.smp, Year.Start, Month.Start, x, y) 
+an.sub$Org.smp[which(an.sub$Org.smp=="Mops condylurus and Chaerephon pumilus")] <- "bat"
 
-hum.ob <- fread(file.path(clean.dir, "humOB.PPM.csv"))
-hum.an <- fread(file.path(data.source, "vIndex", "Human_Index_12_2_18.csv"))
-hum.sub <- hum.an %>%
-  dplyr::select(Outbreak_ID, Year.Start)
-hum.full <- hum.sub %>%
-  inner_join(hum.ob, hum.sub, by = "Outbreak_ID")
+# an.ob <- fread(file.path(clean.dir, "annOB.PPM.csv")) #animal points
+# an.an <- fread(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv")) #notes on outbreaks
+# an.sub <- an.an %>%
+#   dplyr::select(OUTBREAK_ID, Org.smp, Year.Start)
+# names(an.sub)[1] <- names(an.ob)[1]
+# an.full <- an.sub %>%
+#   inner_join(an.ob,an.sub, by = "Outbreak_ID")
 
+hum.ob <- fread("data/HumOutbreakDB.csv")
+hum.sub <- hum.ob %>%
+  dplyr::select(Outbreak_ID, Year.Start, Month.Start, x, y) %>%
+  mutate( Org.smp = "human")
 
-hum.full$Org.smp <- "human"
-hum.s <- hum.full %>%
-  dplyr::select(which(names(hum.full) %in% names(an.full)))
+# hum.ob <- fread(file.path(clean.dir, "humOB.PPM.csv"))
+# hum.an <- fread(file.path(data.source, "vIndex", "Human_Index_12_2_18.csv"))
+# hum.sub <- hum.an %>%
+#   dplyr::select(Outbreak_ID, Year.Start)
+# hum.full <- hum.sub %>%
+#   inner_join(hum.ob, hum.sub, by = "Outbreak_ID")
+# 
+# 
+# hum.full$Org.smp <- "human"
+# hum.s <- hum.full %>%
+#   dplyr::select(which(names(hum.full) %in% names(an.full)))
 
-ob.full <- bind_rows(hum.s, an.full)
-colnames(ob.full)[3:4] <- c( "long", "lat")
+ob.full <- bind_rows(hum.sub, an.sub)
+colnames(ob.full)[which(colnames(ob.full) %in% c("x", "y"))] <- c( "long", "lat")
 ob.full$Org.smp <- as.factor(ob.full$Org.smp)
 
 z <- list()
@@ -176,13 +186,13 @@ map.with.insert <- ob.plot + bkg +
                     ymin = -36,
                     ymax = -14.5)
 
-ggsave("figures/fig1_A.png",
-       map.with.insert,
-       device = "png",
-       width = 210,
-       height = 165,
-       units = "mm", 
-       dpi = 300)
+# ggsave("figures/fig1_A.png",
+#        map.with.insert,
+#        device = "png",
+#        width = 210,
+#        height = 165,
+#        units = "mm", 
+#        dpi = 300)
 
 #### Pannel 2 Time line ####
 ob.T <- ob.full
@@ -220,30 +230,30 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 ## Plot 
 y_vals <- 5:1 #seq(20,20*5,by=20)
 s <- 0.05
-ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(Org.smp)])
+ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(as.factor(Org.smp))])
 
 g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
-  # geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
-  #            aes(x = Date, y= y, size = 1, alpha = .5),
-  #            color = "grey70", shape=20,
-  #            show.legend = F)+
+  geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
+             aes(x = Date, y= y, size = 1, alpha = .5),
+             color = "grey70", shape=20,
+             show.legend = F)+
   geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
   geom_segment(data=data.frame(y=1:5), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
   scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2019), expand=c(0,0)) +
   scale_y_continuous(limits=c(0.5,5.5), expand=c(0,0)) +
-  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = s, data=data.frame(x=1975, y=y_vals[1], Org.smp = "bat" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = s, data=data.frame(x=1975, y=y_vals[2], Org.smp = "chimpanzee" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[3], Org.smp = "duiker" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[4], Org.smp = "gorilla" )) + 
-  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = s*0.18/0.125, data=data.frame(x=1975, y=y_vals[5], Org.smp = "human" )) + 
+  geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = s, data=data.frame(x=1975, y=y_vals[1], Org.smp = "bat" )) +
+  geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = s, data=data.frame(x=1975, y=y_vals[2], Org.smp = "chimpanzee" )) +
+  geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[3], Org.smp = "duiker" )) +
+  geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[4], Org.smp = "gorilla" )) +
+  geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = s*0.18/0.125, data=data.frame(x=1975, y=y_vals[5], Org.smp = "human" )) +
   scale_colour_manual(values = c(bat = 'darkorange2',
                                  chimpanzee ='black',
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red')) +
-  theme_bw() + 
+  theme_bw() +
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.title = element_blank(),
@@ -251,20 +261,20 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
 
 g.time
 
-ggsave("figures/fig1_B.png",
-       g.time,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in",
-       dpi = 300)
+# ggsave("figures/fig1_B.png",
+#        g.time,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in",
+#        dpi = 300)
 
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
 ### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
 ob.hist <- ob.a
 
-org=data.frame(Org.smp=levels(ob.hist$Org.smp),
+org=data.frame(Org.smp=levels(as.factor(ob.hist$Org.smp)),
                Org=c("Chiroptera",
                      "Non-Volant Mammals",
                      "Non-Volant Mammals",
@@ -295,13 +305,13 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
 g.bar
 
 
-ggsave("figures/fig1_C.png",
-       g.bar,
-       device = "png",
-       width = 5,
-       height = 5,
-       units = "in",
-       dpi = 300)
+# ggsave("figures/fig1_C.png",
+#        g.bar,
+#        device = "png",
+#        width = 5,
+#        height = 5,
+#        units = "in",
+#        dpi = 300)
 
 ### put them together
 
@@ -310,9 +320,9 @@ fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
              layout_matrix = rbind(c(1,3),
                                    c(2,3)))
 
-ggsave("figures/Fig1Complete.pdf",
+ggsave("figures/Fig1Complete.eps",
        fig1.complete,
-       device = "pdf", 
+       device = cairo_ps, 
        width = 7.5,
        height = 6,
        units = "in",

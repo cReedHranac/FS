@@ -423,9 +423,9 @@ f5.insert <- ob.map +
 
 
 
-ggsave(filename = "figures/Fig5Complete.pdf",
+ggsave(filename = "figures/Fig5Complete.eps",
        plot = f5.insert,
-       device = cairo_pdf,
+       device = cairo_ps,
        height = 5.5, 
        width = 7.5,
        units = "in",

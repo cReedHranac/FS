@@ -246,9 +246,9 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
 
 f3 <- grid.arrange(grobs = master.list,
              ncol = 2, widths=c(1,w.ridge))
-ggsave("figures/fig3_complete.pdf",
+ggsave("figures/fig3_complete.eps",
        f3,
-       device = cairo_pdf,
+       device = cairo_ps,
        width=6,
        height=9.6,
        units = "in",
