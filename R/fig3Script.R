@@ -26,7 +26,7 @@ sumGen <- function(model.string){
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-BFgplot <- function(x, afr = afr.poly){
+BFgplot <- function(x, afr = afr.poly, c.string){
   ## dataframe for plotting
   sum.df <- data.frame(rasterToPoints(x[[2]]))
   colnames(sum.df) <- c("long","lat","Number")
@@ -44,7 +44,7 @@ BFgplot <- function(x, afr = afr.poly){
     geom_raster(aes(fill = Number), interpolate = T)+
     
     #Colors
-    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"), 
+    scale_fill_gradientn(colors = c.string, 
                         limits = c(0,max(sum.df$Number)),
                         name = "Mean \nNumber \nBirthing")+
 
@@ -62,12 +62,13 @@ BFgplot <- function(x, afr = afr.poly){
     
     #Extras
     theme_bw() + 
-    theme( axis.title = element_blank()) +
+    theme( axis.title = element_blank(),
+           legend.position = c(0.2,0.3)) +
     scale_y_continuous(expand = c(0,0))
   
   return(g.plot)
 }
-BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
+BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale, c.string){
   ## Function for creating ridgeline density plots of the breeding force
   ## used on objects creaded from sumGen (since it loads rasterlayers as well)
   x.crop <- crop(x[[1]], crop.extent)
@@ -94,7 +95,7 @@ BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale){
   bf.ridge <- ggplot(data= bf.df2, 
                      aes(x= month,y= strata,height = bf.mean, group = strata, fill = Roll.mean)) +
     geom_density_ridges_gradient(color="#0000000F", stat = "identity", scale=scale) +
-    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"),
+    scale_fill_gradientn(colors = c.string,
                         limits = c(0,max(bf.df2$bf.mean)),
                         name = "Mean \nBirth \nForce") +
     scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
@@ -121,10 +122,14 @@ ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
 mol.sum <- sumGen("mol.dbl.imp")
 mic.sum <- sumGen("mic.dbl.imp")
 
+## Create color ramp palets to match with figure 2
+c1 <- colorRampPalette(c("#CFD8DC", "green4"))
+c2 <- colorRampPalette(c("#CFD8DC", "dodgerblue2"))
+c3 <- colorRampPalette(c("#CFD8DC", "darkorange2"))
 
-ptr.BF <- BFgplot(x = ptr.sum)
-mol.BF <- BFgplot(x = mol.sum)
-mic.BF <- BFgplot(x = mic.sum)
+ptr.BF <- BFgplot(x = ptr.sum, c.string = c1(5))
+mol.BF <- BFgplot(x = mol.sum, c.string = c2(5))
+mic.BF <- BFgplot(x = mic.sum, c.string = c3(5))
 
 # ggsave("figures/fig3_A.png",
 #        ptr.BF,
@@ -150,9 +155,19 @@ mic.BF <- BFgplot(x = mic.sum)
 n.ridge <- 48  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- .5 # Width of ridge plot compared to map
 
-r.ptr <- BFridge(x = ptr.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
-r.mic <- BFridge(mic.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
-r.mol <- BFridge(mol.sum, n.bin = n.ridge,scale = 2,  crop.extent = Africa.ext)
+r.ptr <- BFridge(x = ptr.sum,
+                 n.bin = n.ridge,
+                 scale = 2,
+                 crop.extent = Africa.ext,
+                 c.string = c1(5))
+r.mol <- BFridge(mol.sum,
+                 n.bin = n.ridge,scale = 2,
+                 crop.extent = Africa.ext, 
+                 c.string = c2(5))
+r.mic <- BFridge(mic.sum,
+                 n.bin = n.ridge,scale = 2,
+                 crop.extent = Africa.ext, 
+                 c.string = c3(5))
 
 # ggsave("figures/fig3_D.png",
 #        r.ptr,
