@@ -17,7 +17,7 @@ bat.symbol <- image_data(bat.n$same[[1]]$uid, size = 64)[[1]]
 
 bi <- fread("data/afrBatBirthDB.csv")
 bi$Class <- factor(bi$Class,
-                   labels= c("Pteropodiae", "Mollosidae", "Non-Mollosid Microbats"))
+                   labels= c("Fruit Bats", "Molossidae", "Non-Molossid Microbats"))
 bi$Start <- factor(bi$Start,
                    labels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 bi$long <- bi$Lon
