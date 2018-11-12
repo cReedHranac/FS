@@ -407,12 +407,6 @@ p.vol <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, color = Outbreak)) +
   theme(legend.position = "none",
         axis.title.x = element_blank())
   
-p.vol
-
-# fig5 <- grid.arrange(grobs = c(p.vol, ob.map),
-#                      heights = c(1, 2),
-#                      layout_matrix = rbind(c(1,2)))
-
 
 f5.insert <- ob.map + 
   annotation_custom(grob = ggplotGrob(p.vol),
@@ -420,6 +414,47 @@ f5.insert <- ob.map +
                     xmax = 20,
                     ymin = -14.5,
                     ymax = -8.25)
+
+
+#### Monthly features
+#modify names to create continious
+h.modify <- h.ob.df
+colnames(h.modify) <- c(1:12, "cell")
+
+res.month <- h.modify %>%
+   tidyr::gather(key = "window", value = "Rank",
+                1:12, factor_key = T, convert = T) %>%
+  mutate(pct.rank = percent_rank(Rank)*100) %>%
+  dplyr::filter(cell %in% c(zone2.cells$cell, zone1.cells$cell))%>%
+  mutate(Outbreak = ifelse(cell %in% zone1.cells$cell, "Bikoro", "Beni")) %>%
+  group_by(window, Outbreak) %>%
+  mutate(rnk.mean = mean(pct.rank),
+         rnk.low = min(pct.rank),
+         rnk.high = max(pct.rank))
+
+
+p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.mean, colour = Outbreak)) + 
+  geom_point() +
+  geom_line() +
+  geom_ribbon(aes(ymin = rnk.low, ymax = rnk.high), alpha = .1, linetype = 2) +
+  scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
+                     expand = c(0,0)) +
+  ylim(c(0,100))+
+  scale_color_manual(values=c("#E69F00","#56B4E9")) + 
+  labs(x = "Month", 
+       y = "Precent Rank")+
+  theme_bw()
+  
+
+  
+f5.full <- grid.arrange(f5.insert, p.rib,
+                        layout_matrix = rbind(c(1,1,1),
+                                              c(1,1,1),
+                                              c(1,1,1),
+                                              c(2,2,2)))
+
+
+
 
 
 
