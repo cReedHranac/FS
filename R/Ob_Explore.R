@@ -448,11 +448,8 @@ p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.mean, colour = Outbrea
 
   
 f5.full <- grid.arrange(f5.insert, p.rib,
-                        layout_matrix = rbind(c(1,1,1),
-                                              c(1,1,1),
-                                              c(1,1,1),
-                                              c(2,2,2)))
-
+                        heights = c(3.5,1),
+                        ncol = 1)
 
 
 
