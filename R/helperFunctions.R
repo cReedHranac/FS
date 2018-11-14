@@ -15,6 +15,7 @@ clean.dir <- file.path(base.path, "Processed")
 clean.dir.nov <- file.path(base.path, "novAddition")
 norm.dir <- file.path(base.path, "Normalized")
 mod.out.dir <- file.path(base.path, "ModOut")
+mod.out.nov <- file.path(base.path, "novAddition", "ModOut")
 
 #### Opperators ####
 ## The %!in% opperator 
