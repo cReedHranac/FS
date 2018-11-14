@@ -8,23 +8,23 @@ source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
 library(raster);library(gtools)
 # human outbreak stack
 hum.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum0*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hum0*")))
   ,raster))
 hum.stk <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hum*")))
   ,raster))
 
 # animal outbreak stack
 ann.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann0*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_ann0*")))
   ,raster))
 ann.stk <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_ann*")))
   ,raster))
 
 # host detection locations (bats with detected virus)
 hdl.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hdl0_*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hdl0_*")))
   ,raster))
 
 #### Breeding probability rasters without imputation #### 
@@ -253,4 +253,4 @@ long.table.full <- long.table.br %>%
          lFrag = log(fragIndex +1),
          lnBm.div = log(nBm.div +1))
 
-fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))
+fwrite(long.table.full, file.path(clean.dir.nov, "longMaster.csv"))
