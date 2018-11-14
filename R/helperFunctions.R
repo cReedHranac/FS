@@ -12,6 +12,7 @@ if (!exists('base.path')) {
 }
 data.source <-file.path(base.path, "SourceData")
 clean.dir <- file.path(base.path, "Processed")
+clean.dir.nov <- file.path(base.path, "novAddition")
 norm.dir <- file.path(base.path, "Normalized")
 mod.out.dir <- file.path(base.path, "ModOut")
 

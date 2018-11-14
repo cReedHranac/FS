@@ -140,11 +140,11 @@ hum.src <- read.csv(file.path("data/HumOutbreakDB.csv"))
 # ma.hu <- inner_join(as.data.frame(hu.ma), hum.simple, by = "Outbreak_ID")
   #### OUT ####
 humOB.bi <- biGenV(hum.src)
-write.csv(humOB.bi, file.path(clean.dir,"humOB.PPM.csv"), row.names = F)
+write.csv(humOB.bi, file.path(clean.dir.nov,"humOB.PPM.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
-write.csv(humOB.occ, file.path(clean.dir,"humOcc.csv"), row.names = F)
-viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir))
-viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir))
+write.csv(humOB.occ, file.path(clean.dir.nov,"humOcc.csv"), row.names = F)
+viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir.nov))
+viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir.nov))
 
 #### Animal Index cases ####
 ## UPDATED 28/08/2018 to the same condtions as animal outbreaks above. 
@@ -179,16 +179,16 @@ bat.an <- an.src %>%
 #### OUT ####
   ## animal points 
 anOB.bi <- biGenV(mam.an)
-write.csv(anOB.bi, file.path(clean.dir, "annOB.PPM.csv"), row.names = F)
+write.csv(anOB.bi, file.path(clean.dir.nov, "annOB.PPM.csv"), row.names = F)
 anOB.occ <- occGenV(anOB.bi, "ann", c.mask)
-write.csv(anOB.occ, file.path(clean.dir, "annOcc.csv"), row.names = F)
-viralRasterGen(anOB.bi, "ann", c.mask, file.path(clean.dir))
-viralRasterGen0(anOB.bi, "ann", z.mask, file.path(clean.dir))
+write.csv(anOB.occ, file.path(clean.dir.nov, "annOcc.csv"), row.names = F)
+viralRasterGen(anOB.bi, "ann", c.mask, file.path(clean.dir.nov))
+viralRasterGen0(anOB.bi, "ann", z.mask, file.path(clean.dir.nov))
 
   ## Host detection locations (hdl)
 hdl.bi <- biGenV(bat.an)
-write.csv(hdl.bi, file.path(clean.dir, "hdl.PPM.csv"), row.names = F)
+write.csv(hdl.bi, file.path(clean.dir.nov, "hdl.PPM.csv"), row.names = F)
 hdl.occ <- occGenV(hdl.bi, "hdl", c.mask)
-write.csv(hdl.occ, file.path(clean.dir, "hdlOcc.csv"), row.names = F)
-viralRasterGen(hdl.bi, "hdl", c.mask, file.path(clean.dir))
-viralRasterGen0(df = hdl.bi, name = "hdl",z.mask =  z.mask,out.dir =  file.path(clean.dir))
+write.csv(hdl.occ, file.path(clean.dir.nov, "hdlOcc.csv"), row.names = F)
+viralRasterGen(hdl.bi, "hdl", c.mask, file.path(clean.dir.nov))
+viralRasterGen0(df = hdl.bi, name = "hdl",z.mask =  z.mask,out.dir =  file.path(clean.dir.nov))
