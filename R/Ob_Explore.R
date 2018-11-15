@@ -19,7 +19,7 @@ spatHandler <- function(model.string, mod.dir){
   ## model string argument
   base <- substring(model.string, 1, 3)
   
-  f.list <- mixedsort(list.files(file.path(mod.out.dir,mod.dir),
+  f.list <- mixedsort(list.files(file.path(mod.out.nov,mod.dir),
                                  pattern = paste0(model.string,"_"), 
                                  full.names = T))
   
@@ -98,7 +98,9 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
     scale_color_manual(values=c("#E69F00", "#56B4E9", "#ffffff00")) +
     theme_bw()+
     theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank())
+          axis.title.y = element_blank(),
+          legend.position = c(.1,.75),
+          plot.margin=unit(rep(0,4), "cm"))
 
   
   return(p)
@@ -314,9 +316,9 @@ wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 ## human outbreak risk w/o animal stocasticity
-hum.ob <- spatHandler("humNoAn", "SpGLMRes_F")
+hum.ob <- spatHandler("humNoAn", "SpGLMRes_Nov")
 ## animals outbreak risk
-ann.ob <- spatHandler("ann","SpGLMRes_F")
+ann.ob <- spatHandler("ann","SpGLMRes_Nov")
 
 #### Exploration ####
 
@@ -428,7 +430,7 @@ res.month <- h.modify %>%
   dplyr::filter(cell %in% c(zone2.cells$cell, zone1.cells$cell))%>%
   mutate(Outbreak = ifelse(cell %in% zone1.cells$cell, "Bikoro", "Beni")) %>%
   group_by(window, Outbreak) %>%
-  mutate(rnk.mean = mean(pct.rank),
+  mutate(rnk.mean = median(pct.rank),
          rnk.low = min(pct.rank),
          rnk.high = max(pct.rank))
 
@@ -445,18 +447,26 @@ p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.mean, colour = Outbrea
        y = "Precent Rank")+
   theme_bw()
   
-
+## Putting the two together
+width_height <- diff(as.vector(extent(drc)))[c(1,3)]
+aspect_map <- width_height[1] / width_height[2]
   
-f5.full <- grid.arrange(f5.insert, p.rib,
-                        heights = c(3.5,1),
-                        ncol = 1)
 
+
+
+
+
+
+f5.full <- grid.arrange(f5.insert, p.rib,
+                        heights = c(4*aspect_map,1.5),
+                        ncol = 1)
+plot(f5.full)
 
 
 
 
 ggsave(filename = "figures/Fig5Complete.eps",
-       plot = f5.insert,
+       plot = f5.full,
        device = cairo_ps,
        height = 5.5, 
        width = 7.5,
