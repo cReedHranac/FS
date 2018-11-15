@@ -420,3 +420,15 @@ rownames(hum.full.tab.pub) <- c("Intercept",
 
 tab <- xtable(hum.full.tab.pub)
 print(tab, sanitize.text.function = function(x) {x})
+
+## q aic table
+dqaic <- as.data.frame(rbind( null.qAIC,full.qAIC, nAn.qAIC,fAn.qAIC))
+dqaic$daic <- c(0,-317.23,0,-83.99)
+
+rownames(dqaic) <- c("$RR_?mathrm{hum} Null$",
+                     "$RR_?mathrm{hum} Full$",
+                     "$RR_?mathrm{an} Null$",
+                     "$RR_?mathrm{an} Full$")
+colnames(dqaic) <- c("$k$", "$?hat{c}$", "?mathrm{qAIC}", "$?Delta ?mathrm{qAIC}$")
+q.tab <- xtable(dqaic)
+print(q.tab, sanitize.text.function = function(x) {x})
