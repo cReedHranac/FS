@@ -249,7 +249,7 @@ spatGLM.AnimalMod <- function(ob.col, coV.v, dat, rGrid = rf){
 }
 
 #### Data ####
-dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
+dat <- tbl_df(fread(file.path(clean.dir.nov, "longMaster.csv")))
 # library(skimr)
 #  skim(dat)
 dat <- dat %>%
@@ -285,10 +285,10 @@ summary(hum.full[[1]])
 
 # tidy and write out
 humFullTable <- resTabSimple(hum.full)
-write.csv(humFullTable, "data/HumSpGLMRes_F.csv", row.names = F)
+write.csv(humFullTable, "data/HumSpGLMRes_Nov.csv", row.names = F)
 
 mod.stk <- do.call(stack, hum.full[[3]])
-writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_F", "hum"),format = "GTiff",
+writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_Nov", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 hum.null <-spatGLM(ob.col = OB_hum_imp,
@@ -299,7 +299,7 @@ hum.null <-spatGLM(ob.col = OB_hum_imp,
 summary(hum.null[[1]])
 
 humNullTable <- resTabSimple(hum.null)
-write.csv(humNullTable, "data/HumNullSpGLMRes_F.csv", row.names = F)
+write.csv(humNullTable, "data/HumNullSpGLMRes_Nov.csv", row.names = F)
 
 ### Compare 2 modesl 
 
@@ -321,9 +321,9 @@ hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
 
 summary(hum.NoAn[[1]])
 humNoAnTable <- resTabSimple(hum.NoAn)
-write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_F.csv", row.names = F)
+write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_Nov.csv", row.names = F)
 modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
-writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_F", "humNoAn"),format = "GTiff",
+writeRaster(modNoAn.stk, file.path(mod.out.nov, "SpGLMRes_Nov", "humNoAn"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 
@@ -341,7 +341,7 @@ ann.full <- spatGLM(ob.col = OB_ann_imp,
                                dat = dat)
 summary(ann.full[[1]])
 anFull <- resTabSimple(ann.full)
-write.csv(anFull, "data/AnFullSpGLMRes_F.csv", row.names = F)
+write.csv(anFull, "data/AnFullSpGLMRes_Nov.csv", row.names = F)
 
 ##Creating animal rasters without stocastic events
 an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp, 
@@ -353,7 +353,7 @@ an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp,
                                       "OB_ann_imp",  "x", "y", "cell"),
                            dat = dat)
 an.stk <- do.call(stack, an.op[[3]])
-writeRaster(an.stk, file.path(mod.out.dir, "SpGLMRes_F", "ann"),format = "GTiff",
+writeRaster(an.stk, file.path(mod.out.nov, "SpGLMRes_Nov", "ann"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 ## Null
@@ -363,10 +363,60 @@ ann.null <- spatGLM(ob.col = OB_ann_imp,
                     dat = dat)
 summary(ann.null[[1]])
 anNull <- resTabSimple(ann.null)
-write.csv(anNull, "data/AnNullSpGLMRes_F.csv", row.names = F)
+write.csv(anNull, "data/AnNullSpGLMRes_Nov.csv", row.names = F)
 
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)
 nAn.qAIC <- qAIC(ann.null)
 delta.An <- nAn.qAIC - fAn.qAIC
 
+#### Tables for publication ####
+library(xtable)
+options(xtable.floating = FALSE)
+options(xtable.timestamp = "")
+
+## human full table
+hum.full.tab.pub <- humFullTable[c(5,6,4)]
+hum.full.tab.pub$Significance <- c("***",
+                                   "",
+                                   "",
+                                   "",
+                                   "**",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "*",
+                                   "",
+                                   "",
+                                   "***",
+                                   "",
+                                   "",
+                                   "",
+                                   "***",
+                                   "")
+                                     
+rownames(hum.full.tab.pub) <- c("Intercept",
+                                "$?beta_1 ?lambda_{?afb}$",
+                                "$?beta_2 ?lambda_{?mic}$",
+                                "$?beta_3 ?lambda_{?mol}$",
+                                "$?beta_4 ?lambda_{?afb_2}$",
+                                "$?beta_5 ?lambda_{?mic_2}$",
+                                "$?beta_6 ?lambda_{?mol_2}$",
+                                "$?beta_7 ?lambda_{?afb_4}$",
+                                "$?beta_8 ?lambda_{?mic_4}$",
+                                "$?beta_9 ?lambda_{?mol_4}$",
+                                "$?beta_{10} ?lambda_{?afb_6}$",
+                                "$?beta_{11} ?lambda_{?mic_6}$",
+                                "$?beta_{12} ?lambda_{?mol_6}$",
+                                "$?beta_{13} ?mathrm{OB}_{?mathrm{an}}$",
+                                "$?beta_{14} ?mathrm{OB}_{?mathrm{an}_{l-1}}$",
+                                "$?beta_{15} ?mathrm{BVD}$",
+                                "$?beta_{15} ?logplus(PopDen)$",
+                                "$?beta_{16} ?logplus(NBM div)$",
+                                "$?beta_{17} ?logplus(fragIndex)$")
+  
+
+tab <- xtable(hum.full.tab.pub)
+print(tab, sanitize.text.function = function(x) {x})
