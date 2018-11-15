@@ -20,6 +20,7 @@ an.ob <- fread("data/AnOutbreakDB.csv")
 an.sub <- an.ob %>%
   dplyr::select(Outbreak_ID, Org.smp, Year.Start, Month.Start, x, y) 
 an.sub$Org.smp[which(an.sub$Org.smp=="Mops condylurus and Chaerephon pumilus")] <- "bat"
+an.sub$Org.smp[which(an.sub$Org.smp %in% c("Mus sp", "Paromys complex", "Sylvisorex ollula"))] <- "rodent"
 
 # an.ob <- fread(file.path(clean.dir, "annOB.PPM.csv")) #animal points
 # an.an <- fread(file.path(data.source, "vIndex", "Animal_Index_Jan2018.csv")) #notes on outbreaks
@@ -61,15 +62,17 @@ chimpanzee <- 109082
 duiker <-  2478895
 gorilla <-  763767
 human <- 	109086
+rodent <- 104230
 
-critters <- c(bat, chimpanzee, duiker, gorilla, human)
+critters <- c(bat, chimpanzee, duiker, gorilla, human, rodent)
 critters.id <- lapply(critters, ubio_get)
 critter.names <- lapply(critters.id, name_images) ## Needs manual attention
 c.names <- c(critter.names[[1]]$same[[1]]$uid, 
              critter.names[[2]]$same[[1]]$uid,
              critter.names[[3]]$supertaxa[[1]]$uid,
              critter.names[[4]]$same[[1]]$uid,
-             critter.names[[5]]$same[[1]]$uid)
+             critter.names[[5]]$same[[1]]$uid, 
+             critter.names[[6]]$same[[2]]$uid)
 critter.img <- lapply(c.names, image_data, size = 64)
 c.img <- list()
 for(i in 1:length(c.names)){
@@ -84,7 +87,7 @@ for(i in 1:nrow(ob.full)){
 }
 
 ## create color vector
-cz <- c("darkorange2", "black", "green4", "dodgerblue2", "red")
+cz <- c("darkorange2", "black", "green4", "dodgerblue2", "red", "purple")
 col.list <- list()
 for(i in 1:nrow(ob.full)){
   j <- match(ob.full[i,"Org.smp"], levels(ob.full$Org.smp)) 
@@ -228,7 +231,7 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 }
 
 ## Plot 
-y_vals <- 5:1 #seq(20,20*5,by=20)
+y_vals <- 6:1 #seq(20,20*5,by=20)
 s <- 0.05
 ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(as.factor(Org.smp))])
 
@@ -239,7 +242,7 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
              show.legend = F)+
   geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
-  geom_segment(data=data.frame(y=1:5), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
+  geom_segment(data=data.frame(y=1:6), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
   scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2019), expand=c(0,0)) +
   scale_y_continuous(limits=c(0.5,5.5), expand=c(0,0)) +
@@ -248,11 +251,13 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
   geom_Rlogo(aes(x, y), img=c.img[[3]], alpha=1, col='green4', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[3], Org.smp = "duiker" )) +
   geom_Rlogo(aes(x, y), img=c.img[[4]], alpha=1, col='dodgerblue2', size = s*0.15/0.125, data=data.frame(x=1975, y=y_vals[4], Org.smp = "gorilla" )) +
   geom_Rlogo(aes(x, y), img=c.img[[5]], alpha=1, col='red', size = s*0.18/0.125, data=data.frame(x=1975, y=y_vals[5], Org.smp = "human" )) +
+  geom_Rlogo(aes(x, y), img=c.img[[6]], alpha=1, col='purple', size = s, data=data.frame(x=1975, y=y_vals[6], Org.smp = "rodent" )) +
   scale_colour_manual(values = c(bat = 'darkorange2',
                                  chimpanzee ='black',
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
-                                 human = 'red')) +
+                                 human = 'red',
+                                 rodent = 'purple')) +
   theme_bw() +
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
@@ -279,7 +284,8 @@ org=data.frame(Org.smp=levels(as.factor(ob.hist$Org.smp)),
                      "Non-Volant Mammals",
                      "Non-Volant Mammals",
                      "Non-Volant Mammals",
-                     "Human"))
+                     "Human", 
+                     "Non-Volant Mammals"))
 
 ob.hist <- inner_join(ob.hist, org, "Org.smp")
 
@@ -292,7 +298,8 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
                                  chimpanzee ='black',
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
-                                 human = 'red')) +
+                                 human = 'red',
+                               rodent = 'purple')) +
   scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   facet_wrap(~Org, nrow = 3) +
   scale_y_continuous(expand=c(0,0), limits=c(0,7.2)) +
