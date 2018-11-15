@@ -28,7 +28,7 @@ spatHandler <- function(model.string, mod.dir){
   ## model string argument
   base <- substring(model.string, 1, 3)
   
-  f.list <- mixedsort(list.files(file.path(mod.out.dir,mod.dir),
+  f.list <- mixedsort(list.files(file.path(mod.out.nov,mod.dir),
                       pattern = paste0(model.string,"_"), 
                       full.names = T))
   
@@ -142,10 +142,10 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
 
 #### Alternative human models for ridges ####
 
-hum.stk <- spatHandler("hum", "SpGLMRes_F")
+hum.stk <- spatHandler("hum", "SpGLMRes_Nov")
 risk.plot <- ERgplot(x = hum.stk)
 
-hum.NoAn <- spatHandler(model.string = "humNoAn", "SpGLMRes_F") # Go with this one for ridges
+hum.NoAn <- spatHandler(model.string = "humNoAn", "SpGLMRes_Nov") # Go with this one for ridges
 
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
@@ -226,7 +226,7 @@ central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
 
 #### Animal Risk Plot ####
-ann.mean <- spatHandler("ann", "SpGLMRES_F")
+ann.mean <- spatHandler("ann", "SpGLMRES_Nov")
 ann.risk.plot <- ERgplot(ann.mean)
 ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 # and fixup the aspect ratio of ridge to that of map
