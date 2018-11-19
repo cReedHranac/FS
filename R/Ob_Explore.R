@@ -317,6 +317,10 @@ drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 ## human outbreak risk w/o animal stocasticity
 hum.ob <- spatHandler("humNoAn", "SpGLMRes_Nov")
+hum.geo <- calc(hum.ob[[1]], function(x){y <- log(x); return(mean(y))})
+
+backgroundMean <- cellStats(hum.ob[[2]], mean)
+backgroundGeo <- exp(cellStats(hum.geo, mean))
 ## animals outbreak risk
 ann.ob <- spatHandler("ann","SpGLMRes_Nov")
 
@@ -430,22 +434,55 @@ res.month <- h.modify %>%
   dplyr::filter(cell %in% c(zone2.cells$cell, zone1.cells$cell))%>%
   mutate(Outbreak = ifelse(cell %in% zone1.cells$cell, "Bikoro", "Beni")) %>%
   group_by(window, Outbreak) %>%
-  mutate(rnk.mean = median(pct.rank),
+  mutate(rnk.med = median(pct.rank),
          rnk.low = min(pct.rank),
          rnk.high = max(pct.rank))
 
 
-p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.mean, colour = Outbreak)) + 
+p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.med, colour = Outbreak)) + 
   geom_point() +
   geom_line() +
   geom_ribbon(aes(ymin = rnk.low, ymax = rnk.high), alpha = .1, linetype = 2) +
   scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                      expand = c(0,0)) +
   ylim(c(0,100))+
-  scale_color_manual(values=c("#E69F00","#56B4E9")) + 
-  labs(x = "Month", 
+  scale_color_manual(values=c("#E69F00","#56B4E9")) +
+  guides(color='none') +
+    labs(x = "Month", 
        y = "Precent Rank")+
+  
   theme_bw()
+
+
+## creating the raw data figure
+res.raw <- res.month <- h.modify %>%
+  tidyr::gather(key = "window", value = "Risk",
+                1:12, factor_key = T, convert = T) %>%
+  mutate(rel.Risk = Risk/backgroundGeo)%>%
+  dplyr::filter(cell %in% c(zone2.cells$cell, zone1.cells$cell))%>%
+  mutate(Outbreak = ifelse(cell %in% zone1.cells$cell, "Bikoro", "Beni")) %>%
+  group_by(window, Outbreak) %>%
+  mutate(raw.med = median(rel.Risk),
+         raw.low = min(rel.Risk),
+         raw.high = max(rel.Risk))
+
+
+
+
+(p.raw <- ggplot(data = res.raw, aes(x = window, y = rel.Risk, color = Outbreak)) + 
+  geom_point()+
+  geom_line(aes(group = cell), alpha = .4)+
+  geom_line(aes(y = raw.med)) +
+  # geom_ribbon(aes(ymin = raw.low, ymax = raw.high), alpha = .1, linetype = 2)+
+  scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
+                     expand = c(0,0)) +
+  scale_color_manual(values=c("#E69F00","#56B4E9")) + 
+  scale_y_log10()+
+  guides(color='none') +
+  labs(x = "Month", 
+       y = "Relative Risk")+
+  theme_bw())
+  
   
 ## Putting the two together
 width_height <- diff(as.vector(extent(drc)))[c(1,3)]
@@ -457,9 +494,10 @@ aspect_map <- width_height[1] / width_height[2]
 
 
 
-f5.full <- grid.arrange(f5.insert, p.rib,
-                        heights = c(4*aspect_map,1.5),
-                        ncol = 1)
+(f5.full <- grid.arrange(f5.insert,p.rib,  p.raw,
+                        layout_matrix = rbind(c(1,2),
+                                              c(1,3)),
+                        heights = c(.5,.5)))
 plot(f5.full)
 
 
@@ -472,4 +510,9 @@ ggsave(filename = "figures/Fig5Complete.eps",
        width = 7.5,
        units = "in",
        dpi = 300)
+
+
+ob.df %>% 
+  group_by(Outbreak) %>%
+  summarise(min = round(min(pct.rank),4), max = max(pct.rank), median = median(pct.rank))
 
