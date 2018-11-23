@@ -49,7 +49,7 @@ BFgplot <- function(x, afr = afr.poly, c.string){
                         name = "Mean \nNumber \nBirthing")+
 
     #create african continent background
-    geom_polygon(data = fortify(afr.poly),
+    geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
                  colour = "#212121",
                  fill = NA) +

@@ -3,8 +3,8 @@
 ##################
 
 source("R/helperFunctions.R")
-library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
-library(rgdal); library(raster); library(ggridges); library(RcppRoll)
+library(tidyverse); library(gtools)
+library(RcppRoll)
 
 #### functions ####
 sumGen <- function(model.string){
@@ -52,7 +52,7 @@ better.names <- function(x){
   return(x)
 }
 
-birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, device.out = NULL, ....){
+birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Afr.ext, device.out = NULL, ....){
   ###Function for creating facted birthforce maps
   ##gen dataframe
   stk.crop <- crop(x[[1]], crop.extent)
@@ -70,23 +70,23 @@ birthForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devi
     #create african continent background
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
-                 colour = NA,
-                 fill = "white",
-                 alpha = .2) +
+                 colour = "#212121",
+                 fill = NA) +
     
     #fill Raster values
     geom_raster(aes(fill = BF), interpolate = T)+
     
     #Colors
-    scale_fill_gradientn(colors = c("#CFD8DC","#BDBDBD", "#00BCD4", "#0097A7"), 
+    scale_fill_gradientn(colors = c.string, 
                          limits = c(0,max(res.long$BF)),
                          name = "Number \nBirthing")+
     
     #create african continent background
     geom_polygon(data = fortify(afr),
                  aes(long, lat, group = group), 
-                 colour = "grey20",
-                 alpha = .20) +
+                 colour = "#212121",
+                 fill = NA) +
+    aes(x = long, y = lat)+
     
     # limit coordinates
     coord_fixed(xlim = crop.extent[1:2],ylim = crop.extent[3:4]) +
@@ -185,21 +185,30 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devic
 }
 
 #### Data for plotting ####
+library(rgdal)
 afr.poly <- readOGR(dsn = path.expand(file.path(data.source, "Africa")),
                     layer = "AfricanCountires")
 Afr.ext <- c(-18, 49, -36, 16)
 
-
+library(raster)
 #### Monthy Force of Breeding ####
 ptr.sum <- sumGen(model.string = "ptr.dbl.imp")
+## fix ptr namess
+c.names <- names(ptr.sum[[1]])
+fx.names <- gsub("ptr", "afb", c.names)
+names(ptr.sum[[1]]) <- fx.names
+
 mol.sum <- sumGen("mol.dbl.imp")
 mic.sum <- sumGen("mic.dbl.imp")
 
+c1 <- colorRampPalette(c("#CFD8DC", "green4"))
+c2 <- colorRampPalette(c("#CFD8DC", "dodgerblue2"))
+c3 <- colorRampPalette(c("#CFD8DC", "darkorange2"))
+library(ggridges)
+ptr.bf1 <- birthForce1(x = ptr.sum, c.string = c1(5) , save = T, device.out = "eps")
+mol.bf1 <- birthForce1(mol.sum,  c.string = c2(5),save = T, device.out = "eps")
+mic.bf1 <- birthForce1(mic.sum, c.string = c3(5) , save = T, device.out = "eps")
 
-
-ptr.bf1 <- birthForce1(ptr.sum, save = T, device.out = "eps")
-mic.bf1 <- birthForce1(mic.sum, save = T, device.out = "eps")
-mol.bf1 <- birthForce1(mol.sum, save = T, device.out = "eps")
 
 #### Monthly Human and Animal Risk Maps
 hum.sum <- spatHandler("humNoAn", "SpGLMRes_F")

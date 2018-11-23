@@ -106,6 +106,79 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
   return(p)
 }
 
+p1raw <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
+  ## function for plotting the DRC health boards with the Risk plots (average)
+  ## x <- results from spatHandler
+  ## y <- drc
+  ## outbreaks <- list of zones to highlght
+  ## level <- variable to determine the level we're looking at
+  ## province <- option for province level selection
+  ## distric <- option for province level selection
+  
+  ## Plot level selection
+  if(is.null(province) && is.null(district)){
+    y.level <- y
+  } 
+  if(!is.null(province) && is.null(district)){
+    y.level <- y[y@data$PROVINCE == province,]
+  }
+  if(!is.null(province) && !is.null(district)){
+    y.level <- y[y@data$PROVINCE == province & y@data$Nom_ZS_PUC == district,]
+  }
+  
+  ## Manage raster
+  x.crop <- mask(crop(x[[2]], extent(y.level)), y.level)
+  x.spatial <- rasterToPoints(x.crop, spatial = T)
+  y.level$Avg.Risk <- over(y.level, x.spatial, fn = mean)
+  y.level$Outbreaks <- y.level$Nom_ZS_PUC %in% c(outbreaks) #add bit for our zone of intrest
+  
+  ## manipulate data structure
+  y.level$id <- rownames(y.level@data)
+  y.pts <- fortify(y.level, region = "id")
+  y.df <- plyr::join(y.pts, y.level@data, by = "id")
+  y.df$Risk <- y.df$Avg.Risk$layer
+  y.rank <- y.df %>%
+    dplyr::select(-Avg.Risk) %>%
+    mutate(relRank = (Risk/backgroundGeo))
+  y.rank$Outbreaks[which(y.rank$Outbreaks != F)] <- as.character(y.rank$Nom_ZS_PUC[which(y.rank$Outbreaks != F)])
+  y.rank$Outbreaks[which(y.rank$Outbreaks == F)] <- "None"
+  y.rank$Outbreaks <- as.factor(y.rank$Outbreaks)
+  
+  ##create unify for border
+  y.simple <- rgeos::gSimplify(y, tol = .0000001)
+  y.buff <- rgeos::gBuffer(y.simple, width=0)
+  y.uni <- rgeos::gUnaryUnion(y, id = "Province")
+  
+  ##plot
+  p <- ggplot(y.rank) +
+    ##poly fill
+    aes(long,lat,group = group, fill = relRank) + 
+    ##poly lines
+    geom_polygon(aes(color = Outbreaks), size = 1) +
+    guides(color = "none")+ #kill lables
+    # geom_line(data = data.frame(x = c(rep(min(y.rank$long),100)),
+    #                             y = c(seq(0,1, length.out = 100))),
+    #                             aes(x=x, y=y),
+    #                             size = 2)+
+    coord_fixed() +
+    ##color for gradient
+    scale_fill_gradient2(low = "yellow", high = "red4",
+                         trans = "log10",
+                         na.value = "white", 
+                         name = "EVD \nSpillover \nRelative\nRisk",
+                         guide= "colourbar")+
+    ##color for poly lines (last is transparent)
+    scale_color_manual(values=c("#E69F00", "#56B4E9", "#ffffff00")) +
+    theme_bw()+
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          legend.position = c(.1,.75),
+          plot.margin=unit(rep(0,4), "cm"))
+  
+  
+  return(p)
+}
+
 p2 <- function(x, y = drc, province = NULL, district = NULL){
   ## function for plotting the DRC health boards with the Risk plots Monthly
   ## x <- results from spatHandler
@@ -376,7 +449,8 @@ res.ob2 <- h.ob.df %>%
 write.csv(res.ob2, "data/DRC_OB_July2018_Rank.csv", row.names = F)
 
 ## Lets plot
-ob.map <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
+ob.rank <- p1(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
+ob.raw <- p1raw(x = hum.ob, y = drc, outbreaks = c("Bikoro", "Beni"))
 # p2(hum.ob, y = drc)
 # p3(hum.ob)
 # p4(hum.ob)
@@ -439,10 +513,10 @@ res.month <- h.modify %>%
          rnk.high = max(pct.rank))
 
 
-p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.med, colour = Outbreak)) + 
+(p.rib <- ggplot(data = res.month, aes(x = window, y = pct.rank, colour = Outbreak)) + 
   geom_point() +
-  geom_line() +
-  geom_ribbon(aes(ymin = rnk.low, ymax = rnk.high), alpha = .1, linetype = 2) +
+  geom_line(aes(group = cell), alpha = .4) +
+  geom_line(aes(y = rnk.med)) +
   scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                      expand = c(0,0)) +
   ylim(c(0,100))+
@@ -451,11 +525,14 @@ p.rib <- ggplot(data = res.month, aes(x = window, y = rnk.med, colour = Outbreak
     labs(x = "Month", 
        y = "Precent Rank")+
   
-  theme_bw()
-
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y =  element_blank(),
+        axis.text.x = element_blank())
+)
 
 ## creating the raw data figure
-res.raw <- res.month <- h.modify %>%
+res.raw <-  h.modify %>%
   tidyr::gather(key = "window", value = "Risk",
                 1:12, factor_key = T, convert = T) %>%
   mutate(rel.Risk = Risk/backgroundGeo)%>%
@@ -481,7 +558,8 @@ res.raw <- res.month <- h.modify %>%
   guides(color='none') +
   labs(x = "Month", 
        y = "Relative Risk")+
-  theme_bw())
+  theme_bw()+
+    theme(axis.title.y = element_blank()))
   
   
 ## Putting the two together
@@ -494,9 +572,9 @@ aspect_map <- width_height[1] / width_height[2]
 
 
 
-(f5.full <- grid.arrange(f5.insert,p.rib,  p.raw,
+(f5.full <- grid.arrange(ob.rank,p.rib, ob.raw, p.raw,
                         layout_matrix = rbind(c(1,2),
-                                              c(1,3)),
+                                              c(3,4)),
                         heights = c(.5,.5)))
 plot(f5.full)
 
@@ -506,7 +584,7 @@ plot(f5.full)
 ggsave(filename = "figures/Fig5Complete.eps",
        plot = f5.full,
        device = cairo_ps,
-       height = 5.5, 
+       height = 7.5, 
        width = 7.5,
        units = "in",
        dpi = 300)
