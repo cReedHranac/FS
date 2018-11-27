@@ -543,7 +543,16 @@ res.raw <-  h.modify %>%
          raw.low = min(rel.Risk),
          raw.high = max(rel.Risk))
 
-
+res.raw.ob <-  h.modify %>%
+  tidyr::gather(key = "window", value = "Risk",
+                1:12, factor_key = T, convert = T) %>%
+  mutate(rel.Risk = Risk/backgroundGeo)%>%
+  dplyr::filter(cell %in% c(zone2.cells$cell, zone1.cells$cell))%>%
+  mutate(Outbreak = ifelse(cell %in% zone1.cells$cell, "Bikoro", "Beni")) %>%
+  group_by(Outbreak) %>%
+  mutate(raw.med = median(rel.Risk),
+         raw.low = min(rel.Risk),
+         raw.high = max(rel.Risk))
 
 
 (p.raw <- ggplot(data = res.raw, aes(x = window, y = rel.Risk, color = Outbreak)) + 
