@@ -110,7 +110,7 @@ birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Af
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"BF_SI", ".", device.out)),
-           bf1.plot, device = dev.ext)
+           bf1.plot, width = 7, height = 7, units = "in", dpi = 600, device = dev.ext)
   }
   
   return(bf1.plot)
@@ -177,7 +177,7 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devic
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"Risk_SI", ".", device.out)),
-           risk1.plot, device = dev.ext)
+           risk1.plot, width = 7, height = 7, units = "in", dpi = 600, device = dev.ext)
   }
   
   return(risk1.plot)

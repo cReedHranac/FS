@@ -258,6 +258,37 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
                     risk.list[[2]], ridge.list[[2]],
                     risk.list[[3]], ridge.list[[3]])
 
+#making individual ones for presentations
+afrP <- grid.arrange(grobs = master.list[1:2], 
+                     ncol = 2, widths=c(1,w.ridge)) 
+micP <- grid.arrange(grobs = master.list[5:6], 
+                     ncol = 2, widths=c(1,w.ridge)) 
+molp <- grid.arrange(grobs = master.list[3:4], 
+                             ncol = 2, widths=c(1,w.ridge)) 
+ggsave("figures/afbPulse.pdf",
+       afrP,
+       device = cairo_pdf,
+       width=6,
+       height=3.2,
+       units = "in",
+       dpi = 300)
+ggsave("figures/molPulse.pdf",
+       molp,
+       device = cairo_pdf,
+       width=6,
+       height=3.2,
+       units = "in",
+       dpi = 300)
+ggsave("figures/micPulse.pdf",
+       micP,
+       device = cairo_pdf,
+       width=6,
+       height=3.2,
+       units = "in",
+       dpi = 300)
+
+
+
 
 f3 <- grid.arrange(grobs = master.list,
              ncol = 2, widths=c(1,w.ridge))

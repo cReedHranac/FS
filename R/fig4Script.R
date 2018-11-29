@@ -199,13 +199,21 @@ ridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
 hum.fig <- grid.arrange(risk.grob,
              ridge.grob,
              ncol=2, widths=c(1,w.ridge))
-ggsave(filename = "figures/fig4_complete.eps",
+# ggsave(filename = "figures/fig4_complete.eps",
+#        hum.fig,
+#        device = cairo_ps,
+#        width=8,
+#        height=4.3,
+#        units = "in",
+#        dpi = 300)
+ggsave(filename = "figures/fig4_complete.pdf",
        hum.fig,
-       device = cairo_ps,
+       device = cairo_pdf,
        width=8,
        height=4.3,
        units = "in",
        dpi = 300)
+
 
 
 
@@ -267,9 +275,16 @@ an.risk <- grid.arrange(ANrisk.grob,
              ANridge.grob,
              ncol=2, widths=c(1,w.ridge))
 
-ggsave(filename = "figures/AnnRisk.eps",
+# ggsave(filename = "figures/AnnRisk.eps",
+#        an.risk,
+#        device = cairo_ps,
+#        width=8,
+#        height=4.3,
+#        units = "in",
+#        dpi = 300)
+ggsave(filename = "figures/AnnRisk.pdf",
        an.risk,
-       device = cairo_ps,
+       device = cairo_pdf,
        width=8,
        height=4.3,
        units = "in",
