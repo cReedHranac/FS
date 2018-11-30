@@ -488,7 +488,7 @@ p.vol <- ggplot(ob.df, aes(x = Outbreak, y = pct.rank, color = Outbreak)) +
         axis.title.x = element_blank())
   
 
-f5.insert <- ob.map + 
+f5.insert <- ob.rank + 
   annotation_custom(grob = ggplotGrob(p.vol),
                     xmin = 11,
                     xmax = 20,
