@@ -528,7 +528,8 @@ res.month <- h.modify %>%
   theme_bw() +
   theme(axis.title.x = element_blank(),
         axis.title.y =  element_blank(),
-        axis.text.x = element_blank())
+#        axis.text.x = element_blank(),
+        plot.margin = unit(c(0,10,0,0), "points"))
 )
 
 ## creating the raw data figure
@@ -568,7 +569,10 @@ res.raw.ob <-  h.modify %>%
   labs(x = "Month", 
        y = "Relative Risk")+
   theme_bw()+
-    theme(axis.title.y = element_blank()))
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          plot.margin = unit(c(0,10,0,0), "points"))
+)
   
   
 ## Putting the two together
