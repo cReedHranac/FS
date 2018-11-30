@@ -99,7 +99,12 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
     theme_bw()+
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          legend.position = c(.1,.75),
+          legend.position = c(0.11,0.76),
+          legend.margin = margin(),
+          legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.4, "cm"),
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
           plot.margin=unit(rep(0,4), "cm"))
 
   
@@ -172,7 +177,12 @@ p1raw <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL
     theme_bw()+
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          legend.position = c(.1,.75),
+          legend.position = c(0.11,0.76),
+          legend.margin = margin(),
+          legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.4, "cm"),
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
           plot.margin=unit(rep(0,4), "cm"))
   
   
