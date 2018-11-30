@@ -524,9 +524,9 @@ res.month <- h.modify %>%
 
 
 (p.rib <- ggplot(data = res.month, aes(x = window, y = pct.rank, colour = Outbreak)) + 
-  geom_point() +
-  geom_line(aes(group = cell), alpha = .4) +
-  geom_line(aes(y = rnk.med)) +
+#  geom_point() +
+  geom_line(aes(group = cell), alpha = .3) +
+  geom_line(aes(y = rnk.med), size=1) +
   scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                      expand = c(0,0)) +
   ylim(c(0,100))+
@@ -567,9 +567,9 @@ res.raw.ob <-  h.modify %>%
 
 
 (p.raw <- ggplot(data = res.raw, aes(x = window, y = rel.Risk, color = Outbreak)) + 
-  geom_point()+
-  geom_line(aes(group = cell), alpha = .4)+
-  geom_line(aes(y = raw.med)) +
+    #  geom_point() +
+  geom_line(aes(group = cell), alpha = .3) +
+  geom_line(aes(y = raw.med), size=1) +
   # geom_ribbon(aes(ymin = raw.low, ymax = raw.high), alpha = .1, linetype = 2)+
   scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                      expand = c(0,0)) +
