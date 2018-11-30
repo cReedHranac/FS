@@ -585,7 +585,7 @@ plot(f5.full)
 ggsave(filename = "figures/Fig5Complete.eps",
        plot = f5.full,
        device = cairo_ps,
-       height = 7.5, 
+       height = 7, 
        width = 7.5,
        units = "in",
        dpi = 300)
