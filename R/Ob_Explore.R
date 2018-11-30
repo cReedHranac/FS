@@ -572,23 +572,11 @@ res.raw.ob <-  h.modify %>%
   
   
 ## Putting the two together
-width_height <- diff(as.vector(extent(drc)))[c(1,3)]
-aspect_map <- width_height[1] / width_height[2]
-  
-
-
-
-
-
-
 (f5.full <- grid.arrange(ob.rank,p.rib, ob.raw, p.raw,
                         layout_matrix = rbind(c(1,2),
                                               c(3,4)),
                         heights = c(.5,.5)))
 plot(f5.full)
-
-
-
 
 ggsave(filename = "figures/Fig5Complete.eps",
        plot = f5.full,
