@@ -110,7 +110,7 @@ birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Af
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"BF_SI", ".", device.out)),
-           bf1.plot, width = 5, height = 7, units = "in", dpi = 600, device = dev.ext)
+           bf1.plot, width = 5, height = 7, units = "in", device = dev.ext)
   }
   
   return(bf1.plot)
@@ -177,7 +177,7 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Afr.ext, devic
       dev.ext <- device.out
     }
     ggsave(filename = file.path("figures/", paste0(base,"Risk_SI", ".", device.out)),
-           risk1.plot, width = 5, height = 7, units = "in", dpi = 600, device = dev.ext)
+           risk1.plot, width = 5, height = 7, units = "in", device = dev.ext)
   }
   
   return(risk1.plot)
@@ -205,14 +205,14 @@ c1 <- colorRampPalette(c("#CFD8DC", "green4"))
 c2 <- colorRampPalette(c("#CFD8DC", "dodgerblue2"))
 c3 <- colorRampPalette(c("#CFD8DC", "darkorange2"))
 library(ggridges)
-ptr.bf1 <- birthForce1(x = ptr.sum, c.string = c1(5) , save = T, device.out = "pdf")
-mol.bf1 <- birthForce1(mol.sum,  c.string = c2(5),save = T, device.out = "pdf")
-mic.bf1 <- birthForce1(mic.sum, c.string = c3(5) , save = T, device.out = "pdf")
+ptr.bf1 <- birthForce1(x = ptr.sum, c.string = c1(5) , save = T, device.out = "png")
+mol.bf1 <- birthForce1(mol.sum,  c.string = c2(5),save = T, device.out = "png")
+mic.bf1 <- birthForce1(mic.sum, c.string = c3(5) , save = T, device.out = "png")
 
 
 #### Monthly Human and Animal Risk Maps
 hum.sum <- spatHandler("humNoAn", "SpGLMRes_F")
-riskForce1(hum.sum, save = T, device.out = "pdf")
+riskForce1(hum.sum, save = T, device.out = "png")
 
 ann.sum <- spatHandler("ann", "SpGLMRes_F")
-riskForce1(ann.sum, save = T, device.out = "pdf")
+riskForce1(ann.sum, save = T, device.out = "png")

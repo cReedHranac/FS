@@ -246,9 +246,36 @@ for(i in 1:length(tax)){ #tax
   } 
 }
 
+q <- 1
+item.2 <- list()
+##adding lag colums for non-force of birthing 
+## add lag columns ##
+for(i in 1:length(tax)){ #tax
+  for(j in 1:length(grp)){ #group
+    for(k in 1:length(hndl)){ #handle
+      for(l in 1:6){ # n lag
+        nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "Prob", l ,sep="_")
+        nw <- paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")
+        bz <- long.table.br %>% dplyr::group_by(cell) %>%
+          dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw, n = p, order_by = month),
+                                                                nw=as.name(nw),
+                                                                p=l,
+                                                                month = as.name("month"))),nm)) %>%
+          ungroup %>%
+          dplyr::select(!!nm)
+        item.2[[q]] <- bz
+        q <- q+1
+        cat(nm,"\n")
+      }
+    }
+  } 
+}
+
 lagz <- as.data.table(do.call(cbind, item))
+lagz2 <- as.data.table(do.call(cbind, item.2))
+lag.terms <- bind_cols(lagz, lagz2)
 long.table.full <- long.table.br %>%
-  bind_cols(lagz) %>%
+  bind_cols(lag.terms) %>%
   mutate(logPop = log(popDen + 1),
          lFrag = log(fragIndex +1),
          lnBm.div = log(nBm.div +1))
