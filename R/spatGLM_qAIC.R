@@ -290,7 +290,7 @@ write.csv(humFullTable, "data/HumSpGLMRes_Nov.csv", row.names = F)
 mod.stk <- do.call(stack, hum.full[[3]])
 writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_Nov", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
-
+## Null model
 hum.null <-spatGLM(ob.col = OB_hum_imp,
                       coV.v = c(  "OB_ann_imp", "OB_ann_imp_1","lnBm.div","logPop",
                                  "lFrag", "month",
@@ -301,10 +301,24 @@ summary(hum.null[[1]])
 humNullTable <- resTabSimple(hum.null)
 write.csv(humNullTable, "data/HumNullSpGLMRes_Nov.csv", row.names = F)
 
+## Alternative mod (raw probablilities rather then multiplied with diversity)
+hum.prob <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                              "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                              "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                              "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                              "OB_ann_imp","OB_ann_imp_1",
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat)
+summary(hum.prob[[1]])
+
 ### Compare 2 modesl 
 
 full.qAIC <- qAIC(hum.full)
 null.qAIC <- qAIC(hum.null)
+alt.qAIC <- qAIC(hum.prob)
 
 delta.qAIC <- null.qAIC - full.qAIC
 
@@ -365,9 +379,21 @@ summary(ann.null[[1]])
 anNull <- resTabSimple(ann.null)
 write.csv(anNull, "data/AnNullSpGLMRes_Nov.csv", row.names = F)
 
+## alt 
+ann.prob <- spatGLM(ob.col = OB_ann_imp,
+                    coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                               "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                               "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                               "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                               "hdl","lnBm.div","lFrag", "month",
+                               "OB_ann_imp",  "x", "y", "cell"),
+                    dat = dat)
+summary(ann.prob[[1]])
+
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)
 nAn.qAIC <- qAIC(ann.null)
+aAn.qAIC <- qAIC(ann.prob)
 delta.An <- nAn.qAIC - fAn.qAIC
 
 #### Tables for publication ####
