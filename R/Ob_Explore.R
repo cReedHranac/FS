@@ -19,7 +19,7 @@ spatHandler <- function(model.string, mod.dir){
   ## model string argument
   base <- substring(model.string, 1, 3)
   
-  f.list <- mixedsort(list.files(file.path(mod.out.nov,mod.dir),
+  f.list <- mixedsort(list.files(file.path(mod.out.dir,mod.dir),
                                  pattern = paste0(model.string,"_"), 
                                  full.names = T))
   
@@ -398,8 +398,8 @@ drc.hd <- readOGR(file.path(data.source, "zone_ste_puc"),
 wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
-## human outbreak risk w/o animal stocasticity
-hum.ob <- spatHandler("humNoAn", "SpGLMRes_Nov")
+## human outbreak risk w/o animal stocasticity ## running with Prob modification
+hum.ob <- spatHandler("humNoAn", "SpGLMRes_Prob")
 hum.geo <- calc(hum.ob[[1]], function(x){y <- log(x); return(mean(y))})
 
 backgroundMean <- cellStats(hum.ob[[2]], mean)
@@ -592,9 +592,9 @@ res.raw.ob <-  h.modify %>%
                         heights = c(.5,.5)))
 plot(f5.full)
 
-ggsave(filename = "figures/Fig5Complete.eps",
+ggsave(filename = "figures/Fig5_Prob.pdf",
        plot = f5.full,
-       device = cairo_ps,
+       device = cairo_pdf,
        height = 7, 
        width = 7.5,
        units = "in",

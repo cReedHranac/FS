@@ -324,10 +324,10 @@ delta.qAIC <- null.qAIC - full.qAIC
 
 ## Modified to remove all animal outbreak information post model fit
 hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
-                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
-                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
-                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                   coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                              "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                              "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                              "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
                               "logPop", "OB_ann_imp", "lnBm.div",
                               "hdl","lFrag", "OB_ann_imp_1","month",
                               "OB_hum_imp",  "x", "y", "cell"),
@@ -335,9 +335,9 @@ hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
 
 summary(hum.NoAn[[1]])
 humNoAnTable <- resTabSimple(hum.NoAn)
-write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_Nov.csv", row.names = F)
+write.csv(humNoAnTable, "data/HumSpGLMRes_Prob.csv", row.names = F)
 modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
-writeRaster(modNoAn.stk, file.path(mod.out.nov, "SpGLMRes_Nov", "humNoAn"),format = "GTiff",
+writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_Prob", "humNoAn"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 
