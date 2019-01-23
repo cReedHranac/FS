@@ -249,6 +249,73 @@ spatGLM.AnimalMod <- function(ob.col, coV.v, dat, rGrid = rf){
   items.out <- list(mod, pred.df, rast)
 }
 
+loo_predict <- function(obj, form) {
+  outbreak.obs <- which(obj$data$.mpl.Y > 0)
+  yhat <- foreach(j = 1:length(outbreak.obs),.export = c(form), .combine = rbind) %dopar% {
+    get(form)
+    i=outbreak.obs[[j]]
+    predict(update(obj, data = obj$data[-i, ], weights = obj$weights[-i]), obj$data[i,], type = "response")
+  }
+  return(data.frame(result = yhat[, 1], row.names = NULL))
+}
+
+spatGLM.loo <- function(ob.col, coV.v, dat, rGrid = rf){
+  ###Function for applying the hybrid spatGLM to data
+  ###Arguments
+  ### ob.col <- outbreak column from dataframe
+  ### coV.v <- vector of covariate names from dat
+  # Note: last 5 items should include month, ob.col, x,y, and cell
+  ### dat <- dataframe containing the relivent information
+  ### rGrid <- rasterGrid from pppWeights obj (defalut to rf mask)
+  #### creating point object ####
+  ob.col <- enquo(ob.col)
+  ppp.ob <- pppWeights(ob.col = UQ(ob.col),
+                       dataFrame = dat,
+                       rasterGrid = rGrid)
+  #### Weighted dataframe/ weights vector ####
+  W.df <- weightedDf(ob.col = UQ(ob.col),
+                     obWeights.df = ppp.ob,
+                     dataFrame = dat,
+                     cols = coV.v)
+  W.v <- W.df$.mpl.W #weights vector
+  #### Model ####
+  form <- as.formula(paste(".mpl.Y ","~",
+                           paste(coV.v[1:(length(coV.v)-5)],collapse = "+")))
+  
+  mod <- glm(form,
+             family=quasi(link="log", variance="mu"),
+             weights=W.v,
+             data=W.df)
+  
+  #### Leave one out ####
+    ## Atempt 1: 
+  ## asign each case a # between 1:32, then split the data into 32nds to retain the
+  ## portion of cases to non-cases
+  
+  outbreak.obs <- which(mod$data$.mpl.Y > 0)
+  W.df$Chunk <- NA
+  W.df$Chunk[outbreak.obs] <- seq(1:32)
+  things <- which(mod$data$.mpl.Y == 0)
+  W.df$Chunk[things] <- rep_len(seq(1:32),length(things))
+  
+  y.hat <- list()
+  for(i in 1:length(outbreak.obs)){
+    j <- which(W.df$Chunk == i)
+    ob <- outbreak.obs[[i]]
+    y.hat[[i]] <- predict.glm(update(mod, 
+                       data = mod$data[-j,],
+                       weights = W.v[-j]),
+                mod$data[ob,],
+                na.action = na.pass,
+                weights = W.v[-j])
+  }
+  loo.df <- do.call(rbind, y.hat)
+  
+  
+  # items.out <- list(mod, pred.df, rast)
+  items.out <- list(mod, loo.df)
+}
+
 #### Data ####
 dat <- tbl_df(fread(file.path(clean.dir.nov, "longMaster.csv")))
 # library(skimr)
@@ -270,26 +337,33 @@ windows <- lapply(regions, as.owin)
 #clean
 rm(rf.poly, regions)
 
+### Leave one out prediction
+pkgs <- c('doParallel', 'foreach')
+lapply(pkgs, require, character.only = T)
+registerDoParallel(cores = 8)
 
-dim(dat[which(dat$OB_hum_imp == 1),])[[1]]
 
-for( i in 1:dim(dat[which(dat$OB_hum_imp == 1),])[[1]]){
-  
-  ## replace the hum infection with 0
-  record <- which(dat$OB_hum_imp == 1)[i]
-  dat$OB_hum_imp[record] <- 0
-  
-  ## fit the model
-  hum.full <-spatGLM(ob.col = OB_hum_imp,
-                     coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-                                "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
-                                "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
-                                "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                                "OB_ann_imp","OB_ann_imp_1",
-                                "hdl","logPop","lnBm.div","lFrag",
-                                "OB_hum_imp","month",
-                                "x", "y", "cell"),
-                     dat= dat)
-  result <- hum.full[[2]]$pred[record,]
-}
-  
+hum.BR.loo <-spatGLM.loo(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                              "OB_ann_imp","OB_ann_imp_1",
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat)
+
+hum.prob.loo <- spatGLM.loo(ob.col = OB_hum_imp,
+                    coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                               "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                               "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                               "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                               "OB_ann_imp","OB_ann_imp_1",
+                               "hdl","logPop","lnBm.div","lFrag",
+                               "OB_hum_imp","month",
+                               "x", "y", "cell"),
+                    dat= dat)
+numbers <- as.data.frame(cbind(hum.BR.loo[[2]],  hum.prob.loo[[2]]))
+colnames(numbers) <- c("BR", "Prob")
+numbers$diff <- numbers$BR - numbers$Prob
