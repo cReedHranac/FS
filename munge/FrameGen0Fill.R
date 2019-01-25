@@ -45,6 +45,8 @@ ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
 mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
 mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
 
+
+
 tax <- c("ptr", "mol", "mic")
 rf <- raster(file.path(data.source, "cropMask.tif"))
 q <- reclassify(rf, rcl = c(0,1,0))
@@ -99,7 +101,7 @@ for(i in 1:12){
                   hum.stk[[paste0("OB_hum",i)]], ann.stk[[paste0("OB_ann",i)]],
                   hdl.stk0[[paste0("OB_hdl0_",i)]]) 
   names(ob.stk) <- c("OB_hum_imp", "OB_ann_imp", "OB_hum_raw", "OB_ann_raw", "hdl")
-  #Breeding Stacks
+####Breeding Stacks####
   ####Raw####
     #sng
   br.sng.raw <- list()
@@ -173,10 +175,15 @@ library(data.table);library(dplyr)
 long.table <- as.data.table(do.call(rbind, long.list))
 xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
-long.table <- left_join(long.table, xy, "cell")
+long.table <- left_join(long.table, xy, "cell") %>%
+  ##add conditional probability and total bat div
+    mutate(BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))),
+         BatDiv = (ptr.div + mic.div + mol.div))
 
 
 
+
+##add conditional probability and total bat div
 #### Add force of breeding ####
 tax <- c("ptr", "mic", "mol") #taxonomic group
 grp <- c("sng", "dbl") #temporal grouping
@@ -271,9 +278,29 @@ for(i in 1:length(tax)){ #tax
   } 
 }
 
+q <- 1
+item.3 <- list()
+## adding lag columns for the conditional total probabillities
+for(l in 1:6){
+  nm <- paste("BB.cond", l, sep= "_")
+  nw <- "BB.Cond"
+  bz <- long.table.br %>% dplyr::group_by(cell) %>%
+    dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw, n = p, order_by = month),
+                                                          nw = as.name(new),
+                                                          p=l,
+                                                          month = as.name("month"))), nm)) %>%
+    ungroup %>%
+    dplyr::select(!!nm)
+  item.3[[q]] <- bz
+  q <- q+1
+  cat(nm,"\n")
+}
+
+
 lagz <- as.data.table(do.call(cbind, item))
 lagz2 <- as.data.table(do.call(cbind, item.2))
-lag.terms <- bind_cols(lagz, lagz2)
+lagz3 <- as.data.table(do.call(cbind, item.3))
+lag.terms <- bind_cols(lagz, lagz2, lagz3)
 long.table.full <- long.table.br %>%
   bind_cols(lag.terms) %>%
   mutate(logPop = log(popDen + 1),
