@@ -131,6 +131,11 @@ p1raw <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL
     y.level <- y[y@data$PROVINCE == province & y@data$Nom_ZS_PUC == district,]
   }
   
+  geo.mean <- calc(x[[1]],
+                   function(x){y <- log(x); return(mean(y))})
+  names(geo.mean) <- "geo.mean"
+  backgroundGeo <- exp(cellStats(geo.mean, mean))
+  
   ## Manage raster
   x.crop <- mask(crop(x[[2]], extent(y.level)), y.level)
   x.spatial <- rasterToPoints(x.crop, spatial = T)
@@ -399,7 +404,7 @@ wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 
-fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
+fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   ### Function for generating dataframes and figures associated with the 
   ### original outbreak explorer script (Ob_explore.R)
   ### Fixed for the outbreaks in Birko and Beni
@@ -514,6 +519,18 @@ fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
                                                  c(3,4)),
                            heights = c(.5,.5)))
   
+  if(write.out == T){
+    write.csv(res.df, paste0("data/obDF",mod.id,".csv"),
+              row.names = F)
+    ggsave(filename = paste0("figures/Fig5_",mod.id,".pdf"),
+           plot = f5.full,
+           device = cairo_pdf,
+           height = 7, 
+           width = 7.5,
+           units = "in",
+           dpi = 300)
+  }
+  
   out <- list(plot = f5.full,
               p1 = ob.rank,
               p2 = ob.raw,
@@ -523,9 +540,6 @@ fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
   return(out)
   
 }
-model.string <- "humNoAn"
-mod.dir <- "SpGLMRes_ORG"
-drc.poly = drc
-test <- fig5.fun(model.string = "humNoAn",
-                 mod.dir = "SpGLMRes_ORG",
-                 write = F)
+
+dir.names <- list.files(mod.out.nov)
+figs <- lapply( dir.names, fig5.fun, model.string = "humNoAn")
