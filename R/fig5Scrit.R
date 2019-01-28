@@ -417,6 +417,7 @@ fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
                           mod.dir = mod.dir)
   geo.mean <- calc(pred.dat[[1]],
                    function(x){y <- log(x); return(mean(y))})
+  names(geo.mean) <- "geo.mean"
   backgroundMean <- cellStats(pred.dat[[2]], mean)
   backgroundGeo <- exp(cellStats(geo.mean, mean))
   
@@ -426,6 +427,7 @@ fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
   ob.zone2 <- drc.poly[drc.poly$PROVINCE =="Nord Kivu" &
                          drc.poly$Nom_ZS_PUC == "Beni",]
   
+  ## define cells
   z1.cells <- as.data.frame(cellFromPolygon(pred.dat[[2]],
                                             ob.zone1, 
                                             weights = T))
@@ -434,49 +436,96 @@ fig5.fun <- function(model.string, mod.dir, drc.poly = drc, write = T){
                                             weights = T))
   
   ## data frame of predicted values
-  pd.df <- as.data.frame(pred.dat[[1]],
+  pred.stk <- stack(pred.dat[[1]],geo.mean)
+  pd.df <- as.data.frame(pred.stk,
                          row.names = 1:ncell(pred.dat[[1]]))
   pd.df$cell <- rownames(pd.df)
+  names(pd.df)[1:12] <- 1:12
   
-
-  ## prediction data values
-  ob1 <- pd.df %>%
+  res.month <- pd.df %>%
     tidyr::gather(key = "window", value = "Rank",
-                  starts_with(base), factor_key = T) %>%
+                  1:12, factor_key = T, convert = T) %>%
     mutate(pct.rank = percent_rank(Rank)*100) %>%
-    dplyr::filter(cell %in% z1.cells$cell,
-                  window %in% "hum_3_4") %>%
-    mutate(loc = "Bikoro", 
-           id = paste0(cell,window)) %>%
-    dplyr::select(id, cell, window, pct.rank, Rank, loc)
+    dplyr::filter(cell %in% c(z2.cells$cell, z1.cells$cell))%>%
+    mutate(Outbreak = ifelse(cell %in% z1.cells$cell, "Bikoro", "Beni")) %>%
+    group_by(window, Outbreak) %>%
+    mutate(rnk.med = median(pct.rank),
+           rnk.low = min(pct.rank),
+           rnk.high = max(pct.rank))
   
-  ob2 <- pd.df %>%
-    tidyr::gather(key = "window", value = "Rank",
-                  starts_with(base), factor_key = T) %>%
-    mutate(pct.rank = percent_rank(Rank)*100) %>%
-    dplyr::filter(cell %in% z2.cells$cell,
-                  window %in% "hum_6_7") %>%
-    mutate(loc = "Beni", 
-           id = paste0(cell,window)) %>%
-    dplyr::select(id, cell, window, pct.rank, Rank, loc)
+  res.raw <-  pd.df %>%
+    tidyr::gather(key = "window", value = "Risk",
+                  1:12, factor_key = T, convert = T) %>%
+    mutate(rel.Risk = Risk/backgroundGeo)%>%
+    dplyr::filter(cell %in% c(z2.cells$cell, z1.cells$cell))%>%
+    mutate(Outbreak = ifelse(cell %in% z1.cells$cell, "Bikoro", "Beni")) %>%
+    group_by(window, Outbreak) %>%
+    mutate(rel.med = median(rel.Risk),
+           rel.low = min(rel.Risk),
+           rel.high = max(rel.Risk))
+  res.df <- bind_cols(res.month, res.raw[,c("Risk", "rel.Risk",
+                                            "rel.low", "rel.med", "rel.high")])
   
-  ob.df <- rbind(ob1, ob2)
+  ####Plots####
+  (ob.rank <- p1(pred.dat,
+                 y = drc.poly,
+                 outbreaks = c("Bikoro", "Beni")))
+  (ob.raw <- p1raw(pred.dat,
+                   y = drc.poly,
+                   outbreaks = c("Bikoro", "Beni")))
+  (p.rib <- ggplot(data = res.month,
+                   aes(x = window,
+                       y = pct.rank,
+                       colour = Outbreak)) + 
+      geom_line(aes(group = cell), alpha = .3) +
+      geom_line(aes(y = rnk.med), size=1) +
+      scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
+                         expand = c(0,0)) +
+      ylim(c(0,100))+
+      scale_color_manual(values=c("#E69F00","#56B4E9")) +
+      guides(color='none') +
+      labs(x = "Month", 
+           y = "Precent Rank")+
+      
+      theme_bw() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y =  element_blank(),
+            plot.margin = unit(c(0,10,0,0), "points"))
+  )
+  (p.raw <- ggplot(data = res.raw, aes(x = window, y = rel.Risk, color = Outbreak)) + 
+      geom_line(aes(group = cell), alpha = .3) +
+      geom_line(aes(y = rel.med), size=1) +
+      scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
+                         expand = c(0,0)) +
+      scale_color_manual(values=c("#E69F00","#56B4E9")) + 
+      scale_y_log10()+
+      guides(color='none') +
+      labs(x = "Month", 
+           y = "Relative Risk")+
+      theme_bw()+
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            plot.margin = unit(c(0,10,0,0), "points"))
+  )
   
-  if(write = T){
-    write.csv(ob.dfdf, file.path(data,
-                             paste0("obDF",mod.id)),
-              rownames = F)
-  }
+  #### Write out ####
+  (f5.full <- grid.arrange(ob.rank,p.rib, ob.raw, p.raw,
+                           layout_matrix = rbind(c(1,2),
+                                                 c(3,4)),
+                           heights = c(.5,.5)))
   
-  ob.rank <- p1(pred.dat,
-                y = drc.poly,
-                outbreaks = c("Bikoro", "Beni"))
-  ob.raw <- p1raw(pred.dat,
-                  y = drc.poly,
-                  outbreaks = c("Bikoro", "Beni"))
-  
+  out <- list(plot = f5.full,
+              p1 = ob.rank,
+              p2 = ob.raw,
+              p3 = p.rib,
+              p4 = p.raw,
+              df = res.df)
+  return(out)
   
 }
 model.string <- "humNoAn"
 mod.dir <- "SpGLMRes_ORG"
 drc.poly = drc
+test <- fig5.fun(model.string = "humNoAn",
+                 mod.dir = "SpGLMRes_ORG",
+                 write = F)
