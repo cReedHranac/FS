@@ -527,6 +527,47 @@ fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   
 }
 
+altModBoxes <- function(x, df = ob.masterframe, write.out = F){
+  ### Function for looking at outbreak prediction preformace across alternative models
+  ## x <- name of colum from df to use
+  ## df <- df to use (default to ob.masterframe)
+  ## write.out <- logical, should write
+  x.enquo <- enquo(x)
+  x.quo <- quo(x)
+  
+  p.vol <- ggplot(df,
+                  aes(x = Outbreak,
+                      y = !!x.enquo,
+                      color = Outbreak,
+                      fill = Mod.Name)) + 
+    geom_boxplot(size = 1, width = .5) + 
+    # geom_jitter(shape = 16, 
+    #             position = position_jitter(.1),
+    #             color = "black")+
+#Need to figure out why this doesnt work
+    # scale_y_continuous(limits = c(floor(!!x.enquo),
+    #                               ceiling(!!x.quo))) + 
+    labs(x = "Outbreak", 
+         y = quo_name(x.enquo))+
+    scale_color_manual(values=c("#56B4E9","#E69F00")) + 
+    theme_bw()+
+    theme(#legend.position = "none",
+      axis.title.x = element_blank())
+  
+  if(write.out == T){
+    a <- paste0("figures/altModBoxes_",quo_name(x.enquo),".pdf")
+    ggsave(a,
+           plot = p.vol,
+           device = cairo_pdf,
+           height = 7,
+           width = 7.5,
+           units = "in",
+           dpi = 300)
+  }
+  return(p.vol)
+  
+}
+
 #### data ####
 ##DRC health districs
 afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
@@ -557,27 +598,7 @@ for(i in 1:length(dir.names)){
 }
 
 ob.masterframe <- do.call(rbind, dfs)
+names(ob.masterframe)
 
-(p.vol <- ggplot(ob.masterframe,
-                aes(x = Outbreak,
-                    y = pct.rank,
-                    color = Outbreak,
-                    fill = Mod.Name)) + 
-  geom_boxplot(size = 1, width = .5) + 
-  # geom_jitter(shape = 16, 
-  #             position = position_jitter(.1),
-  #             color = "black")+
-  scale_y_continuous(limits = c(0,100)) + 
-  labs(x = "Outbreak", 
-       y = "Precent Rank")+
-  scale_color_manual(values=c("#56B4E9","#E69F00")) + 
-  theme_bw()+
-  theme(#legend.position = "none",
-        axis.title.x = element_blank()))
-ggsave("figures/altModsViolin.pdf",
-       plot = p.vol,
-       device = cairo_pdf,
-       height = 7, 
-       width = 7.5,
-       units = "in",
-       dpi = 300)
+t1 <- altModBoxes(pct.rank, write.out = T)
+t2 <- altModBoxes(rel.Risk, write.out = T)
