@@ -390,20 +390,6 @@ p4 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
   return(g.rank)
 }
 
-#### data ####
-##DRC health districs
-afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
-                    layer = "AfricanCountires")
-
-Africa.ext <- c(-18, 47, -36, 16)
-
-drc.hd <- readOGR(file.path(data.source, "zone_ste_puc"),
-                  "Zone_Ste_Puc")
-## proj4 I use
-wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-drc <- spTransform(drc.hd, CRS(wgs))
-rm(drc.hd)
-
 fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   ### Function for generating dataframes and figures associated with the 
   ### original outbreak explorer script (Ob_explore.R)
@@ -541,5 +527,57 @@ fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   
 }
 
+#### data ####
+##DRC health districs
+afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
+                    layer = "AfricanCountires")
+
+Africa.ext <- c(-18, 47, -36, 16)
+
+drc.hd <- readOGR(file.path(data.source, "zone_ste_puc"),
+                  "Zone_Ste_Puc")
+## proj4 I use
+wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+drc <- spTransform(drc.hd, CRS(wgs))
+rm(drc.hd)
+
+## lapply across all alternative models
+# dir.names <- list.files(mod.out.nov)
+# figs <- lapply( dir.names, fig5.fun, model.string = "humNoAn")
+
+## stacked violin plots
+
+
+## read in the dataframes in and add Model name colum
+dfs <- lapply(list.files("data", pattern = "obDF", full.names = T),read.csv)
 dir.names <- list.files(mod.out.nov)
-figs <- lapply( dir.names, fig5.fun, model.string = "humNoAn")
+mod.id <- lapply(dir.names, function(x){y <- strsplit(x, "_")[[1]][2]; return(y)})
+for(i in 1:length(dir.names)){
+  dfs[[i]]$Mod.Name <- mod.id[[i]]
+}
+
+ob.masterframe <- do.call(rbind, dfs)
+
+(p.vol <- ggplot(ob.masterframe,
+                aes(x = Outbreak,
+                    y = pct.rank,
+                    color = Outbreak,
+                    fill = Mod.Name)) + 
+  geom_boxplot(size = 1, width = .5) + 
+  # geom_jitter(shape = 16, 
+  #             position = position_jitter(.1),
+  #             color = "black")+
+  scale_y_continuous(limits = c(0,100)) + 
+  labs(x = "Outbreak", 
+       y = "Precent Rank")+
+  scale_color_manual(values=c("#56B4E9","#E69F00")) + 
+  theme_bw()+
+  theme(#legend.position = "none",
+        axis.title.x = element_blank()))
+ggsave("figures/altModsViolin.pdf",
+       plot = p.vol,
+       device = cairo_pdf,
+       height = 7, 
+       width = 7.5,
+       units = "in",
+       dpi = 300)
