@@ -153,3 +153,41 @@ ltax <- paste0("l",tax.name)
 
 grep(ltax[[1]], names(long.table))
 lapply()
+
+wrapperTrapper <- function(x, df, depth){
+  ## function to allow automated wrapping to multipul columns at the same time 
+  ## to a consistant interval
+  x.enquo <- enquo(x)
+  
+  lag.columns <- list()
+  q <- 1
+  for(i in 1:depth){
+    new.name <- paste(quo_name(x.enquo), i, sep="_")
+    bz <- df %>%
+      dplyr::group_by(cell) %>%
+      dplyr::mutate( !! new.name := wrap(x.enquo,
+                                         n = i, 
+                                         order_by = month))
+      # dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw,
+      #                                                             n = p,
+      #                                                             order_by = month),
+      #                                                       nw=as.name(!!x.enquo),
+      #                                                       p=i,
+      #                                                       month = as.name("month"))),
+      #                                 new.name)) %>%
+      ungroup %>%
+      dplyr::select(!!new.name, cell)
+    lag.columns[[q]] <- bz
+    q <- q+1
+    cat(new.name,"\n")
+  }
+  out <- do.call(bind_cols, lag.columns)
+  return(out)
+ 
+}
+
+test <- wrapperTrapper(x= lptr,
+                       df = long.table,
+                       depth = 6)
+dim(test)
+head(test)
