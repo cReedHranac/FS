@@ -340,7 +340,7 @@ h.null <- spatGLM(ob.col = OB_hum_imp,
 summary(h.null[[1]])
 h.null.table <- resTabSimple(h.null)
 write.csv(h.null.table, 
-          "data/res_h_Null.csv",
+          file.path(dOut.1, "res_h_Null.csv"),
           row.names = F)
 #### Human Null Diversity Model (nDiv)####
 h.nDiv <- spatGLM(ob.col = OB_hum_imp,
@@ -355,7 +355,7 @@ h.nDiv <- spatGLM(ob.col = OB_hum_imp,
 summary(h.nDiv[[1]])
 h.nDiv.table <- resTabSimple(h.nDiv)
 write.csv(h.nDiv.table, 
-          "data/res_h_nDiv.csv",
+          file.path(dOut.1, "res_h_nDiv.csv"),
           row.names = F)
 
 #### Human Null Split Bat Diversity Model nSBD (null Split Bat Diversity) ####
@@ -372,7 +372,7 @@ h.nSBD <- spatGLM(ob.col = OB_hum_imp,
 summary(h.nSBD[[1]])
 h.nSBD.table <- resTabSimple(h.nSBD)
 write.csv(h.nSBD.table, 
-          "data/res_h_nSBD.csv",
+          file.path(dOut.1, "res_h_nSBD.csv"),
           row.names = F)
 
 #### Human Conditional Model A (No diversity) ####
@@ -389,7 +389,7 @@ h.cNDiv <- spatGLM(ob.col = OB_hum_imp,
 summary(h.cNDiv[[1]])
 h.cNDiv.table <- resTabSimple(h.cNDiv)
 write.csv(h.cNDiv.table, 
-          "data/res_h_cNDiv.csv",
+          file.path(dOut.1, "res_h_cNDiv.csv"),
           row.names = F)
 #### Human Conditional Model B (with bat diversity) ####
 h.cBDiv <- spatGLM(ob.col = OB_hum_imp,
@@ -405,7 +405,7 @@ h.cBDiv <- spatGLM(ob.col = OB_hum_imp,
 summary(h.cBDiv[[1]])
 h.cBDiv.table <- resTabSimple(h.cBDiv)
 write.csv(h.cBDiv.table, 
-          "data/res_h_cBDiv.csv",
+          file.path(dOut.1, "res_h_cBDiv.csv"),
           row.names = F)
 #### Human Conditional Model B (Diversity Product) ####
 h.cPDiv <- spatGLM(ob.col = OB_hum_imp,
@@ -421,7 +421,7 @@ h.cPDiv <- spatGLM(ob.col = OB_hum_imp,
 summary(h.cPDiv[[1]])
 h.cPDiv.table <- resTabSimple(h.cPDiv)
 write.csv(h.cPDiv.table, 
-          "data/res_h_cPDiv.csv",
+          file.path(dOut.1, "res_h_cPDiv.csv"),
           row.names = F)
 #### Human Force of Birthing ####
 h.ORG <- spatGLM(ob.col = OB_hum_imp,
@@ -440,7 +440,7 @@ h.ORG <- spatGLM(ob.col = OB_hum_imp,
 summary(h.ORG[[1]])
 h.ORG.table <- resTabSimple(h.ORG)
 write.csv(h.ORG.table, 
-          "data/res_h_ORG.csv",
+          file.path(dOut.1, "res_h_ORG.csv"),
           row.names = F)
 #### Human Breeding Probabilty + Diversity ####
 h.Prb<- spatGLM(ob.col = OB_hum_imp,
@@ -460,7 +460,7 @@ h.Prb<- spatGLM(ob.col = OB_hum_imp,
 summary(h.Prb[[1]])
 h.Prb.table <- resTabSimple(h.Prb)
 write.csv(h.Prb.table, 
-          "data/res_h_Prb.csv",
+          file.path(dOut.1, "res_h_Prb.csv"),
           row.names = F)
 
 #### HUman qAIC ####
@@ -468,7 +468,7 @@ h.mods <- list(h.null, h.nDiv, h.nSBD, h.cNDiv, h.cBDiv, h.cPDiv, h.ORG, h.Prb)
 h.qAIC <- as.data.frame(do.call(rbind, lapply(h.mods, qAIC)),
                         row.names = c("null", "nDiv", "nSBD",
                                       "cNDiv", "cBDiv", "cPDiv", "ORg", "Prb"))
-write.csv(h.qAIC, "data/humqAIC.csv")
+write.csv(h.qAIC, file.path(dOut.1, "humqAIC.csv"))
 
 #### ROC ####
 r <- list()
@@ -478,7 +478,7 @@ for(i in 1:length(h.mods)){
 roc.df <- as.data.frame(do.call(rbind, r),
                         row.names = c("null", "nDiv", "nSBD",
                                       "cNDiv", "cBDiv", "cPDiv", "ORg", "Prb"))
-write.csv(roc.df, "data/humROC.csv")
+write.csv(roc.df, file.path(dOut.1, "humROC.csv"))
 #### Cross Validation #### 
 # spatGLM.loo <- function(ob.col, coV.v, dat, rGrid = rf){
 #   ###Function for applying the hybrid spatGLM to data
