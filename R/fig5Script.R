@@ -390,7 +390,8 @@ p4 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
   return(g.rank)
 }
 
-fig5.fun <- function(model.name, mod.dir, drc.poly = drc, write.out = T){
+fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
+                     write.out = T, out.df, out.fig){
   ### Function for generating dataframes and figures associated with the 
   ### original outbreak explorer script (Ob_explore.R)
   ### Fixed for the outbreaks in Birko and Beni
@@ -399,6 +400,8 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc, write.out = T){
   # mod.dir <- directory to where these models are held
   # drc.poly <- polygonDF including the DHB for the DRC
   # write <- logical flag for if the summary data files should be written out
+  # out.df <- where to write dataframe summary to 
+  # out.fig <- where the figure should be written out to
   
   ## read in data set
   base <- sapply(strsplit(model.name, "_"), tail, 1)
@@ -505,9 +508,12 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc, write.out = T){
                            heights = c(.5,.5)))
   
   if(write.out == T){
-    write.csv(res.df, paste0("data/obDF",model.name,".csv"),
+    write.csv(res.df,
+              file.pat(out.df,
+                       paste0("obDF",model.name,".csv")),
               row.names = F)
-    ggsave(filename = paste0("figures/Fig5_",model.name,".pdf"),
+    ggsave(filename = file.path(out.fig,
+                                paste0("Fig5_",model.name,".pdf")),
            plot = f5.full,
            device = cairo_pdf,
            height = 7, 
@@ -526,11 +532,14 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc, write.out = T){
   
 }
 
-altModBoxes.Month <- function(x, df = ob.masterframe, write.out = F){
+altModBoxes.Month <- function(x, df = ob.masterframe,
+                              write.out = F, out.fig){
   ### Function for looking at outbreak prediction preformace across alternative models
   ## x <- name of colum from df to use
   ## df <- df to use (default to ob.masterframe)
   ## write.out <- logical, should write
+  ## out.fig <- where the figure should be written to
+  
   x.enquo <- enquo(x)
   x.quo <- quo(x)
   
@@ -560,7 +569,7 @@ altModBoxes.Month <- function(x, df = ob.masterframe, write.out = F){
       axis.title.x = element_blank())
   
   if(write.out == T){
-    a <- paste0("figures/altModBoxesMonth_",quo_name(x.enquo),".pdf")
+    a <- file.path(out.fig, paste0("altModBoxesMonth_",quo_name(x.enquo),".pdf"))
     ggsave(a,
            plot = p.vol,
            device = cairo_pdf,
@@ -572,7 +581,8 @@ altModBoxes.Month <- function(x, df = ob.masterframe, write.out = F){
   return(p.vol)
   
 }
-altModBoxes.Total <- function(x, df = ob.masterframe, write.out = F){
+altModBoxes.Total <- function(x, df = ob.masterframe,
+                              write.out = F, out.fig){
   ### Function for looking at outbreak prediction preformace across alternative models
   ## x <- name of colum from df to use
   ## df <- df to use (default to ob.masterframe)
@@ -600,7 +610,7 @@ altModBoxes.Total <- function(x, df = ob.masterframe, write.out = F){
       axis.title.x = element_blank())
   
   if(write.out == T){
-    a <- paste0("figures/altModBoxesTotal_",quo_name(x.enquo),".pdf")
+    a <- file.path(out.fig, paste0("altModBoxesTotal_",quo_name(x.enquo),".pdf"))
     ggsave(a,
            plot = p.vol,
            device = cairo_pdf,
@@ -630,17 +640,16 @@ rm(drc.hd)
 #### create the figure 5 images ####
 human.model.names <- list.files(mod.out.nov,pattern = "h_")
 
-z <- fig5.fun(model.name = human.model.names[[1]],
-              mod.dir = mod.out.nov,
-              drc.poly = drc,
-              write.out = F)
-
-human.fig5s <- lapply(human.model.names, fig5.fun, mod.dir= mod.out.nov, write.out = T)
+human.fig5s <- lapply(human.model.names, fig5.fun,
+                      mod.dir= mod.out.nov,
+                      write.out = T,
+                      out.df = dOut.1,
+                      out.fig = fig.hum1)
 
 
 ## read in the dataframes in and add Model name column
 ## get names 
-dfs <- lapply(list.files("data/", pattern = "ob", full.names = T),read.csv)
+dfs <- lapply(list.files(hum.1, pattern = "ob", full.names = T),read.csv)
 
 
 for(i in 1:length(human.model.names)){
@@ -650,11 +659,19 @@ for(i in 1:length(human.model.names)){
 ob.masterframe <- do.call(rbind, dfs)
 names(ob.masterframe)
 
-t1 <- altModBoxes.Month(pct.rank, write.out = T)
-t2 <- altModBoxes.Month(rel.Risk, write.out = T)
+t1 <- altModBoxes.Month(pct.rank,
+                        write.out = T,
+                        out.fig = fig.hum1)
+t2 <- altModBoxes.Month(rel.Risk,
+                        write.out = T,
+                        out.fig = fig.hum1)
 
-t3 <- altModBoxes.Total(pct.rank, write.out = T)
-t4 <- altModBoxes.Total(rel.Risk, write.out = T)
+t3 <- altModBoxes.Total(pct.rank,
+                        write.out = T,
+                        out.fig = fig.hum1)
+t4 <- altModBoxes.Total(rel.Risk,
+                        write.out = T,
+                        out.fig = fig.hum1)
 
 
 
