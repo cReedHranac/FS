@@ -25,9 +25,9 @@ hdl.stk0 <- do.call(stack, lapply(
   ,raster))
 
 #### EMN breeding probability rasters with 0 back imputation #####
-ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
-mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
-mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
+ptr.dbl.imp <- calc(resRasterLoad("ptr", "DBL_3",T,  mod.out.dir),  function(x){x/1000})
+mic.dbl.imp <- calc(resRasterLoad("mic", "DBL_3",T,  mod.out.dir), function(x){x/1000})
+mol.dbl.imp <- calc(resRasterLoad("mol", "DBL_3",T,  mod.out.dir), function(x){x/1000})
 
 
 ### Taxon stuff
@@ -109,9 +109,9 @@ xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
 long.table <- left_join(long.table, xy, "cell") %>%
   ## create additional variables
-  mutate(BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))),
+  mutate(BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))), #Conditions
          lBB.cond = log(BB.cond + 1),
-         BatDiv = (ptr.div + mic.div + mol.div),
+         BatDiv = (ptr.div + mic.div + mol.div), #Totaled bat Diversity
          lBatDiv = log(BatDiv +1),
          BB.condDIV = BB.cond * BatDiv,
          lBB.condDIV = log(BB.condDIV + 1),
@@ -148,46 +148,62 @@ wrap <- function (x, n = 1L, order_by = NULL, ...){
 
 ## create list of items that need to be lagged and then use a function to apply accross
 ## log taxon names
-ltax <- paste0("l",tax.name)
 
-
-grep(ltax[[1]], names(long.table))
-lapply()
-
-wrapperTrapper <- function(x, df, depth){
+wrapperTrapper <- function(x, df = long.table, depth){
   ## function to allow automated wrapping to multipul columns at the same time 
   ## to a consistant interval
   x.enquo <- enquo(x)
-  
+  col.out.names <- list()
   lag.columns <- list()
   q <- 1
   for(i in 1:depth){
     new.name <- paste(quo_name(x.enquo), i, sep="_")
     bz <- df %>%
       dplyr::group_by(cell) %>%
-      dplyr::mutate( !! new.name := wrap(x.enquo,
-                                         n = i, 
-                                         order_by = month))
-      # dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw,
-      #                                                             n = p,
-      #                                                             order_by = month),
-      #                                                       nw=as.name(!!x.enquo),
-      #                                                       p=i,
-      #                                                       month = as.name("month"))),
-      #                                 new.name)) %>%
+      
+      dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw,
+                                                                  n = p,
+                                                                  order_by = month),
+                                                            nw=as.name(x),
+                                                            p=i,
+                                                            month = as.name("month"))),
+                                      new.name)) %>%
       ungroup %>%
-      dplyr::select(!!new.name, cell)
+      dplyr::select(!!new.name)
     lag.columns[[q]] <- bz
+    col.out.names[[q]] <- new.name
     q <- q+1
     cat(new.name,"\n")
   }
   out <- do.call(bind_cols, lag.columns)
+  names(out) <- col.out.names
   return(out)
  
 }
 
-test <- wrapperTrapper(x= lptr,
-                       df = long.table,
-                       depth = 6)
-dim(test)
-head(test)
+## THings that need to be lagged
+## birth pulses all styles
+## animal outbreaks
+
+ltax <- paste0("l",tax.name)
+birthPulses <- names(long.table)[unlist(lapply(ltax, grep, x = names(long.table)))]
+conditionals <- c("lBB.cond", "lBB.condDIV")
+
+## lag to six months 
+lag6 <- c(birthPulses, conditionals)
+
+lag6.df <- lapply(lag6,
+                  wrapperTrapper,
+                  depth = 6)
+
+## lag to one month 
+lag1 <- wrapperTrapper("OB_ann_imp",
+                      df = long.table,
+                      depth = 1)
+longMasterFull <- do.call(bind_cols, c(long.table, lag6.df, lag1))
+longMasterFull <- longMasterFull %>%
+  mutate(lptrDiv = log(ptr.div + 1), ## add logged split Div so it doesnt lag
+         lmicDiv = log(mic.div + 1),
+         lmolDiv = log(mol.div + 1))
+fwrite(longMasterFull, 
+       file = file.path(mod.out.nov,"fullLongMaster.csv"))

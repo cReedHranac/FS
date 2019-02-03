@@ -14,34 +14,33 @@ library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 Africa.ext <- c(-18, 47, -36, 16)
 
 #### functions ####
-better.names <- function(x){
+better.names <- function(x, model.name){
   ### function for impoving names accociated with items retrieved from SpatHandler
-  base <- substring(names(x[[1]]), 1, 3)
+  base <- sapply(strsplit(model.name, "_"), tail, 1)
   i <- 1:12
   j <- c(i[12],i[1:11])
   names(x) <- paste0(base, "_", j, "_", i)
   return(x)
 }
 
-spatHandler <- function(model.string, mod.dir){
+spatHandler <- function(model.name, mod.dir){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
-  base <- substring(model.string, 1, 3)
+  base <- sapply(strsplit(model.name, "_"), tail, 1)
   
-  f.list <- mixedsort(list.files(file.path(mod.out.nov,mod.dir),
-                      pattern = paste0(model.string,"_"), 
-                      full.names = T))
+  f.list <- mixedsort(list.files(file.path(mod.dir,model.name),
+                                 pattern = "noAn_", 
+                                 full.names = T))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
   ## order and read
-  stk <- better.names(stack(f.list))
+  stk <- better.names(stack(f.list), model.name = model.name)
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
 }
-
 
 scaleFUN <- function(x)sprintf("%.4f", round(x, digits = 4)) 
 
@@ -142,15 +141,15 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
 
 #### Alternative human models for ridges ####
 
-hum.stk <- spatHandler("hum", "SpGLMRes_Nov")
-risk.plot <- ERgplot(x = hum.stk)
+hum.stk <- spatHandler(model.name = "h_Prb", mod.out.nov)
+(risk.plot <- ERgplot(x = hum.stk))
 
 hum.NoAn <- spatHandler(model.string = "humNoAn", "SpGLMRes_Nov") # Go with this one for ridges
 
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
 
-afr.ridge <- ERridge(hum.NoAn, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
+afr.ridge <- ERridge(hum.stk, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 
 # Arrange the map and ridge on the same plot
 

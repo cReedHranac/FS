@@ -17,6 +17,16 @@ norm.dir <- file.path(base.path, "Normalized")
 mod.out.dir <- file.path(base.path, "ModOut")
 mod.out.nov <- file.path(base.path, "novAddition", "ModOut")
 
+## New figure directories
+fig.hum1 <- file.path(base.path, "FigOUt", "hum_1") ## for the figurers with the standard 32 data points
+fig.hum2 <- file.path(base.path, "FigOUt", "hum_2") ## for figures with the 2 new outbreaks included
+fig.pub <- file.path(base.path, "FigOut", "publicationFigures") ## figures for publication
+fig.si <- file.path(base.path, "FigOut", "siFigures") ## for Si figures
+
+## New data out direcorties
+dOut.1 <- file.path(mod.out.dir, "hum_1") ## dir for dataframes associated with the 32 point analysis
+dOut.2 <- file.path(mod.out.dir, "hum_2") ## dir for df associated with 34 point analysis
+
 #### Opperators ####
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))

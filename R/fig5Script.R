@@ -5,29 +5,29 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra); libra
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
 #### functions ####
-better.names <- function(x){
+better.names <- function(x, model.name){
   ### function for impoving names accociated with items retrieved from SpatHandler
-  base <- substring(names(x[[1]]), 1, 3)
+  base <- sapply(strsplit(model.name, "_"), tail, 1)
   i <- 1:12
   j <- c(i[12],i[1:11])
   names(x) <- paste0(base, "_", j, "_", i)
   return(x)
 }
 
-spatHandler <- function(model.string, mod.dir){
+spatHandler <- function(model.name, mod.dir){
   ## function for loading rasters produced from spatGLM and producing an averaged product based on the
   ## model string argument
-  base <- substring(model.string, 1, 3)
+  base <- sapply(strsplit(model.name, "_"), tail, 1)
   
-  f.list <- mixedsort(list.files(file.path(mod.out.nov,mod.dir),
-                                 pattern = paste0(model.string,"_"), 
+  f.list <- mixedsort(list.files(file.path(mod.dir,model.name),
+                                 pattern = "noAn_", 
                                  full.names = T))
   
   if(!any(file.exists(f.list))){
     stop("string not found try again \n *cough* dumbass *cough*")
   }
   ## order and read
-  stk <- better.names(stack(f.list))
+  stk <- better.names(stack(f.list), model.name = model.name)
   m.stk <- mean(stk)
   out.l <- list(stk,m.stk)
   return(out.l)
@@ -390,7 +390,7 @@ p4 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
   return(g.rank)
 }
 
-fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
+fig5.fun <- function(model.name, mod.dir, drc.poly = drc, write.out = T){
   ### Function for generating dataframes and figures associated with the 
   ### original outbreak explorer script (Ob_explore.R)
   ### Fixed for the outbreaks in Birko and Beni
@@ -401,10 +401,9 @@ fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   # write <- logical flag for if the summary data files should be written out
   
   ## read in data set
-  mod.id <- strsplit(mod.dir, "_")[[1]][2]
-  base <- substr(model.string,1,3)
+  base <- sapply(strsplit(model.name, "_"), tail, 1)
   
-  pred.dat <- spatHandler(model.string = model.string,
+  pred.dat <- spatHandler(model.name = model.name,
                           mod.dir = mod.dir)
   geo.mean <- calc(pred.dat[[1]],
                    function(x){y <- log(x); return(mean(y))})
@@ -506,9 +505,9 @@ fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
                            heights = c(.5,.5)))
   
   if(write.out == T){
-    write.csv(res.df, paste0("data/obDF",mod.id,".csv"),
+    write.csv(res.df, paste0("data/obDF",model.name,".csv"),
               row.names = F)
-    ggsave(filename = paste0("figures/Fig5_",mod.id,".pdf"),
+    ggsave(filename = paste0("figures/Fig5_",model.name,".pdf"),
            plot = f5.full,
            device = cairo_pdf,
            height = 7, 
@@ -527,7 +526,7 @@ fig5.fun <- function(mod.dir,model.string, drc.poly = drc, write.out = T){
   
 }
 
-altModBoxes <- function(x, df = ob.masterframe, write.out = F){
+altModBoxes.Month <- function(x, df = ob.masterframe, write.out = F){
   ### Function for looking at outbreak prediction preformace across alternative models
   ## x <- name of colum from df to use
   ## df <- df to use (default to ob.masterframe)
@@ -535,7 +534,13 @@ altModBoxes <- function(x, df = ob.masterframe, write.out = F){
   x.enquo <- enquo(x)
   x.quo <- quo(x)
   
-  p.vol <- ggplot(df,
+  ob.place.time <- df %>%
+    filter(Outbreak == "Beni" & window == 6)
+  ob.pt <- df %>% 
+    filter(Outbreak == "Bikoro" & window == 3) %>%
+    bind_rows(ob.place.time)
+  
+  p.vol <- ggplot(ob.pt,
                   aes(x = Outbreak,
                       y = !!x.enquo,
                       color = Outbreak,
@@ -555,7 +560,47 @@ altModBoxes <- function(x, df = ob.masterframe, write.out = F){
       axis.title.x = element_blank())
   
   if(write.out == T){
-    a <- paste0("figures/altModBoxes_",quo_name(x.enquo),".pdf")
+    a <- paste0("figures/altModBoxesMonth_",quo_name(x.enquo),".pdf")
+    ggsave(a,
+           plot = p.vol,
+           device = cairo_pdf,
+           height = 7,
+           width = 7.5,
+           units = "in",
+           dpi = 300)
+  }
+  return(p.vol)
+  
+}
+altModBoxes.Total <- function(x, df = ob.masterframe, write.out = F){
+  ### Function for looking at outbreak prediction preformace across alternative models
+  ## x <- name of colum from df to use
+  ## df <- df to use (default to ob.masterframe)
+  ## write.out <- logical, should write
+  x.enquo <- enquo(x)
+  x.quo <- quo(x)
+  
+  p.vol <- ggplot(df,
+                  aes(x = Outbreak,
+                      y = !!x.enquo,
+                      color = Outbreak,
+                      fill = Mod.Name)) + 
+    geom_boxplot(size = 1, width = .5) + 
+    # geom_jitter(shape = 16, 
+    #             position = position_jitter(.1),
+    #             color = "black")+
+    #Need to figure out why this doesnt work
+    # scale_y_continuous(limits = c(floor(!!x.enquo),
+    #                               ceiling(!!x.quo))) + 
+    labs(x = "Outbreak", 
+         y = quo_name(x.enquo))+
+    scale_color_manual(values=c("#56B4E9","#E69F00")) + 
+    theme_bw()+
+    theme(#legend.position = "none",
+      axis.title.x = element_blank())
+  
+  if(write.out == T){
+    a <- paste0("figures/altModBoxesTotal_",quo_name(x.enquo),".pdf")
     ggsave(a,
            plot = p.vol,
            device = cairo_pdf,
@@ -582,23 +627,45 @@ wgs <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 
-## lapply across all alternative models
-# dir.names <- list.files(mod.out.nov)
-# figs <- lapply( dir.names, fig5.fun, model.string = "humNoAn")
+#### create the figure 5 images ####
+human.model.names <- list.files(mod.out.nov,pattern = "h_")
 
-## stacked violin plots
+z <- fig5.fun(model.name = human.model.names[[1]],
+              mod.dir = mod.out.nov,
+              drc.poly = drc,
+              write.out = F)
+
+human.fig5s <- lapply(human.model.names, fig5.fun, mod.dir= mod.out.nov, write.out = T)
 
 
-## read in the dataframes in and add Model name colum
-dfs <- lapply(list.files("data", pattern = "obDF", full.names = T),read.csv)
-dir.names <- list.files(mod.out.nov)
-mod.id <- lapply(dir.names, function(x){y <- strsplit(x, "_")[[1]][2]; return(y)})
-for(i in 1:length(dir.names)){
-  dfs[[i]]$Mod.Name <- mod.id[[i]]
+## read in the dataframes in and add Model name column
+## get names 
+dfs <- lapply(list.files("data/", pattern = "ob", full.names = T),read.csv)
+
+
+for(i in 1:length(human.model.names)){
+  dfs[[i]]$Mod.Name <- sapply(strsplit(human.model.names[[i]], "_"), tail, 1)
 }
 
 ob.masterframe <- do.call(rbind, dfs)
 names(ob.masterframe)
 
-t1 <- altModBoxes(pct.rank, write.out = T)
-t2 <- altModBoxes(rel.Risk, write.out = T)
+t1 <- altModBoxes.Month(pct.rank, write.out = T)
+t2 <- altModBoxes.Month(rel.Risk, write.out = T)
+
+t3 <- altModBoxes.Total(pct.rank, write.out = T)
+t4 <- altModBoxes.Total(rel.Risk, write.out = T)
+
+
+
+### Which model has the hightest median pct.ranks and rel.risk
+head(ob.masterframe)
+
+zoop <- ob.masterframe %>%
+  filter(Outbreak == "Beni" & window == 6)
+zoop2 <- ob.masterframe %>%
+  filter(Outbreak == "Bikoro" & window == 3) %>%
+  bind_rows(zoop) %>%
+  group_by(Mod.Name, Outbreak) %>%
+  summarise(m.rank = median(pct.rank),
+            m.relRisk = median(rel.Risk)) 
