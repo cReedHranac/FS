@@ -149,8 +149,20 @@ for( i in 1:nrow(ob.full)){
 ob.plot <- ob.plot +
   geom_polygon(aes(x=x, y=y), data=df, color = "red", alpha=.5)
   
-## good enough for now...
+## Ammendment for DRC outbreaks
+df.DRC <- as.data.frame(rbind(c(18.16028,	-0.5147479),
+                              c(29.30928,	0.4824767)))
+colnames(df.DRC) <- c("long", "lat")
 
+## cycle through the new points
+for(i in 1:2){
+  ob.plot <- ob.plot + 
+    add_phylopic(img.list[[5]], 1,
+                 df.DRC$long[[i]],
+                 df.DRC$lat[[i]], 
+                 ysize = 2.5,
+                 color = "gold")
+}
 
 ### Insert plot
 insert.ext <- c(12.5, 15.5,1.5,-.25)
@@ -327,9 +339,9 @@ fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
              layout_matrix = rbind(c(1,3),
                                    c(2,3)))
 
-ggsave("figures/Fig1Complete.eps",
+ggsave(file.path(fig.pub,"Fig1DRCUpdate.pdf"),
        fig1.complete,
-       device = cairo_ps, 
+       device = cairo_pdf, 
        width = 7.5,
        height = 6,
        units = "in",

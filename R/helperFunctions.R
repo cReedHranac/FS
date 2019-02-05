@@ -26,7 +26,7 @@ fig.si <- file.path(base.path, "FigOut", "siFigures") ## for Si figures
 ## New data out direcorties
 dOut.1 <- file.path(mod.out.dir, "hum_1") ## dir for dataframes associated with the 32 point analysis
 dOut.2 <- file.path(mod.out.dir, "hum_2") ## dir for df associated with 34 point analysis
-
+dOut.an <- file.path(mod.out.dir, "An")
 #### Opperators ####
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))

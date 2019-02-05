@@ -61,7 +61,7 @@ viralRasterGen <- function(df, name, mask, out.dir = NULL){
   }
   out.stk <- do.call(stack, out)
   if(!is.null(out.dir)){
-    writeRaster(out.stk, file.path(out.dir, "OB"), format = "GTiff",
+    writeRaster(out.stk, file.path(out.dir, "OB_2"), format = "GTiff",
                 bylayer = T, suffix = "names", overwrite = T)
   }
   return(out.stk)
@@ -84,7 +84,7 @@ viralRasterGen0 <- function(df, name, z.mask, out.dir = NULL){
   }
   out.stk <- do.call(stack, out)
   if(!is.null(out.dir)){
-    writeRaster(out.stk, file.path(out.dir, "OB"), format = "GTiff",
+    writeRaster(out.stk, file.path(out.dir, "OB_2"), format = "GTiff",
                 bylayer = T, suffix = "names", overwrite = T)
   }
   return(out.stk)
@@ -101,7 +101,7 @@ wgs <- proj4string(c.mask)
 ## UPDATE 12.2.018: additional entry for 2017 DRC outbreak
 ## UPDATE 28/08/2018 updated path to below which is kept up to date with all outbreaks.
   ## points are all within this database so need for seperate poly and point methods
-hum.src <- read.csv(file.path("data/HumOutbreakDB.csv"))
+hum.src <- read.csv(file.path("data/HumOutbreakDB_2.csv"))
 # hum.simple <- hum.src %>% dplyr::select(Outbreak_ID, Virus, Month.Start, Month.Start, Month.End , Class)
   
 #   #### Polygons ####
@@ -140,9 +140,9 @@ hum.src <- read.csv(file.path("data/HumOutbreakDB.csv"))
 # ma.hu <- inner_join(as.data.frame(hu.ma), hum.simple, by = "Outbreak_ID")
   #### OUT ####
 humOB.bi <- biGenV(hum.src)
-write.csv(humOB.bi, file.path(clean.dir.nov,"humOB.PPM.csv"), row.names = F)
+write.csv(humOB.bi, file.path(clean.dir.nov,"humOB.PPM_2.csv"), row.names = F)
 humOB.occ <- occGenV(humOB.bi, "hum", c.mask)
-write.csv(humOB.occ, file.path(clean.dir.nov,"humOcc.csv"), row.names = F)
+write.csv(humOB.occ, file.path(clean.dir.nov,"humOcc_2.csv"), row.names = F)
 viralRasterGen(humOB.bi, "hum", c.mask, file.path(clean.dir.nov))
 viralRasterGen0(humOB.bi, "hum", z.mask, file.path(clean.dir.nov))
 

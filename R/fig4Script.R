@@ -141,7 +141,7 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
 
 #### Alternative human models for ridges ####
 
-hum.stk <- spatHandler(model.name = "h_Prb", mod.out.nov)
+hum.stk <- spatHandler(model.name = "h_Prb", dOut.1)
 (risk.plot <- ERgplot(x = hum.stk))
 
 hum.NoAn <- spatHandler(model.string = "humNoAn", "SpGLMRes_Nov") # Go with this one for ridges
@@ -205,7 +205,7 @@ hum.fig <- grid.arrange(risk.grob,
 #        height=4.3,
 #        units = "in",
 #        dpi = 300)
-ggsave(filename = "figures/fig4_complete.pdf",
+ggsave(filename = file.path(fig.pub, "Fig4_complete_h1.pdf"),
        hum.fig,
        device = cairo_pdf,
        width=8,

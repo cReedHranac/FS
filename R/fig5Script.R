@@ -20,7 +20,7 @@ spatHandler <- function(model.name, mod.dir){
   base <- sapply(strsplit(model.name, "_"), tail, 1)
   
   f.list <- mixedsort(list.files(file.path(mod.dir,model.name),
-                                 pattern = "noAn_", 
+                                 pattern = "noAn_2_", 
                                  full.names = T))
   
   if(!any(file.exists(f.list))){
@@ -509,7 +509,7 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
   
   if(write.out == T){
     write.csv(res.df,
-              file.pat(out.df,
+              file.path(out.df,
                        paste0("obDF",model.name,".csv")),
               row.names = F)
     ggsave(filename = file.path(out.fig,
@@ -640,16 +640,17 @@ rm(drc.hd)
 #### create the figure 5 images ####
 human.model.names <- list.files(mod.out.nov,pattern = "h_")
 
-human.fig5s <- lapply(human.model.names, fig5.fun,
+human.fig5s <- lapply(human.model.names,
+                      fig5.fun,
                       mod.dir= mod.out.nov,
                       write.out = T,
-                      out.df = dOut.1,
-                      out.fig = fig.hum1)
+                      out.df = dOut.2,
+                      out.fig = fig.hum2)
 
 
 ## read in the dataframes in and add Model name column
 ## get names 
-dfs <- lapply(list.files(hum.1, pattern = "ob", full.names = T),read.csv)
+dfs <- lapply(list.files(dOut.2, pattern = "ob", full.names = T),read.csv)
 
 
 for(i in 1:length(human.model.names)){
@@ -661,17 +662,17 @@ names(ob.masterframe)
 
 t1 <- altModBoxes.Month(pct.rank,
                         write.out = T,
-                        out.fig = fig.hum1)
+                        out.fig = fig.hum2)
 t2 <- altModBoxes.Month(rel.Risk,
                         write.out = T,
-                        out.fig = fig.hum1)
+                        out.fig = fig.hum2)
 
 t3 <- altModBoxes.Total(pct.rank,
                         write.out = T,
-                        out.fig = fig.hum1)
+                        out.fig = fig.hum2)
 t4 <- altModBoxes.Total(rel.Risk,
                         write.out = T,
-                        out.fig = fig.hum1)
+                        out.fig = fig.hum2)
 
 
 
