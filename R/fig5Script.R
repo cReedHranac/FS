@@ -533,7 +533,7 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
 }
 
 altModBoxes.Month <- function(x, df = ob.masterframe,
-                              write.out = F, out.fig){
+                              write.out = F, out.fig = NULL){
   ### Function for looking at outbreak prediction preformace across alternative models
   ## x <- name of colum from df to use
   ## df <- df to use (default to ob.masterframe)
@@ -552,8 +552,7 @@ altModBoxes.Month <- function(x, df = ob.masterframe,
   p.vol <- ggplot(ob.pt,
                   aes(x = Outbreak,
                       y = !!x.enquo,
-                      color = Outbreak,
-                      fill = Mod.Name)) + 
+                      color = Mod.Name)) + 
     geom_boxplot(size = 1, width = .5) + 
     # geom_jitter(shape = 16, 
     #             position = position_jitter(.1),
@@ -563,7 +562,6 @@ altModBoxes.Month <- function(x, df = ob.masterframe,
     #                               ceiling(!!x.quo))) + 
     labs(x = "Outbreak", 
          y = quo_name(x.enquo))+
-    scale_color_manual(values=c("#56B4E9","#E69F00")) + 
     theme_bw()+
     theme(#legend.position = "none",
       axis.title.x = element_blank())
@@ -582,7 +580,7 @@ altModBoxes.Month <- function(x, df = ob.masterframe,
   
 }
 altModBoxes.Total <- function(x, df = ob.masterframe,
-                              write.out = F, out.fig){
+                              write.out = F, out.fig = NULL){
   ### Function for looking at outbreak prediction preformace across alternative models
   ## x <- name of colum from df to use
   ## df <- df to use (default to ob.masterframe)
@@ -593,8 +591,7 @@ altModBoxes.Total <- function(x, df = ob.masterframe,
   p.vol <- ggplot(df,
                   aes(x = Outbreak,
                       y = !!x.enquo,
-                      color = Outbreak,
-                      fill = Mod.Name)) + 
+                      color = Mod.Name)) + 
     geom_boxplot(size = 1, width = .5) + 
     # geom_jitter(shape = 16, 
     #             position = position_jitter(.1),
@@ -604,7 +601,6 @@ altModBoxes.Total <- function(x, df = ob.masterframe,
     #                               ceiling(!!x.quo))) + 
     labs(x = "Outbreak", 
          y = quo_name(x.enquo))+
-    scale_color_manual(values=c("#56B4E9","#E69F00")) + 
     theme_bw()+
     theme(#legend.position = "none",
       axis.title.x = element_blank())
@@ -638,7 +634,9 @@ drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 
 #### create the figure 5 images ####
-human.model.names <- list.files(mod.out.nov,pattern = "h_")
+human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
+                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb"  )
+
 
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
@@ -650,7 +648,7 @@ human.fig5s <- lapply(human.model.names,
 
 ## read in the dataframes in and add Model name column
 ## get names 
-dfs <- lapply(list.files(dOut.2, pattern = "ob", full.names = T),read.csv)
+dfs <- lapply(list.files(dOut.1, pattern = "ob", full.names = T),read.csv)
 
 
 for(i in 1:length(human.model.names)){
@@ -661,29 +659,36 @@ ob.masterframe <- do.call(rbind, dfs)
 names(ob.masterframe)
 
 t1 <- altModBoxes.Month(pct.rank,
-                        write.out = T,
-                        out.fig = fig.hum2)
+                        write.out = F)
 t2 <- altModBoxes.Month(rel.Risk,
-                        write.out = T,
-                        out.fig = fig.hum2)
+                        write.out = F)
 
 t3 <- altModBoxes.Total(pct.rank,
-                        write.out = T,
-                        out.fig = fig.hum2)
+                        write.out = F)
 t4 <- altModBoxes.Total(rel.Risk,
-                        write.out = T,
-                        out.fig = fig.hum2)
+                        write.out = F)
+
+fig6 <- grid.arrange(t1, t2, t3, t4, ncol = 2)
+
+ggsave(filename = file.path(fig.pub, "Fig6.pdf"), 
+       plot = fig6,
+       device = cairo_pdf,
+       width = 8,
+       height = 4,
+       units = "in",
+       dpi = 300)
 
 
 
-### Which model has the hightest median pct.ranks and rel.risk
-head(ob.masterframe)
 
-zoop <- ob.masterframe %>%
-  filter(Outbreak == "Beni" & window == 6)
-zoop2 <- ob.masterframe %>%
-  filter(Outbreak == "Bikoro" & window == 3) %>%
-  bind_rows(zoop) %>%
-  group_by(Mod.Name, Outbreak) %>%
-  summarise(m.rank = median(pct.rank),
-            m.relRisk = median(rel.Risk)) 
+# ### Which model has the hightest median pct.ranks and rel.risk
+# head(ob.masterframe)
+# 
+# zoop <- ob.masterframe %>%
+#   filter(Outbreak == "Beni" & window == 6)
+# zoop2 <- ob.masterframe %>%
+#   filter(Outbreak == "Bikoro" & window == 3) %>%
+#   bind_rows(zoop) %>%
+#   group_by(Mod.Name, Outbreak) %>%
+#   summarise(m.rank = median(pct.rank),
+#             m.relRisk = median(rel.Risk)) 
