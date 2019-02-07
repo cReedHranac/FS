@@ -201,16 +201,16 @@ map.with.insert <- ob.plot + bkg +
                     ymin = -36,
                     ymax = -14.5)
 
-# ggsave("figures/fig1_A.png",
-#        map.with.insert,
-#        device = "png",
-#        width = 210,
-#        height = 165,
-#        units = "mm", 
-#        dpi = 300)
-
 #### Pannel 2 Time line ####
+## amendment for the two new DRC outbreaks
+add.drc <- as.data.frame(rbind(c(98, 2018, 6, df.DRC[1,], "humanS" ),
+                         c(99, 2018, 7, df.DRC[2,], "humanS")))
+colnames(add.drc) <- colnames(ob.full)
+add.drc$Date <- as.yearmon(paste(add.drc$Year.Start, add.drc$Month.Start), "%Y %m")
+add.drc.y <- add.drc; add.drc.y$y <- 5
+
 ob.T <- ob.full
+  
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
 ob.a <- ob.T %>%
   dplyr::arrange(Date)
@@ -269,6 +269,7 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
                                  duiker = 'green4',
                                  gorilla = 'dodgerblue2',
                                  human = 'red',
+                                 humanS = 'gold',
                                  rodent = 'purple')) +
   theme_bw() +
   theme(axis.text.y = element_blank(),
@@ -276,7 +277,9 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
         axis.title = element_blank(),
         panel.grid.minor.y = element_blank())
 
-g.time
+g.time + 
+  geom_point(data = add.drc.y, aes(x= Date, y= y, color = "gold", alpha = .5),
+             size = 4, show.legend = F)
 
 # ggsave("figures/fig1_B.png",
 #        g.time,
@@ -289,7 +292,8 @@ g.time
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
 ### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
-ob.hist <- ob.a
+ob.hist <- rbind(ob.a, add.drc)
+levels(ob.hist$Org.smp) <- c(levels(ob.hist$Org.smp), "humanS")
 
 org=data.frame(Org.smp=levels(as.factor(ob.hist$Org.smp)),
                Org=c("Chiroptera",
@@ -297,21 +301,26 @@ org=data.frame(Org.smp=levels(as.factor(ob.hist$Org.smp)),
                      "Non-Volant Mammals",
                      "Non-Volant Mammals",
                      "Human", 
-                     "Non-Volant Mammals"))
+                     "Non-Volant Mammals", 
+                     "HumanS"))
 
 ob.hist <- inner_join(ob.hist, org, "Org.smp")
 
 ob.hist$Month <- factor(format(ob.hist$Date, "%b"), 
                         levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
 ob.hist$Org <- factor(ob.hist$Org, levels(ob.hist$Org)[c(1,3,2)])
+#fix names 
+names(ob.hist)[[8]] <- 'Org'
+
 g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
   geom_bar(show.legend = F) +
   scale_fill_manual(values = c(bat = 'darkorange2',
-                                 chimpanzee ='black',
-                                 duiker = 'green4',
-                                 gorilla = 'dodgerblue2',
-                                 human = 'red',
-                               rodent = 'purple')) +
+                               chimpanzee ='black',
+                               duiker = 'green4',
+                               gorilla = 'dodgerblue2',
+                               human = 'red',
+                               rodent = 'purple',
+                               humanS = 'gold')) +
   scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   facet_wrap(~Org, nrow = 3) +
   scale_y_continuous(expand=c(0,0), limits=c(0,7.2)) +
