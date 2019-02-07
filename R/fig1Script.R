@@ -203,7 +203,7 @@ map.with.insert <- ob.plot + bkg +
 
 #### Pannel 2 Time line ####
 ## amendment for the two new DRC outbreaks
-add.drc <- as.data.frame(rbind(c(98, 2018, 6, df.DRC[1,], "humanS" ),
+add.drc <- as.data.frame(rbind(c(98, 2018, 4, df.DRC[1,], "humanS" ),
                          c(99, 2018, 7, df.DRC[2,], "humanS")))
 colnames(add.drc) <- colnames(ob.full)
 add.drc$Date <- as.yearmon(paste(add.drc$Year.Start, add.drc$Month.Start), "%Y %m")

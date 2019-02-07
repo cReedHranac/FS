@@ -544,9 +544,9 @@ altModBoxes.Month <- function(x, df = ob.masterframe,
   x.quo <- quo(x)
   
   ob.place.time <- df %>%
-    filter(Outbreak == "Beni" & window == 6)
+    filter(Outbreak == "Beni" & window == 7)
   ob.pt <- df %>% 
-    filter(Outbreak == "Bikoro" & window == 3) %>%
+    filter(Outbreak == "Bikoro" & window == 4) %>%
     bind_rows(ob.place.time)
   
   p.vol <- ggplot(ob.pt,
