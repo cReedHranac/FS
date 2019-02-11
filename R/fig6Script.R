@@ -1,6 +1,7 @@
 source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
+library(latex2exp); library(patchwork)
 
 #### functions ####
 better.names <- function(x, model.name){
@@ -33,10 +34,10 @@ spatHandler <- function(model.name, mod.dir){
 
 model_names <- tribble(~Mod.Name, ~Plot.Name,
         'null',  'NULL',
-        'cBDiv', 'D_{tot}',
-        'cNDiv', 'D \\times B_{tot}',
-        'cPDiv', 'D + B_{tot}',
-        'nDiv', '??',
+        'nDiv', 'D_{tot}',
+        'cBDiv', 'D+B_{tot}',
+        'cNDiv', 'B_{tot}',
+        'cPDiv', 'D \\times B_{tot}',
         'nSBD', 'D_{tax}',
         'Prb', 'D + B_{tax}',
         'ORG', 'D \\times B_{tax}'
@@ -177,8 +178,6 @@ g2 = ggplot(ob.month, aes(x = Outbreak, y = rel.Risk, fill = Plot.Name)) +
     axis.title.x = element_blank(),
       legend.text.align = 0) +
   scale_fill_discrete(name="Model", labels = unname(TeX(unique(paste0("$",model_names$Plot.Name)))))
-
-library(patchwork)
 
 fig6 <- g1 + g2
 
