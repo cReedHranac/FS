@@ -31,6 +31,17 @@ spatHandler <- function(model.name, mod.dir){
   return(out.l)
 }
 
+model_names <- tribble(~Mod.Name, ~Plot.Name,
+        'null',  'NULL',
+        'cBDiv', 'D_{tot}',
+        'cNDiv', 'D \\times B_{tot}',
+        'cPDiv', 'D + B_{tot}',
+        'nDiv', '??',
+        'nSBD', 'D_{tax}',
+        'Prb', 'D + B_{tax}',
+        'ORG', 'D \\times B_{tax}'
+        )
+model_names$Plot.Name = factor(model_names$Plot.Name, levels=model_names$Plot.Name)
 
 altModBoxes.Month <- function(x, df = ob.masterframe,
                               write.out = F, out.fig = NULL){
@@ -144,7 +155,32 @@ t3 <- altModBoxes.Total(pct.rank,
 t4 <- altModBoxes.Total(rel.Risk,
                         write.out = F)
 
-fig6 <- grid.arrange(t1, t2, t3, t4, ncol = 2)
+# filter resuls down to month data
+ob.month <- ob.masterframe %>% filter((Outbreak == "Beni" & window == 7) |
+                          (Outbreak == "Bikoro" & window == 4)) %>% left_join(model_names)
+
+g1 = ggplot(ob.month, aes(x = Outbreak, y = pct.rank, fill = Plot.Name)) +
+  geom_boxplot(width = 0.5, position = position_dodge(width=0.7)) +
+  labs(x = "Outbreak", 
+       y = "Percent rank") +
+  theme_bw()+
+  theme(#legend.position = "none",
+    axis.title.x = element_blank()) +
+  guides(fill = 'none')
+
+g2 = ggplot(ob.month, aes(x = Outbreak, y = rel.Risk, fill = Plot.Name)) +
+  geom_boxplot(width = 0.5, position = position_dodge(width=0.7)) +
+  labs(x = "Outbreak", 
+       y = "Relative risk") +
+  theme_bw()+
+  theme(#legend.position = "none",
+    axis.title.x = element_blank(),
+      legend.text.align = 0) +
+  scale_fill_discrete(name="Model", labels = unname(TeX(unique(paste0("$",model_names$Plot.Name)))))
+
+library(patchwork)
+
+fig6 <- g1 + g2
 
 ggsave(filename = file.path(fig.pub, "Fig6.pdf"), 
        plot = fig6,
