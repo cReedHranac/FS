@@ -7,7 +7,7 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
 # devtools::install_github("sckott/rphylopic")
 library(rphylopic);library(rgdal);library(rgeos);library(raster)
-library(zoo);library(grid)
+library(zoo);library(grid);library(forcats)
 
 # Africa extent to use. This is reasonably tight around the data
 Africa.ext <- c(-18, 47, -36, 16)
@@ -47,14 +47,17 @@ hum.sub <- hum.ob %>%
 # hum.s <- hum.full %>%
 #   dplyr::select(which(names(hum.full) %in% names(an.full)))
 
-ob.full <- bind_rows(hum.sub, an.sub)
-colnames(ob.full)[which(colnames(ob.full) %in% c("x", "y"))] <- c( "long", "lat")
-ob.full$Org.smp <- as.factor(ob.full$Org.smp)
+## Amendment for DRC outbreaks
+add.drc <- data.frame(Outbreak_ID = c(98,99),
+                      Year.Start = 2018,
+                      Month.Start = c(4,7),
+                      x = c(18.16028, 29.30928),
+                      y = c(-0.5147479,	0.4824767),
+                      Org.smp = "humanS")
 
-z <- list()
-for(i in 1:nrow(ob.full)){
-  ifelse(ob.full[i,"Org.smp"] == "human", z[[i]] <- "human",z[[i]] <-  "animal")  
-}
+ob.full <- bind_rows(hum.sub, an.sub, add.drc) %>%
+  rename(long = x, lat = y) %>% mutate(Org.smp = factor(Org.smp)) %>%
+  mutate(Org.img = fct_collapse(Org.smp, human = c('human', 'humanS')))
 
 ## name id ##
 bat <- 	104257
@@ -82,12 +85,12 @@ for(i in 1:length(c.names)){
 ## create vector of images
 img.list <- list()
 for(i in 1:nrow(ob.full)){
-  j <- match(ob.full[i,"Org.smp"], levels(ob.full$Org.smp)) 
+  j <- match(ob.full[i,"Org.img"], levels(ob.full$Org.img)) 
   img.list[[i]] <- c.img[[j]]
 }
 
-## create color vector
-cz <- c("darkorange2", "black", "green4", "dodgerblue2", "red", "purple")
+## create color vector: NOTE: This is one more than the img.list...
+cz <- c("darkorange2", "black", "green4", "dodgerblue2", "red", "gold", "purple")
 col.list <- list()
 for(i in 1:nrow(ob.full)){
   j <- match(ob.full[i,"Org.smp"], levels(ob.full$Org.smp)) 
@@ -132,6 +135,7 @@ ob.plot <- ggplot() +
   scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
   theme_bw()
 
+ob.full
 
 for( i in 1:nrow(ob.full)){
   if(ob.full$Org.smp[i] == "human"){
@@ -148,21 +152,6 @@ for( i in 1:nrow(ob.full)){
 
 ob.plot <- ob.plot +
   geom_polygon(aes(x=x, y=y), data=df, color = "red", alpha=.5)
-  
-## Ammendment for DRC outbreaks
-df.DRC <- as.data.frame(rbind(c(18.16028,	-0.5147479),
-                              c(29.30928,	0.4824767)))
-colnames(df.DRC) <- c("long", "lat")
-
-## cycle through the new points
-for(i in 1:2){
-  ob.plot <- ob.plot + 
-    add_phylopic(img.list[[5]], 1,
-                 df.DRC$long[[i]],
-                 df.DRC$lat[[i]], 
-                 ysize = 2.5,
-                 color = "gold")
-}
 
 ### Insert plot
 insert.ext <- c(12.5, 15.5,1.5,-.25)
@@ -202,13 +191,6 @@ map.with.insert <- ob.plot + bkg +
                     ymax = -14.5)
 
 #### Pannel 2 Time line ####
-## amendment for the two new DRC outbreaks
-add.drc <- as.data.frame(rbind(c(98, 2018, 4, df.DRC[1,], "humanS" ),
-                         c(99, 2018, 7, df.DRC[2,], "humanS")))
-colnames(add.drc) <- colnames(ob.full)
-add.drc$Date <- as.yearmon(paste(add.drc$Year.Start, add.drc$Month.Start), "%Y %m")
-add.drc.y <- add.drc; add.drc.y$y <- 5
-
 ob.T <- ob.full
   
 ob.T$Date <- as.yearmon(paste(ob.T$Year.Start, ob.T$Month.Start), "%Y %m")
@@ -245,7 +227,7 @@ geom_Rlogo <- function(mapping = NULL, data = NULL, stat = "identity",
 ## Plot 
 y_vals <- 6:1 #seq(20,20*5,by=20)
 s <- 0.05
-ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(as.factor(Org.smp))])
+ob.plot <- ob.a %>% mutate(y = y_vals[as.numeric(as.factor(Org.img))])
 
 g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
   geom_point(data = expand.grid(Date=filter(ob.a, Org.smp == "human") %>% dplyr::pull(Date), y=y_vals), ## Grey points
@@ -254,9 +236,9 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
              show.legend = F)+
   geom_point(aes(x = Date, y= y, color = Org.smp, alpha = .5), size = 4,
              show.legend = F)+ 
-  geom_segment(data=data.frame(y=1:6), aes(x = 1975, y = y_vals, xend = 2018.5, yend = y_vals),
+  geom_segment(data=data.frame(y=1:6), aes(x = 1975, y = y_vals, xend = 2020.5, yend = y_vals),
                arrow = arrow(length =  unit(x = 0.2,units = 'cm'),type = 'closed')) +
-  scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2019), expand=c(0,0)) +
+  scale_x_yearmon(format = "%Y", n = 10, limits = c(1973.5, 2021), expand=c(0,0)) +
   scale_y_continuous(limits=c(0.5,5.5), expand=c(0,0)) +
   geom_Rlogo(aes(x, y), img=c.img[[1]], alpha=1, col="darkorange2", size = s, data=data.frame(x=1975, y=y_vals[1], Org.smp = "bat" )) +
   geom_Rlogo(aes(x, y), img=c.img[[2]], alpha=1, col="black", size = s, data=data.frame(x=1975, y=y_vals[2], Org.smp = "chimpanzee" )) +
@@ -277,10 +259,6 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
         axis.title = element_blank(),
         panel.grid.minor.y = element_blank())
 
-g.time + 
-  geom_point(data = add.drc.y, aes(x= Date, y= y, color = "gold", alpha = .5),
-             size = 4, show.legend = F)
-
 # ggsave("figures/fig1_B.png",
 #        g.time,
 #        device = "png",
@@ -292,25 +270,13 @@ g.time +
 #### Pannel 3 Bar with Smooth ####
 ### If we can start this at setptember we can likely get the bimodal distribution
 ### to show up better. Do two different smooths for human/nonhumans and maybe one for total?
-ob.hist <- rbind(ob.a, add.drc)
-levels(ob.hist$Org.smp) <- c(levels(ob.hist$Org.smp), "humanS")
-
-org=data.frame(Org.smp=levels(as.factor(ob.hist$Org.smp)),
-               Org=c("Chiroptera",
-                     "Non-Volant Mammals",
-                     "Non-Volant Mammals",
-                     "Non-Volant Mammals",
-                     "Human", 
-                     "Non-Volant Mammals", 
-                     "HumanS"))
-
-ob.hist <- inner_join(ob.hist, org, "Org.smp")
+ob.hist <- ob.a %>%
+  mutate(Org = fct_other(Org.img, keep=c("bat", "human"), other_level = "Non-Volant Mammals"),
+         Org = fct_collapse(Org, Chrioptera = 'bat', Human = 'human'),
+         Org = fct_relevel(Org, "Chrioptera", "Non-Volant Mammals", "Human"))
 
 ob.hist$Month <- factor(format(ob.hist$Date, "%b"), 
                         levels = c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
-ob.hist$Org <- factor(ob.hist$Org, levels(ob.hist$Org)[c(1,3,2)])
-#fix names 
-names(ob.hist)[[8]] <- 'Org'
 
 g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
   geom_bar(show.legend = F) +
