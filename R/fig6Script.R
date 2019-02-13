@@ -173,6 +173,7 @@ g2 = ggplot(ob.month, aes(x = Outbreak, y = rel.Risk, fill = Plot.Name)) +
   geom_boxplot(width = 0.5, position = position_dodge(width=0.7)) +
   labs(x = "Outbreak", 
        y = "Relative risk") +
+  scale_y_log10() +
   theme_bw()+
   theme(#legend.position = "none",
     axis.title.x = element_blank(),

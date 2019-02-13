@@ -6,6 +6,9 @@ source("R/helperFunctions.R")
 library(tidyverse); library(gtools)
 library(RcppRoll);library(ggridges)
 
+# default theme for ggplot
+theme_set(theme_bw(base_size = 9, base_family = "serif"))
+
 #### functions ####
 sumGen <- function(model.string){
   ## function for loading rasters and producing an averaged product based on the USED FOR BirthFORCE ITEMS
@@ -93,7 +96,7 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     # theme
-    theme_bw() +
+ #   theme_bw() +
     theme(axis.title = element_blank())
   
   return(g.plot)
@@ -131,7 +134,7 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
     scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                        expand = c(0,0))+
     scale_y_discrete(expand=c(0,0)) +
-    theme_bw() +
+  #  theme_bw() +
     theme(
       axis.title = element_blank(),
       axis.text.y = element_blank(),
@@ -153,7 +156,10 @@ birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Af
   i <- 1:12
   j <- c(i[2:12], i[1])
   colnames(stk.df) <- c("long", "lat", paste0(base,i,"_",j))
-  res.long <- tidyr::gather(data = stk.df, key = "window", value = "BF", -c(long, lat), factor_key = T)
+  res.long <- tidyr::gather(data = stk.df, key = "window", value = "BF", -c(long, lat)) %>%
+    tidyr::extract(window, into=c("first", "second"), regex='([0-9]+)_([0-9]+)', convert=TRUE) %>%
+    mutate(window = paste(month.abb[first], month.abb[second], sep='-')) %>%
+    mutate(window = factor(window, levels = paste(month.abb, month.abb[c(2:12,1)], sep='-')))
   
   ##plot
   bf1.plot <- ggplot(res.long, aes(x = long, y = lat)) +
@@ -185,9 +191,9 @@ birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Af
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     #Extras
-    theme_bw() + 
-    theme( axis.title = element_blank()) +
-    scale_y_continuous(expand = c(0,0)) +
+#    theme_bw() + 
+    theme( axis.title = element_blank(),
+           strip.text.x = element_text(margin = margin(1, 0, 1, 0, "pt"))) +
     
     #Facet  
     facet_wrap(~ window, ncol= 3)
@@ -201,13 +207,13 @@ birthForce1 <- function(x, c.string,  afr = afr.poly, save = F, crop.extent = Af
       dev.ext <- device.out
     }
     ggsave(filename = file.path(dir.out, paste0(base,"BF_SI", ".", device.out)),
-           bf1.plot, width = 5, height = 7, units = "in", device = dev.ext)
+           bf1.plot, width = 6, height = 6.5, units = "in", device = dev.ext)
   }
   
   return(bf1.plot)
 }
 
-riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, device.out = NULL, dir.out, ....){
+riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, device.out = NULL, dir.out, file.out, ....){
   ###Function for monthly facet plotting of Human and Animal Risk
   stk.crop <- crop(x[[1]], crop.extent)
   stk.df <- data.frame(rasterToPoints(stk.crop))
@@ -217,8 +223,11 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, de
   j <- c(i[12],i[1:11])
   colnames(stk.df) <- c("long", "lat", paste0(base,"_", j,"_", i))
   ##modify structure for our purposes
-  res.long <- tidyr::gather(data = stk.df, key = "window", value = "Risk", -c(long, lat), factor_key = T)
-  
+  res.long <- tidyr::gather(data = stk.df, key = "window", value = "Risk", -c(long, lat)) %>%
+    tidyr::extract(window, into=c("first", "second"), regex='([0-9]+)_([0-9]+)', convert=TRUE) %>%
+    mutate(window = paste(month.abb[first], month.abb[second], sep='-')) %>%
+    mutate(window = factor(window, levels = paste(month.abb, month.abb[c(2:12,1)], sep='-')))
+
   ##plot
   risk1.plot <- ggplot(res.long, aes(x = long, y = lat)) +
     
@@ -234,6 +243,7 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, de
     
     #Colors
     scale_fill_gradient2(trans = scales::log_trans(),
+                         labels = scales::number_format(accuracy=0.001),
                          low = "yellow", mid = "red4",
                          limits = c(1e-4, 12),
                          na.value = "yellow", 
@@ -250,12 +260,12 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, de
     coord_fixed(xlim = crop.extent[1:2],ylim = crop.extent[3:4]) +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
-    
+
     #Extras
-    theme_bw() + 
-    theme( axis.title = element_blank()) +
-    scale_y_continuous(expand = c(0,0)) +
-    
+ #   theme_bw() + 
+    theme( axis.title = element_blank(),
+           strip.text.x = element_text(margin = margin(1, 0, 1, 0, "pt"))) +
+
     #Facet  
     facet_wrap(~ window, ncol= 3)
   
@@ -267,8 +277,10 @@ riskForce1 <- function(x, afr = afr.poly, save = F, crop.extent = Africa.ext, de
     } else {
       dev.ext <- device.out
     }
-    ggsave(filename = file.path(dir.out, paste0(base,"Risk_SI", ".", device.out)),
-           risk1.plot, width = 5, height = 7, units = "in", device = dev.ext)
+    if (missing(file.out))
+      file.out = paste0(base,"Risk_SI", ".", device.out)
+    ggsave(filename = file.path(dir.out, file.out),
+           risk1.plot, width = 6, height = 6.5, units = "in", device = dev.ext)
   }
   
   return(risk1.plot)
@@ -381,19 +393,20 @@ mic.bf1 <- birthForce1(mic.sum,
                        c.string = c3(5),
                        save = T,
                        device.out = "pdf",
-                       device.out = fig.si)
+                       dir.out = fig.si)
 
-rm(ptr.sum, c.names, fx.names, mol.sum, mic.sum, ptr.bf1, mol.bf1, mic.bf1)
-gc()
 #### Monthly Human and Animal Risk Maps
-hum.sum <- spatHandler("Prb", dOut.1)
+hum.sum <- spatHandler.Proj(model.name = "h_Prb",mod.dir =  dOut.1)
+
 riskForce1(hum.sum,
            save = T,
            device.out = "pdf",
+           file.out = "HumRisk_SI.pdf",
            dir.out = fig.si)
 
-ann.sum <- spatHandler("ann", "SpGLMRes_F")
+ann.sum <- spatHandler.Proj("a_Prb", mod.dir = dOut.an)
 riskForce1(ann.sum,
            save = T,
-           device.out = "pnf",
+           device.out = "pdf",
+           file.out = "AnnRisk_SI.pdf",
            dir.out = fig.si)
