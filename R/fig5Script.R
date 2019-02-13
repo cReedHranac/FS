@@ -4,6 +4,8 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
+theme_set(theme_bw(base_family = "serif"))
+
 #### functions ####
 better.names <- function(x, model.name){
   ### function for impoving names accociated with items retrieved from SpatHandler
@@ -96,7 +98,6 @@ p1 <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL){
                          guide= "colourbar")+
     ##color for poly lines (last is transparent)
     scale_color_manual(values=c("#E69F00", "#56B4E9", "#ffffff00")) +
-    theme_bw()+
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.position = c(0.11,0.76),
@@ -179,7 +180,6 @@ p1raw <- function(x, y = drc, outbreaks = NULL, province = NULL, district = NULL
                          guide= "colourbar")+
     ##color for poly lines (last is transparent)
     scale_color_manual(values=c("#E69F00", "#56B4E9", "#ffffff00")) +
-    theme_bw()+
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.position = c(0.11,0.76),
@@ -253,7 +253,6 @@ p2 <- function(x, y = drc, province = NULL, district = NULL){
                          # limits = c(1e-4, 12),
                          na.value = "yellow", 
                          name = "Ebola \nSpillover \nRisk") + 
-    theme_bw() +
     theme( axis.title = element_blank()) +
     scale_y_continuous(expand = c(0,0)) +
     facet_wrap(~ window, ncol = 3)
@@ -313,7 +312,6 @@ p3 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     # theme
-    theme_bw() +
     theme(axis.title = element_blank())
   
   return(g.rank)
@@ -383,7 +381,6 @@ p4 <- function(x, region.extent= Africa.ext, afr = afr.poly, drc.hb = drc){
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     # theme
-    theme_bw() +
     theme(axis.title = element_blank()) +
     facet_wrap(~window, ncol = 3)
   
@@ -480,7 +477,6 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
       labs(x = "Month", 
            y = "Precent Rank")+
       
-      theme_bw() +
       theme(axis.title.x = element_blank(),
             axis.title.y =  element_blank(),
             plot.margin = unit(c(0,10,0,0), "points"))
@@ -495,7 +491,6 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
       guides(color='none') +
       labs(x = "Month", 
            y = "Relative Risk")+
-      theme_bw()+
       theme(axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             plot.margin = unit(c(0,10,0,0), "points"))

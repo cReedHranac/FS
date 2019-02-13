@@ -10,6 +10,8 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
+theme_set(theme_bw(base_family = "serif"))
+
 # Africa extent to use. This is reasonably tight around the data
 Africa.ext <- c(-18, 47, -36, 16)
 
@@ -84,7 +86,6 @@ ERgplot <- function(x, source.path = data.source, afr = afr.poly, rf = rf.poly){
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
 
     # theme
-    theme_bw() +
     theme(axis.title = element_blank())
 
   return(g.plot)
@@ -122,7 +123,6 @@ ERridge <- function(x, n.bin, scale = 5, crop.extent = Africa.ext){
     scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                        expand = c(0,0))+
     scale_y_discrete(expand=c(0,0)) +
-    theme_bw() +
     theme(
       axis.title = element_blank(),
       axis.text.y = element_blank(),

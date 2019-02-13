@@ -9,6 +9,8 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
 library(rphylopic);library(rgdal);library(rgeos);library(raster)
 library(zoo);library(grid);library(forcats)
 
+theme_set(theme_bw(base_family = 'serif'))
+
 # Africa extent to use. This is reasonably tight around the data
 Africa.ext <- c(-18, 47, -36, 16)
 
@@ -116,7 +118,7 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
-bkg <- theme_bw() + theme( 
+bkg <- theme( 
   axis.title.x = element_blank(), 
   axis.title.y = element_blank()) 
 
@@ -132,8 +134,7 @@ ob.plot <- ggplot() +
                fill = "NA") +
   coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
   scale_y_continuous(expand = c(0,0)) +
-  scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
-  theme_bw()
+  scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10))
 
 ob.full
 
@@ -161,7 +162,7 @@ ob.insert <- ggplot()+
                colour = "#212121",
                fill = region_colour) +
   coord_fixed(xlim = insert.ext[1:2],ylim = insert.ext[3:4]) +
-  theme_bw() + theme(axis.text = element_blank(),
+  theme(axis.text = element_blank(),
                      axis.ticks = element_blank(),
                      axis.title = element_blank())
 
@@ -253,7 +254,6 @@ g.time <- ggplot(data = ob.plot, aes(x= Date, y = y)) +
                                  human = 'red',
                                  humanS = 'gold',
                                  rodent = 'purple')) +
-  theme_bw() +
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.title = element_blank(),
@@ -290,7 +290,6 @@ g.bar <- ggplot(data=ob.hist,aes(x=Month, fill=Org.smp))+
   scale_x_discrete(labels=substring(month.abb, 1, 1)) +
   facet_wrap(~Org, nrow = 3) +
   scale_y_continuous(expand=c(0,0), limits=c(0,7.2)) +
-  theme_bw() +
   theme(
     axis.ticks.x = element_blank(),
     axis.title = element_blank()
@@ -309,7 +308,7 @@ g.bar
 
 ### put them together
 
-fig1.complete <- grid.arrange(map.with.insert, g.time, g.bar,
+fig1.complete <- grid.arrange(map.with.insert, g.time + theme(plot.margin = unit(c(5.5, 5.5, 5.5, 21), unit='pt')), g.bar,
              widths = c(2.5,1), heights = c(2.5,1),
              layout_matrix = rbind(c(1,3),
                                    c(2,3)))

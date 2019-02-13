@@ -6,6 +6,8 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra)
 ### Data #### 
 library(rphylopic)
 
+theme_set(theme_bw(base_family="serif"))
+
 # Africa extent to use. This is reasonably tight around the data
 Africa.ext <- c(-18, 47, -36, 16)
 region_colour <- '#CFD8DC'
@@ -36,7 +38,7 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
                     layer = "AfricanCountires")
 rf.poly <- rasterToPolygons(raster(file.path(data.source, "cropMask.tif")),
                             fun = function(x){x==1}, dissolve = T)
-bkg <- theme_bw() + theme(
+bkg <- theme(
   plot.title = element_text(hjust = 0.5),
   axis.title.x = element_blank(),
   axis.title.y = element_blank())
@@ -61,7 +63,7 @@ bi.plot <- ggplot()+ bkg +
   coord_fixed(xlim = Africa.ext[1:2], ylim = Africa.ext[3:4]) +
   scale_y_continuous(expand = c(0,0)) +
   scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
-  theme_bw() + theme(axis.title = element_blank())
+  theme(axis.title = element_blank())
 
 for(i in 1:nrow(bi)){
   bi.plot <- bi.plot +
@@ -90,7 +92,6 @@ bi.bar <- ggplot(data = bi)+
   facet_wrap(~Class, ncol = 1, scales = "free_y") +
   scale_y_continuous(expand=c(0,0,0.05,0)) +
   scale_x_discrete(labels=substring(month.abb, 1, 1)) +
-  theme_bw() + 
   theme(
     axis.ticks.x = element_blank(),
     axis.title = element_blank())

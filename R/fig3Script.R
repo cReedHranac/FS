@@ -5,6 +5,8 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
+theme_set(theme_bw(base_family="serif"))
+
 # Africa extent to use. This is reasonably tight around the data
 Africa.ext <- c(-18, 47, -36, 16)
 
@@ -61,7 +63,6 @@ BFgplot <- function(x, afr = afr.poly, c.string){
     scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
     
     #Extras
-    theme_bw() + 
     theme( axis.title = element_blank(),
            legend.position = c(0.2,0.3)) +
     scale_y_continuous(expand = c(0,0))
@@ -101,7 +102,6 @@ BFridge <- function(x, n.bin, crop.extent = Africa.ext, scale, c.string){
     scale_x_continuous(breaks = 1:12, labels=substring(month.abb, 1, 1),
                        expand = c(0,0))+
     scale_y_discrete(expand=c(0,0)) +
-    theme_bw() +
     theme(
       axis.title = element_blank(),
       axis.text.y = element_blank(),
