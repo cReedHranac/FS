@@ -3,6 +3,8 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra); libra
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 library(latex2exp); library(patchwork)
 
+theme_set(theme_bw(base_family = "serif"))
+
 # for 34 point analysis:
 data_outdf   <- dOut.2
 
@@ -45,7 +47,6 @@ g1 = ggplot(ob.month, aes(x = Outbreak, y = pct.rank, fill = Plot.Name)) +
   geom_boxplot(width = 0.5, position = position_dodge(width=0.7)) +
   labs(x = "Outbreak", 
        y = "Percent rank") +
-  theme_bw()+
   theme(#legend.position = "none",
     axis.title.x = element_blank()) +
   guides(fill = 'none')
@@ -55,7 +56,6 @@ g2 = ggplot(ob.month, aes(x = Outbreak, y = rel.Risk, fill = Plot.Name)) +
   labs(x = "Outbreak", 
        y = "Relative risk") +
   scale_y_log10() +
-  theme_bw()+
   theme(#legend.position = "none",
     axis.title.x = element_blank(),
       legend.text.align = 0) +
