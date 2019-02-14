@@ -4,6 +4,16 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
+# for 34 point analysis:
+data_pattern <- "noAn_2_"
+data_outdf   <- dOut.2
+data_outfig  <- fig.hum2
+
+# for 32 point analysis:
+data_pattern <- "noAn_[0-9]+\\.tif"
+data_outdf   <- dOut.1
+data_outfig  <- fig.hum1
+
 theme_set(theme_bw(base_family = "serif"))
 
 #### functions ####
@@ -22,7 +32,7 @@ spatHandler <- function(model.name, mod.dir){
   base <- sapply(strsplit(model.name, "_"), tail, 1)
   
   f.list <- mixedsort(list.files(file.path(mod.dir,model.name),
-                                 pattern = "noAn_2_", 
+                                 pattern = data_pattern, 
                                  full.names = T))
   
   if(!any(file.exists(f.list))){
@@ -545,10 +555,9 @@ rm(drc.hd)
 human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
                        "h_nSBD",  "h_null",  "h_ORG",   "h_Prb"  )
 
-
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
                       mod.dir= mod.out.nov,
                       write.out = T,
-                      out.df = dOut.2,
-                      out.fig = fig.hum2)
+                      out.df = data_outdf,
+                      out.fig = data_outfig)

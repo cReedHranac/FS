@@ -3,6 +3,12 @@ library(ggplot2); library(dplyr); library(data.table); library(gridExtra); libra
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 library(latex2exp); library(patchwork)
 
+# for 34 point analysis:
+data_outdf   <- dOut.2
+
+# for 32 point analysis:
+data_outdf   <- dOut.1
+
 #### functions ####
 better.names <- function(x, model.name){
   ### function for impoving names accociated with items retrieved from SpatHandler
@@ -136,7 +142,7 @@ human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
                        "h_nSBD",  "h_null",  "h_ORG",   "h_Prb"  )
 ## read in the dataframes in and add Model name column
 ## get names 
-dfs <- lapply(list.files(dOut.1, pattern = "ob", full.names = T),read.csv)
+dfs <- lapply(list.files(data_outdf, pattern = "ob", full.names = T),read.csv)
 
 
 for(i in 1:length(human.model.names)){
