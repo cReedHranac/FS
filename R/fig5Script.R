@@ -489,7 +489,7 @@ fig5.fun <- function(model.name, mod.dir, drc.poly = drc,
       
       theme(axis.title.x = element_blank(),
             axis.title.y =  element_blank(),
-            plot.margin = unit(c(0,10,0,0), "points"))
+            plot.margin = unit(c(0,10,0,4), "points"))
   )
   (p.raw <- ggplot(data = res.raw, aes(x = window, y = rel.Risk, color = Outbreak)) + 
       geom_line(aes(group = cell), alpha = .3) +
