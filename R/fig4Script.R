@@ -233,7 +233,7 @@ central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
 
 #### Animal Risk Plot ####
-ann.mean <- spatHandler("ann", "SpGLMRES_Nov")
+ann.mean <- spatHandler("a_Prb", dOut.an)
 ann.risk.plot <- ERgplot(ann.mean)
 ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 # and fixup the aspect ratio of ridge to that of map
@@ -281,7 +281,7 @@ an.risk <- grid.arrange(ANrisk.grob,
 #        height=4.3,
 #        units = "in",
 #        dpi = 300)
-ggsave(filename = "figures/AnnRisk.pdf",
+ggsave(filename = file.path(fig.si, "AnnRisk.pdf"),
        an.risk,
        device = cairo_pdf,
        width=8,

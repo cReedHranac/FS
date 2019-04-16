@@ -395,6 +395,113 @@ mic.bf1 <- birthForce1(mic.sum,
                        device.out = "pdf",
                        dir.out = fig.si)
 
+
+#### Monthly Probability of birhting ####
+ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
+##Fix names 
+c.names <- names(ptr.dbl.imp)
+fx.names <- gsub("ptr", "afb", c.names)
+names(ptr.dbl.imp) <- fx.names
+mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
+mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
+## adding in the dead layer for MIC
+names(mic.dbl.imp)
+mic.blnk <- calc(mic.dbl.imp[[1]], function(x){ifelse(is.na(x), NA, 0)})
+mic.empty <- stack(mic.blnk, mic.blnk, mic.blnk)
+names(mic.empty) <- c("mic1.mic2", "mic9.mic.10", "mic7.mic8")
+mic.stk <-stack(mic.empty, mic.dbl.imp)
+mic.fix <- mic.stk[[mixedorder(names(mic.stk))]]
+c1 <- colorRampPalette(c("#CFD8DC", "green4"))
+c2 <- colorRampPalette(c("#CFD8DC", "dodgerblue2"))
+c3 <- colorRampPalette(c("#CFD8DC", "darkorange2"))
+
+probBirth1 <- function(x, c.string,  afr = afr.poly,
+                       save = F, crop.extent = Africa.ext,
+                       device.out = NULL, dir.out, ....){
+  ###Function for creating facted birthforce maps
+  ##gen dataframe
+  stk.crop <- crop(x, crop.extent)
+  stk.01 <- stk.crop/1000
+  stk.df <- data.frame(rasterToPoints(stk.01))
+  #create better names
+  base <- substring(names(x)[1],1, 3) 
+  i <- 1:12
+  j <- c(i[2:12], i[1])
+  colnames(stk.df) <- c("long", "lat", paste0(base,i,"_",j))
+  res.long <- tidyr::gather(data = stk.df, key = "window", value = "Prob", -c(long, lat)) %>%
+    tidyr::extract(window, into=c("first", "second"), regex='([0-9]+)_([0-9]+)', convert=TRUE) %>%
+    mutate(window = paste(month.abb[first], month.abb[second], sep='-')) %>%
+    mutate(window = factor(window, levels = paste(month.abb, month.abb[c(2:12,1)], sep='-')))
+  
+  
+  ##plot
+  bf1.plot <- ggplot(res.long, aes(x = long, y = lat)) +
+    
+    #create african continent background
+    geom_polygon(data = fortify(afr),
+                 aes(long, lat, group = group), 
+                 colour = "#212121",
+                 fill = NA) +
+    
+    #fill Raster values
+    geom_raster(aes(fill = Prob), interpolate = T)+
+    
+    # #Colors
+    scale_fill_gradientn(colors = c.string,
+                         limits = c(0,1),
+                         name = "Probability \nBirthing")+
+
+    #create african continent background
+    geom_polygon(data = fortify(afr),
+                 aes(long, lat, group = group), 
+                 colour = "#212121",
+                 fill = NA) +
+    aes(x = long, y = lat)+
+    
+    # limit coordinates
+    coord_fixed(xlim = crop.extent[1:2],ylim = crop.extent[3:4]) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0), breaks = seq(-20, 50, by=10)) +
+    
+    #Extras
+    #    theme_bw() + 
+    theme( axis.title = element_blank(),
+           strip.text.x = element_text(margin = margin(1, 0, 1, 0, "pt"))) +
+    
+    #Facet  
+    facet_wrap(~ window, ncol= 3)
+  
+  if(save == T){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    ggsave(filename = file.path(dir.out, paste0(base,"PB_SI", ".", device.out)),
+           bf1.plot, width = 6, height = 6.5, units = "in", device = dev.ext)
+  }
+  
+  return(bf1.plot)
+}
+afb1 <- probBirth1(ptr.dbl.imp, 
+                   c.string = c1(5), 
+                   save = T,
+                   device.out = "pdf",
+                   dir.out = fig.si)
+mol1 <- probBirth1(mol.dbl.imp, 
+                   c.string = c2(5), 
+                   save = T,
+                   device.out = "pdf",
+                   dir.out = fig.si)
+mic1 <- probBirth1(mic.fix, 
+                   c.string = c3(5), 
+                   save = T,
+                   device.out = "pdf",
+                   dir.out = fig.si)
+
+
 #### Monthly Human and Animal Risk Maps
 hum.sum <- spatHandler.Proj(model.name = "h_Prb",mod.dir =  dOut.1)
 
