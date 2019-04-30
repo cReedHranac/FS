@@ -480,7 +480,7 @@ master.list <- list(risk.list[[1]], ridge.list[[1]],
 ProbFig <- grid.arrange(grobs = master.list,
                    ncol = 2, widths=c(1,w.ridge))
 
-ggsave("figures/ProbBirth.pdf",
+ggsave(file.path(fig.pub,"ProbBirth.pdf"),
        ProbFig,
        device = cairo_pdf,
        width=6,
