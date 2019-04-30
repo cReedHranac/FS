@@ -123,7 +123,10 @@ long.table <- left_join(long.table, xy, "cell") %>%
          lmol_prob = log(mol_dbl_imp + 1),
          lPop = log(popDen + 1),
          lFrag = log(fragIndex + 1),
-         lnBm.div = log(nBm.div +1))
+         lnBm.div = log(nBm.div +1),
+         lptr_Mod = log(ifelse(y > -18 & month >7,
+                               (5/9*ptr_dbl_imp + 1),
+                               ptr_dbl_imp + 1)))
 # Warning messages:
 #   1: In log(BB.cond + 1) : NaNs produced
 #   2: In log(BB.condDIV + 1) : NaNs produced
