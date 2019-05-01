@@ -8,25 +8,26 @@ theme_set(theme_bw(base_family = "serif"))
 # for 34 point analysis:
 data_outdf   <- dOut.2
 
-# for 32 point analysis:
-data_outdf   <- dOut.1
+# # for 32 point analysis:
+# data_outdf   <- dOut.1
 
 # model name formatting
 model_names <- tribble(~Mod.Name, ~Plot.Name,
         'null',  'NULL',
         'nDiv', 'D_{tot}',
-        'cBDiv', 'D+B_{tot}',
+        'cBDiv', 'D + B_{tot}',
         'cNDiv', 'B_{tot}',
         'cPDiv', 'D \\times B_{tot}',
         'nSBD', 'D_{tax}',
         'Prb', 'D + B_{tax}',
-        'ORG', 'D \\times B_{tax}'
+        'ORG', 'D \\times B_{tax}',
+        'mod', 'D + B_{tax}*'
         )
 model_names$Plot.Name = factor(model_names$Plot.Name, levels=model_names$Plot.Name)
 
 #### ####
 human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb"  )
+                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_mod"  )
 ## read in the dataframes in and add Model name column
 ## get names 
 dfs <- lapply(list.files(data_outdf, pattern = "ob", full.names = T),read.csv)
