@@ -11,6 +11,11 @@ source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
 library(raster);library(gtools)
 # human outbreak stack
 hum.stk0 <- do.call(stack, lapply(
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hum0*")))
+  ,raster))
+
+# +2 human outbreak stack
+hum.stk0_2 <- do.call(stack, lapply(
   file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_2_hum0_*")))
   ,raster))
 
@@ -74,9 +79,11 @@ blank <- rf
 values(blank) <- NA
 for(i in 1:12){
   #Outbreak Stack
-  ob.stk <- stack(hum.stk0[[paste0("OB_2_hum0_",i)]], ann.stk0[[paste0("OB_ann0_",i)]],
+  ob.stk <- stack(hum.stk0[[paste0("OB_hum0_",i)]],
+                  hum.stk0_2[[paste0("OB_2_hum0_",i)]],
+                  ann.stk0[[paste0("OB_ann0_",i)]],
                   hdl.stk0[[paste0("OB_hdl0_",i)]]) 
-  names(ob.stk) <- c("OB_hum_imp", "OB_ann_imp", "hdl")
+  names(ob.stk) <- c("OB_hum_imp","OB_hum_imp_2", "OB_ann_imp", "hdl")
   #dbl month of breeding impute
   br.dbl.imp <- list()
   for(j in 1:3){
@@ -209,4 +216,4 @@ longMasterFull <- longMasterFull %>%
          lmicDiv = log(mic.div + 1),
          lmolDiv = log(mol.div + 1))
 fwrite(longMasterFull, 
-       file = file.path(mod.out.nov,"fullLongMaster_2.csv"))
+       file = file.path(clean.dir.nov,"fullLongMaster_Complete.csv"))
