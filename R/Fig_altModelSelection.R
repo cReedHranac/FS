@@ -5,11 +5,8 @@ library(latex2exp); library(patchwork)
 
 theme_set(theme_bw(base_family = "serif"))
 
-# for 34 point analysis:
-data_outdf   <- dOut.2
 
-# # for 32 point analysis:
-# data_outdf   <- dOut.1
+data_outdf   <- mod.out.nov
 
 # model name formatting
 model_names <- tribble(~Mod.Name, ~Plot.Name,
@@ -26,14 +23,18 @@ model_names <- tribble(~Mod.Name, ~Plot.Name,
 model_names$Plot.Name = factor(model_names$Plot.Name, levels=model_names$Plot.Name)
 
 #### ####
-human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_mod"  )
+human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv","h_Mod",  "h_nDiv",
+                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb" )
 ## read in the dataframes in and add Model name column
 ## get names 
 dfs <- lapply(list.files(data_outdf, pattern = "ob", full.names = T),read.csv)
 
 
 for(i in 1:length(human.model.names)){
+  ## testing for name acuracy
+    # cat(paste(list.files(data_outdf, pattern = "ob")[[i]],
+  #           "  =  ", sapply(strsplit(human.model.names[[i]], "_"), tail, 1),
+  #           "\n"))
   dfs[[i]]$Mod.Name <- sapply(strsplit(human.model.names[[i]], "_"), tail, 1)
 }
 
@@ -62,9 +63,9 @@ g2 = ggplot(ob.month, aes(x = Outbreak, y = rel.Risk, fill = Plot.Name)) +
       legend.text.align = 0) +
   scale_fill_discrete(name="Model", labels = unname(TeX(unique(paste0("$",model_names$Plot.Name)))))
 
-fig6 <- g1 + g2
+(fig6 <- g1 + g2)
 
-ggsave(filename = file.path(fig.pub, "Fig6.pdf"), 
+ggsave(filename = file.path(fig.pub, "Fig_altModelSeltection.pdf"), 
        plot = fig6,
        device = cairo_pdf,
        width = 8,

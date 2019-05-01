@@ -18,8 +18,7 @@ mod.out.dir <- file.path(base.path, "ModOut")
 mod.out.nov <- file.path(base.path, "novAddition", "ModOut")
 
 ## New figure directories
-fig.hum1 <- file.path(base.path, "FigOut", "hum_1") ## for the figurers with the standard 32 data points
-fig.hum2 <- file.path(base.path, "FigOut", "hum_2") ## for figures with the 2 new outbreaks included
+fig.hum <- file.path(base.path, "FigOut", "hum") ## for the figurers 
 fig.pub <- file.path(base.path, "FigOut", "publicationFigures") ## figures for publication
 fig.si <- file.path(base.path, "FigOut", "siFigures") ## for Si figures
 
