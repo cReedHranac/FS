@@ -4,15 +4,15 @@ source("R/helperFunctions.R")
 library(ggplot2); library(dplyr); library(data.table); library(gridExtra); library(gtools)
 library(rgdal); library(raster); library(ggridges); library(RcppRoll)
 
-# for 34 point analysis:
-data_pattern <- "noAn_2_"
-data_outdf   <- dOut.2
-data_outfig  <- fig.hum2
+# # for 34 point analysis:
+# data_pattern <- "noAn_2_"
+# data_outdf   <- dOut.2
+# data_outfig  <- fig.hum2
 
 # for 32 point analysis:
 data_pattern <- "noAn_[0-9]+\\.tif"
-data_outdf   <- dOut.1
-data_outfig  <- fig.hum1
+data_outdf   <- mod.out.nov
+data_outfig  <- fig.hum
 
 theme_set(theme_bw(base_family = "serif"))
 
@@ -553,11 +553,11 @@ rm(drc.hd)
 
 #### create the figure 5 images ####
 human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_ModProb"  )
+                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_Mod"  )
 
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
-                      mod.dir= mod.out.nov,
+                      mod.dir= data_outdf,
                       write.out = T,
                       out.df = data_outdf,
                       out.fig = data_outfig)
