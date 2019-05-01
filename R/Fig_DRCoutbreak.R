@@ -553,7 +553,7 @@ rm(drc.hd)
 
 #### create the figure 5 images ####
 human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb"  )
+                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_ModProb"  )
 
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
