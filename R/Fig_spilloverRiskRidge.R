@@ -141,10 +141,10 @@ afr.poly <- readOGR(dsn = file.path(data.source, "Africa"),
 
 #### Alternative human models for ridges ####
 
-hum.stk <- spatHandler(model.name = "h_Prb", dOut.1)
+hum.stk <- spatHandler(model.name = "h_Mod", mod.out.nov)
 (risk.plot <- ERgplot(x = hum.stk))
 
-hum.NoAn <- spatHandler(model.string = "humNoAn", "SpGLMRes_Nov") # Go with this one for ridges
+# Go with this one for ridges
 
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
@@ -205,7 +205,7 @@ hum.fig <- grid.arrange(risk.grob,
 #        height=4.3,
 #        units = "in",
 #        dpi = 300)
-ggsave(filename = file.path(fig.pub, "Fig4_complete_h1.pdf"),
+ggsave(filename = file.path(fig.pub, "Fig_spilloverRiskRidge.pdf"),
        hum.fig,
        device = cairo_pdf,
        width=8,
@@ -233,7 +233,7 @@ central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
 
 #### Animal Risk Plot ####
-ann.mean <- spatHandler("a_Prb", dOut.an)
+ann.mean <- spatHandler("a_nDiv", mod.out.nov)
 ann.risk.plot <- ERgplot(ann.mean)
 ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 # and fixup the aspect ratio of ridge to that of map
@@ -281,7 +281,7 @@ an.risk <- grid.arrange(ANrisk.grob,
 #        height=4.3,
 #        units = "in",
 #        dpi = 300)
-ggsave(filename = file.path(fig.si, "AnnRisk.pdf"),
+ggsave(filename = file.path(fig.si, "Fig_spilloverRiskRidge_An.pdf"),
        an.risk,
        device = cairo_pdf,
        width=8,
