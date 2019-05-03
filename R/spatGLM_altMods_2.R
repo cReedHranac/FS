@@ -299,6 +299,7 @@ spatGLM.AnimalMod <- function(ob.col, coV.v, dat, rGrid = rf){
   if(quote(ob.col) != "OB_ann_imp"){
     W.df$OB_ann_imp_1 <- 0
     W.df$OB_ann_imp <- 0
+    W.df$hdl <- 0
   }
   
   ##            ##
