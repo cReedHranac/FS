@@ -810,5 +810,5 @@ a.qAIC <- as.data.frame(do.call(rbind, lapply(a.mods, qAIC)),
                         row.names = c("null", "nDiv", "nSBD",
                                       "cNDiv", "cBDiv", "cPDiv",
                                       "mcNDiv", "mcBDiv", "mcPDiv",
-                                      "ORg", "Prb", "ModProb"))
+                                      "ORg", "mORg", "Prb", "ModProb"))
 write.csv(a.qAIC, file.path(mod.out.nov, "anqAIC_FullAltModels.csv"))

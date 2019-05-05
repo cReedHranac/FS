@@ -12,30 +12,33 @@ data_outdf   <- mod.out.nov
 model_names <- tribble(~Mod.Name, ~Plot.Name,
         'null',  'NULL',
         'nDiv', 'D_{tot}',
+        'nSBD', 'D_{tax}',
         'cBDiv', 'D + B_{tot}',
         'cNDiv', 'B_{tot}',
         'cPDiv', 'D \\times B_{tot}',
-        'nSBD', 'D_{tax}',
-        'Prb', 'D + B_{tax}',
+        'mcBDiv', 'D + B_{tot}*',
+        'mcNDiv', 'B_{tot}*',
+        'mcPDiv', 'D \\times B_{tot}*',
         'ORG', 'D \\times B_{tax}',
-        'mod', 'D + B_{tax}*'
-        )
+        'mORG', 'D \\times B_{tax}*',
+        'Prb', 'D + B_{tax}',
+        'mod', 'D + B_{tax}*')
 model_names$Plot.Name = factor(model_names$Plot.Name, levels=model_names$Plot.Name)
 
 #### ####
-human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv","h_Mod",  "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb" )
+human.model.names <-  c("h_null", "h_nDiv","h_nSBD",
+                        "h_cBDiv", "h_cNDiv", "h_cPDiv",
+                        "h_mcBDiv", "h_mcNDiv", "h_mcPDiv",
+                        "h_ORG","h_mORG",  "h_Prb", "h_Mod"  )
 ## read in the dataframes in and add Model name column
 ## get names 
-dfs <- lapply(list.files(data_outdf, pattern = "ob", full.names = T),read.csv)
+dfs <- lapply(paste0(data_outdf, 
+                     "/obDF", human.model.names, ".csv"),
+              read.csv)
 
 
 for(i in 1:length(human.model.names)){
-  ## testing for name acuracy
-    # cat(paste(list.files(data_outdf, pattern = "ob")[[i]],
-  #           "  =  ", sapply(strsplit(human.model.names[[i]], "_"), tail, 1),
-  #           "\n"))
-  dfs[[i]]$Mod.Name <- sapply(strsplit(human.model.names[[i]], "_"), tail, 1)
+   dfs[[i]]$Mod.Name <- sapply(strsplit(human.model.names[[i]], "_"), tail, 1)
 }
 
 ob.masterframe <- do.call(rbind, dfs)
