@@ -116,13 +116,24 @@ xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
 long.table <- left_join(long.table, xy, "cell") %>%
   ## create additional variables
-  mutate(BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))), #Conditions
+  mutate(mlptr_prob = log(ifelse(y > -18 & month >7, # modified Ptr layer
+                               (5/9*ptr_dbl_imp + 1),
+                               ptr_dbl_imp + 1)),
+         mptr_prob = ifelse(y > -18 & month >7, # modified Ptr layer
+                               (5/9*ptr_dbl_imp + 1),
+                               ptr_dbl_imp + 1),
+         BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))), #Conditions
          lBB.cond = log(BB.cond + 1),
+         mBB.cond = (1-((1-mptr_prob)*(1-mic_dbl_imp)*(1-mol_dbl_imp))),
+         mlBB.cond = log(mBB.cond + 1),
          BatDiv = (ptr.div + mic.div + mol.div), #Totaled bat Diversity
          lBatDiv = log(BatDiv +1),
          BB.condDIV = BB.cond * BatDiv,
+         mBB.condDIV = mBB.cond * BatDiv,
          lBB.condDIV = log(BB.condDIV + 1),
+         mlBB.condDIV = log(mBB.condDIV + 1),
          lptr_BR = log(ptr_dbl_imp * ptr.div + 1), #force of birthing
+         mlptr_BR = log(mptr_prob * ptr.div + 1),
          lmic_BR = log(mic_dbl_imp * mic.div + 1),
          lmol_BR = log(mol_dbl_imp * mol.div + 1),
          lptr_prob = log(ptr_dbl_imp + 1),
@@ -130,10 +141,7 @@ long.table <- left_join(long.table, xy, "cell") %>%
          lmol_prob = log(mol_dbl_imp + 1),
          lPop = log(popDen + 1),
          lFrag = log(fragIndex + 1),
-         lnBm.div = log(nBm.div +1),
-         lptr_Mod = log(ifelse(y > -18 & month >7,
-                               (5/9*ptr_dbl_imp + 1),
-                               ptr_dbl_imp + 1)))
+         lnBm.div = log(nBm.div +1))
 # Warning messages:
 #   1: In log(BB.cond + 1) : NaNs produced
 #   2: In log(BB.condDIV + 1) : NaNs produced
@@ -197,7 +205,8 @@ wrapperTrapper <- function(x, df = long.table, depth){
 
 ltax <- paste0("l",tax.name)
 birthPulses <- names(long.table)[unlist(lapply(ltax, grep, x = names(long.table)))]
-conditionals <- c("lBB.cond", "lBB.condDIV")
+conditionals <- names(long.table)[grep("lBB", x = names(long.table))]
+
 
 ## lag to six months 
 lag6 <- c(birthPulses, conditionals)
