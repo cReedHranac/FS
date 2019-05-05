@@ -402,6 +402,22 @@ h.cNDiv.table <- resTabSimple(h.cNDiv)
 write.csv(h.cNDiv.table, 
           file.path(mod.out.nov, "res_h_cNDiv.csv"),
           row.names = F)
+#### Human Conditional Model A (No diversity) Mod ####
+h.mcNDiv <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c("mlBB.cond", "mlBB.cond_2", "mlBB.cond_4", "mlBB.cond_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div",
+                             "OB_ann_imp", "OB_ann_imp_1",
+                             "OB_hum_imp",
+                             "month",  "x", "y", "cell"),
+                   project = T,
+                   save.name = "h_mcNDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(h.mcNDiv[[1]])
+h.mcNDiv.table <- resTabSimple(h.mcNDiv)
+write.csv(h.mcNDiv.table, 
+          file.path(mod.out.nov, "res_h_mcNDiv.csv"),
+          row.names = F)
 #### Human Conditional Model B (with bat diversity) ####
 h.cBDiv <- spatGLM(ob.col = OB_hum_imp,
                    coV.v = c("lBB.cond", "lBB.cond_2", "lBB.cond_4", "lBB.cond_6",
@@ -418,7 +434,23 @@ h.cBDiv.table <- resTabSimple(h.cBDiv)
 write.csv(h.cBDiv.table, 
           file.path(mod.out.nov, "res_h_cBDiv.csv"),
           row.names = F)
-#### Human Conditional Model B (Diversity Product) ####
+#### Human Conditional Model B (with bat diversity) Mod ####
+h.mcBDiv <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c("mlBB.cond", "mlBB.cond_2", "mlBB.cond_4", "mlBB.cond_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div", "lBatDiv",
+                             "OB_ann_imp", "OB_ann_imp_1",
+                             "OB_hum_imp",
+                             "month",  "x", "y", "cell"),
+                   project = T,
+                   save.name = "h_mcBDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(h.mcBDiv[[1]])
+h.mcBDiv.table <- resTabSimple(h.mcBDiv)
+write.csv(h.mcBDiv.table, 
+          file.path(mod.out.nov, "res_h_mcBDiv.csv"),
+          row.names = F)
+#### Human Conditional Model (Diversity Product) ####
 h.cPDiv <- spatGLM(ob.col = OB_hum_imp,
                    coV.v = c("lBB.condDIV", "lBB.condDIV_2", "lBB.condDIV_4", "lBB.condDIV_6",
                              "lPop", "lFrag", "hdl", "lnBm.div",
@@ -434,6 +466,24 @@ h.cPDiv.table <- resTabSimple(h.cPDiv)
 write.csv(h.cPDiv.table, 
           file.path(mod.out.nov, "res_h_cPDiv.csv"),
           row.names = F)
+
+#### Human Conditional Model (Diversity Product) Mod ####
+h.mcPDiv <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c("mlBB.condDIV", "mlBB.condDIV_2", "mlBB.condDIV_4", "mlBB.condDIV_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div",
+                             "OB_ann_imp", "OB_ann_imp_1",
+                             "OB_hum_imp",
+                             "month",  "x", "y", "cell"),
+                   project = T, 
+                   save.name = "h_mcPDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(h.mcPDiv[[1]])
+h.mcPDiv.table <- resTabSimple(h.mcPDiv)
+write.csv(h.mcPDiv.table, 
+          file.path(mod.out.nov, "res_h_mcPDiv.csv"),
+          row.names = F)
+
 #### Human Force of Birthing ####
 h.ORG <- spatGLM(ob.col = OB_hum_imp,
                  coV.v = c("lptr_BR", "lmic_BR", "lmol_BR",
@@ -453,6 +503,26 @@ h.ORG.table <- resTabSimple(h.ORG)
 write.csv(h.ORG.table, 
           file.path(mod.out.nov, "res_h_ORG.csv"),
           row.names = F)
+#### Human Force of Birthing Mod ####
+h.mORG <- spatGLM(ob.col = OB_hum_imp,
+                 coV.v = c("mlptr_BR", "lmic_BR", "lmol_BR",
+                           "mlptr_BR_2", "lmic_BR_2", "lmol_BR_2",
+                           "mlptr_BR_4", "lmic_BR_4", "lmol_BR_4",
+                           "mlptr_BR_6", "lmic_BR_6", "lmol_BR_6",
+                           "lPop", "lFrag", "hdl", "lnBm.div",
+                           "OB_ann_imp", "OB_ann_imp_1",
+                           "OB_hum_imp",
+                           "month",  "x", "y", "cell"), 
+                 project = T,
+                 save.name = "h_mORG",
+                 dat = dat,
+                 leave.one.out = F)
+summary(h.mORG[[1]])
+h.mORG.table <- resTabSimple(h.mORG)
+write.csv(h.mORG.table, 
+          file.path(mod.out.nov, "res_h_mORG.csv"),
+          row.names = F)
+
 #### Human Breeding Probabilty + Diversity ####
 h.Prb<- spatGLM(ob.col = OB_hum_imp,
                 coV.v = c("lptr_prob", "lmic_prob", "lmol_prob",
@@ -476,10 +546,10 @@ write.csv(h.Prb.table,
 
 #### Human Modified AFB + Diversity ####
 h.Mod<- spatGLM(ob.col = OB_hum_imp,
-                coV.v = c("lptr_Mod", "lmic_prob", "lmol_prob",
-                          "lptr_Mod_2", "lmic_prob_2", "lmol_prob_2",
-                          "lptr_Mod_4", "lmic_prob_4", "lmol_prob_4",
-                          "lptr_Mod_6", "lmic_prob_6", "lmol_prob_6",
+                coV.v = c("mlptr_prob", "lmic_prob", "lmol_prob",
+                          "mlptr_prob_2", "lmic_prob_2", "lmol_prob_2",
+                          "mlptr_prob_4", "lmic_prob_4", "lmol_prob_4",
+                          "mlptr_prob_6", "lmic_prob_6", "lmol_prob_6",
                           "lptrDiv", "lmicDiv", "lmolDiv",
                           "lPop", "lFrag", "hdl", "lnBm.div",
                           "OB_ann_imp", "OB_ann_imp_1",
@@ -497,11 +567,15 @@ write.csv(h.Mod.table,
 
 
 #### HUman qAIC ####
-h.mods <- list(h.null, h.nDiv, h.nSBD, h.cNDiv, h.cBDiv, h.cPDiv, h.ORG, h.Prb, h.Mod)
+h.mods <- list(h.null, h.nDiv, h.nSBD,
+               h.cNDiv,  h.cBDiv,  h.cPDiv,
+               h.mcNDiv,h.mcBDiv, h.mcPDiv,
+               h.ORG, h.mORG, h.Prb, h.Mod)
 h.qAIC <- as.data.frame(do.call(rbind, lapply(h.mods, qAIC)),
                         row.names = c("null", "nDiv", "nSBD",
                                       "cNDiv", "cBDiv", "cPDiv",
-                                      "ORg", "Prb", "ModProb"))
+                                      "mcNDiv", "mcBDiv", "mcPDiv",
+                                      "ORg", "mORg", "Prb", "ModProb"))
 write.csv(h.qAIC, file.path(mod.out.nov, "humqAIC_FUllAltModels.csv"))
 
 # #### ROC ####
@@ -576,6 +650,21 @@ a.cNDiv.table <- resTabSimple(a.cNDiv)
 write.csv(a.cNDiv.table, 
           file.path(mod.out.nov, "res_a_cNDiv.csv"),
           row.names = F)
+#### Animal Conditional Model A (No diversity) Mod ####
+a.mcNDiv <- spatGLM(ob.col = OB_ann_imp,
+                   coV.v = c("mlBB.cond", "mlBB.cond_2", "mlBB.cond_4", "mlBB.cond_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div",
+                             "OB_ann_imp", 
+                             "month",  "x", "y", "cell"),
+                   project = T,
+                   save.name = "a_mcNDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(a.mcNDiv[[1]])
+a.mcNDiv.table <- resTabSimple(a.mcNDiv)
+write.csv(a.mcNDiv.table, 
+          file.path(mod.out.nov, "res_a_mcNDiv.csv"),
+          row.names = F)
 #### Animal Conditional Model B (with bat diversity) ####
 a.cBDiv <- spatGLM(ob.col = OB_ann_imp,
                    coV.v = c("lBB.cond", "lBB.cond_2", "lBB.cond_4", "lBB.cond_6",
@@ -591,6 +680,21 @@ a.cBDiv.table <- resTabSimple(a.cBDiv)
 write.csv(a.cBDiv.table, 
           file.path(mod.out.nov, "res_a_cBDiv.csv"),
           row.names = F)
+#### Animal Conditional Model B (with bat diversity) Mod ####
+a.mcBDiv <- spatGLM(ob.col = OB_ann_imp,
+                   coV.v = c("mlBB.cond", "mlBB.cond_2", "mlBB.cond_4", "mlBB.cond_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div", "lBatDiv",
+                             "OB_ann_imp",
+                             "month",  "x", "y", "cell"),
+                   project = T,
+                   save.name = "a_mcBDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(a.mcBDiv[[1]])
+a.mcBDiv.table <- resTabSimple(a.mcBDiv)
+write.csv(a.mcBDiv.table, 
+          file.path(mod.out.nov, "res_a_mcBDiv.csv"),
+          row.names = F)
 #### Animal Conditional Model B (Diversity Product) ####
 a.cPDiv <- spatGLM(ob.col = OB_ann_imp,
                    coV.v = c("lBB.condDIV", "lBB.condDIV_2", "lBB.condDIV_4", "lBB.condDIV_6",
@@ -605,6 +709,21 @@ summary(a.cPDiv[[1]])
 a.cPDiv.table <- resTabSimple(a.cPDiv)
 write.csv(a.cPDiv.table, 
           file.path(mod.out.nov, "res_a_cPDiv.csv"),
+          row.names = F)
+#### Animal Conditional Model B (Diversity Product) Mod ####
+a.mcPDiv <- spatGLM(ob.col = OB_ann_imp,
+                   coV.v = c("mlBB.condDIV", "mlBB.condDIV_2", "mlBB.condDIV_4", "mlBB.condDIV_6",
+                             "lPop", "lFrag", "hdl", "lnBm.div",
+                             "OB_ann_imp", 
+                             "month",  "x", "y", "cell"),
+                   project = T, 
+                   save.name = "a_mcPDiv",
+                   dat = dat,
+                   leave.one.out = F)
+summary(a.mcPDiv[[1]])
+a.mcPDiv.table <- resTabSimple(a.mcPDiv)
+write.csv(a.mcPDiv.table, 
+          file.path(mod.out.nov, "res_a_mcPDiv.csv"),
           row.names = F)
 #### Animal Force of Birthing ####
 a.ORG <- spatGLM(ob.col = OB_ann_imp,
@@ -623,6 +742,24 @@ summary(a.ORG[[1]])
 a.ORG.table <- resTabSimple(a.ORG)
 write.csv(a.ORG.table, 
           file.path(mod.out.nov, "res_a_ORG.csv"),
+          row.names = F)
+#### Animal Force of Birthing Mod####
+a.mORG <- spatGLM(ob.col = OB_ann_imp,
+                 coV.v = c("mlptr_BR", "lmic_BR", "lmol_BR",
+                           "mlptr_BR_2", "lmic_BR_2", "lmol_BR_2",
+                           "mlptr_BR_4", "lmic_BR_4", "lmol_BR_4",
+                           "mlptr_BR_6", "lmic_BR_6", "lmol_BR_6",
+                           "lPop", "lFrag", "hdl", "lnBm.div",
+                           "OB_ann_imp", 
+                           "month",  "x", "y", "cell"), 
+                 project = T,
+                 save.name = "a_mORG",
+                 dat = dat,
+                 leave.one.out = F)
+summary(a.mORG[[1]])
+a.mORG.table <- resTabSimple(a.mORG)
+write.csv(a.mORG.table, 
+          file.path(mod.out.nov, "res_a_mORG.csv"),
           row.names = F)
 #### Animal Breeding Probabilty + Diversity ####
 a.Prb<- spatGLM(ob.col = OB_ann_imp,
@@ -646,10 +783,10 @@ write.csv(a.Prb.table,
 
 #### Animal Modified AFB + Diversity ####
 a.Mod<- spatGLM(ob.col = OB_ann_imp,
-                coV.v = c("lptr_Mod", "lmic_prob", "lmol_prob",
-                          "lptr_Mod_2", "lmic_prob_2", "lmol_prob_2",
-                          "lptr_Mod_4", "lmic_prob_4", "lmol_prob_4",
-                          "lptr_Mod_6", "lmic_prob_6", "lmol_prob_6",
+                coV.v = c("mlptr_prob", "lmic_prob", "lmol_prob",
+                          "mlptr_prob_2", "lmic_prob_2", "lmol_prob_2",
+                          "mlptr_prob_4", "lmic_prob_4", "lmol_prob_4",
+                          "mlptr_prob_6", "lmic_prob_6", "lmol_prob_6",
                           "lptrDiv", "lmicDiv", "lmolDiv",
                           "lPop", "lFrag", "hdl", "lnBm.div",
                           "OB_ann_imp", 
@@ -665,9 +802,13 @@ write.csv(a.Mod.table,
           row.names = F)
 
 #### Animal qAIC ####
-a.mods <- list(a.null, a.nDiv, a.nSBD, a.cNDiv, a.cBDiv, a.cPDiv, a.ORG, a.Prb, a.Mod)
+a.mods <- list(a.null, a.nDiv, a.nSBD,
+               a.cNDiv, a.cBDiv, a.cPDiv,
+               a.mcNDiv, a.mcBDiv, a.mcPDiv,
+               a.ORG, a.mORG, a.Prb, a.Mod)
 a.qAIC <- as.data.frame(do.call(rbind, lapply(a.mods, qAIC)),
                         row.names = c("null", "nDiv", "nSBD",
                                       "cNDiv", "cBDiv", "cPDiv",
+                                      "mcNDiv", "mcBDiv", "mcPDiv",
                                       "ORg", "Prb", "ModProb"))
 write.csv(a.qAIC, file.path(mod.out.nov, "anqAIC_FullAltModels.csv"))
