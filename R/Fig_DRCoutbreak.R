@@ -552,13 +552,15 @@ drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 
 #### create the figure 5 images ####
-human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
-                       "h_nSBD",  "h_null",  "h_ORG",   "h_Prb", "h_Mod"  )
+human.model.names <- c("h_null", "h_nDiv","h_nSBD",
+                       "h_cBDiv", "h_cNDiv", "h_cPDiv",
+                       "h_mcBDiv", "h_mcNDiv", "h_mcPDiv",
+                        "h_ORG","h_mORG",  "h_Prb", "h_Mod"  )
 
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
                       mod.dir= data_outdf,
-                      write.out = F,
+                      write.out = T,
                       out.df = data_outdf,
                       out.fig = data_outfig)
 
