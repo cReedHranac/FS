@@ -4,7 +4,7 @@
 
 source("R/helperFunctions.R")
 library(tidyverse); library(gtools)
-library(RcppRoll);library(ggridges)
+library(RcppRoll);library(ggridges); library(raster)
 
 # default theme for ggplot
 theme_set(theme_bw(base_size = 9, base_family = "serif"))
@@ -304,7 +304,7 @@ rm(drc.hd)
 
 
 #### Animal Top outbreak ####
-ann.mean <- spatHandler.Proj(model.name = "a_Prb",mod.dir =  dOut.an)
+ann.mean <- spatHandler.Proj(model.name = "a_nDiv",mod.dir =  mod.out.nov)
 ann.risk.plot <- ERgplot(ann.mean)
 n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
 w.ridge <- 0.5 # Width of ridge plot compared to map
@@ -503,7 +503,7 @@ mic1 <- probBirth1(mic.fix,
 
 
 #### Monthly Human and Animal Risk Maps
-hum.sum <- spatHandler.Proj(model.name = "h_Prb",mod.dir =  dOut.1)
+hum.sum <- spatHandler.Proj(model.name = "h_Mod",mod.dir =  mod.out.nov)
 
 riskForce1(hum.sum,
            save = T,
@@ -511,7 +511,7 @@ riskForce1(hum.sum,
            file.out = "HumRisk_SI.pdf",
            dir.out = fig.si)
 
-ann.sum <- spatHandler.Proj("a_Prb", mod.dir = dOut.an)
+ann.sum <- spatHandler.Proj("a_nDiv", mod.dir = mod.out.nov)
 riskForce1(ann.sum,
            save = T,
            device.out = "pdf",

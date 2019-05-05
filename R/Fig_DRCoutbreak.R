@@ -558,6 +558,10 @@ human.model.names <- c("h_cBDiv", "h_cNDiv", "h_cPDiv", "h_nDiv",
 human.fig5s <- lapply(human.model.names,
                       fig5.fun,
                       mod.dir= data_outdf,
-                      write.out = T,
+                      write.out = F,
                       out.df = data_outdf,
                       out.fig = data_outfig)
+
+## Extracting values for the manuscript
+mod <- human.fig5s[[9]]$df
+"prb" <- human.fig5s[[8]]$df
