@@ -116,7 +116,7 @@ xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
 long.table <- left_join(long.table, xy, "cell") %>%
   ## create additional variables
-  mutate(mlptr_prob = log(ifelse(y > -18 & month >7, # modified Ptr layer
+  mutate(mlptr_prob = log(ifelse(y > -10 & month >7, # modified Ptr layer
                                (5/9*ptr_dbl_imp + 1),
                                ptr_dbl_imp + 1)),
          mptr_prob = ifelse(y > -18 & month >7, # modified Ptr layer
