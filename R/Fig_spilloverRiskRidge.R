@@ -233,7 +233,7 @@ central.ridge <- ERridge(hum.NoAn, n.bin = 30, central.africa)
 western.ridge <- ERridge(hum.NoAn, n.bin = 30, west.africa)
 
 #### Animal Risk Plot ####
-ann.mean <- spatHandler("a_nDiv", mod.out.nov)
+ann.mean <- spatHandler("a_mcPDiv", mod.out.nov)
 ann.risk.plot <- ERgplot(ann.mean)
 ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
 # and fixup the aspect ratio of ridge to that of map

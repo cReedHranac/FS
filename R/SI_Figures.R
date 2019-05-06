@@ -303,63 +303,63 @@ drc <- spTransform(drc.hd, CRS(wgs))
 rm(drc.hd)
 
 
-#### Animal Top outbreak ####
-ann.mean <- spatHandler.Proj(model.name = "a_nDiv",mod.dir =  mod.out.nov)
-ann.risk.plot <- ERgplot(ann.mean)
-n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
-w.ridge <- 0.5 # Width of ridge plot compared to map
-ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
-# and fixup the aspect ratio of ridge to that of map
-width_height <- diff(Africa.ext)[c(1,3)]
-aspect_map <- width_height[1] / width_height[2]
-
-# now aspect ratio of ridge plot (this assumes top bin isn't too large)
-aspect_ridge <- 12 / n.ridge
-aspect_match <- aspect_ridge / aspect_map / w.ridge
-
-ANrisk.grob <- ggplotGrob(ann.risk.plot + guides(fill='none') +
-                            theme(plot.margin=unit(rep(0,4), "cm")))
-ANridge.grob <- ggplotGrob(ann.ridge + guides(fill='none') +
-                             theme(plot.margin=unit(rep(0,4), "cm")) +
-                             coord_fixed(ratio = aspect_match))
-
-# find the height and left axis width of the risk grob
-index <- ANrisk.grob$layout$t[ANrisk.grob$layout$name == 'panel']
-plot_height <- ANrisk.grob$heights[index]
-index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-l']
-axis_width <- ANrisk.grob$widths[index]
-index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-r']
-ANrisk.grob$widths[index] <- unit(0.5, 'cm')
-
-# set the height the same, the left axis width, and the right
-# axis to the same as the left axis for the map, scaled so that
-# the widths are maintained (when laying out with grid.arrange)
-# the widths are applied to the full objects, so we want everything
-# to be a scaled version of the other (i.e. axis placement/widths)
-# etc scaled perfectly
-index <- ANridge.grob$layout$t[ANridge.grob$layout$name == 'panel']
-ANridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
-index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-l']
-right_axis_width <- unit(
-  grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
-  "cm")
-ANridge.grob$widths[index] <- right_axis_width
-index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-r']
-ANridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
-
-library(gridExtra)
-# arrange them side by side
-an.risk <- grid.arrange(ANrisk.grob,
-                        ANridge.grob,
-                        ncol=2, widths=c(1,w.ridge))
-
-ggsave(filename = file.path(fig.si,"AnRisk_TopModel.pdf"),
-       an.risk,
-       device = cairo_pdf,
-       width=8,
-       height=4.3,
-       units = "in",
-       dpi = 300)
+# #### Animal Top outbreak ####
+# ann.mean <- spatHandler.Proj(model.name = "a_nDiv",mod.dir =  mod.out.nov)
+# ann.risk.plot <- ERgplot(ann.mean)
+# n.ridge <- 96  # Number of ridgelines. Mess with scale below as well.
+# w.ridge <- 0.5 # Width of ridge plot compared to map
+# ann.ridge <- ERridge(ann.mean, n.bin = n.ridge, scale = 2, crop.extent = Africa.ext )
+# # and fixup the aspect ratio of ridge to that of map
+# width_height <- diff(Africa.ext)[c(1,3)]
+# aspect_map <- width_height[1] / width_height[2]
+# 
+# # now aspect ratio of ridge plot (this assumes top bin isn't too large)
+# aspect_ridge <- 12 / n.ridge
+# aspect_match <- aspect_ridge / aspect_map / w.ridge
+# 
+# ANrisk.grob <- ggplotGrob(ann.risk.plot + guides(fill='none') +
+#                             theme(plot.margin=unit(rep(0,4), "cm")))
+# ANridge.grob <- ggplotGrob(ann.ridge + guides(fill='none') +
+#                              theme(plot.margin=unit(rep(0,4), "cm")) +
+#                              coord_fixed(ratio = aspect_match))
+# 
+# # find the height and left axis width of the risk grob
+# index <- ANrisk.grob$layout$t[ANrisk.grob$layout$name == 'panel']
+# plot_height <- ANrisk.grob$heights[index]
+# index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-l']
+# axis_width <- ANrisk.grob$widths[index]
+# index <- ANrisk.grob$layout$l[ANrisk.grob$layout$name == 'axis-r']
+# ANrisk.grob$widths[index] <- unit(0.5, 'cm')
+# 
+# # set the height the same, the left axis width, and the right
+# # axis to the same as the left axis for the map, scaled so that
+# # the widths are maintained (when laying out with grid.arrange)
+# # the widths are applied to the full objects, so we want everything
+# # to be a scaled version of the other (i.e. axis placement/widths)
+# # etc scaled perfectly
+# index <- ANridge.grob$layout$t[ANridge.grob$layout$name == 'panel']
+# ANridge.grob$heights[index] <- unit(as.numeric(plot_height)/w.ridge, 'null')
+# index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-l']
+# right_axis_width <- unit(
+#   grid::convertWidth(axis_width, unitTo = 'cm', valueOnly = TRUE) * w.ridge,
+#   "cm")
+# ANridge.grob$widths[index] <- right_axis_width
+# index <- ANridge.grob$layout$l[ANridge.grob$layout$name == 'axis-r']
+# ANridge.grob$widths[index] <- unit(0.5 * w.ridge, 'cm')
+# 
+# library(gridExtra)
+# # arrange them side by side
+# an.risk <- grid.arrange(ANrisk.grob,
+#                         ANridge.grob,
+#                         ncol=2, widths=c(1,w.ridge))
+# 
+# ggsave(filename = file.path(fig.si,"AnRisk_TopModel.pdf"),
+#        an.risk,
+#        device = cairo_pdf,
+#        width=8,
+#        height=4.3,
+#        units = "in",
+#        dpi = 300)
 
 
 
@@ -511,7 +511,7 @@ riskForce1(hum.sum,
            file.out = "HumRisk_SI.pdf",
            dir.out = fig.si)
 
-ann.sum <- spatHandler.Proj("a_nDiv", mod.dir = mod.out.nov)
+ann.sum <- spatHandler.Proj("a_mcPDiv", mod.dir = mod.out.nov)
 riskForce1(ann.sum,
            save = T,
            device.out = "pdf",
