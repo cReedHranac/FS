@@ -13,16 +13,16 @@ model_names <- tribble(~Mod.Name, ~Plot.Name,
         'null',  'NULL',
         'nDiv', 'D_{tot}',
         'nSBD', 'D_{tax}',
-        'cBDiv', 'D + B_{tot}',
-        'cNDiv', 'B_{tot}',
-        'cPDiv', 'D \\times B_{tot}',
-        'mcBDiv', 'D + B_{tot}*',
-        'mcNDiv', 'B_{tot}*',
-        'mcPDiv', 'D \\times B_{tot}*',
-        'ORG', 'D \\times B_{tax}',
-        'mORG', 'D \\times B_{tax}*',
-        'Prb', 'D + B_{tax}',
-        'mod', 'D + B_{tax}*')
+        'cBDiv', 'D_{tot} + P_{tot}',
+        'cNDiv', 'P_{tot}',
+        'cPDiv', 'D_{tot} \\times P_{tot}',
+        'mcBDiv', 'D_{tot} + P_{tot}*',
+        'mcNDiv', 'P_{tot}*',
+        'mcPDiv', 'D_{tot} \\times P_{tot}*',
+        'ORG', 'D_{tax} \\times P_{tax}',
+        'mORG', 'D_{tax} \\times P_{tax}*',
+        'Prb', 'D_{tax} + P_{tax}',
+        'mod', 'D_{tax} + P_{tax}*')
 model_names$Plot.Name = factor(model_names$Plot.Name, levels=model_names$Plot.Name)
 
 #### ####
