@@ -45,3 +45,6 @@ Outbreak_ID,x,y,Reference,Virus,VDATA,Symptomatic,Country,Place,Org.smp,Apparnet
 11,14.165,1.1669,Rouquet 2005,Ebola,yes,yes,Gabon,Zadie,gorilla,Gorilla gorilla,4,2,2,2002,2002,Google Maps,point,Lat Long in paper,Individual,Gorilla gorilla,Individual,NA,,,,1,1,
 13,14.2644,0.731,Rouquet 2005,Ebola,yes,yes,Gabon,Zadie,gorilla,Gorilla gorilla,4,3,3,2002,2002,Google Maps,point,Lat Long in paper,Pair,Gorilla gorilla,Pair,NA,,,,2,2,
 52,-12.057174,8.910516,Goldstein 2018,Bombalivirus,,no,Sierra Leone,Bombali ,Mops condylurus and Chaerephon pumilus,NULL,2,4,4,2016,2016,Google Maps,point,point taken close to Makeni (jus tot the north of) in accordance with description and SI map in publication,no outbreak,Molossid bats,NULL,NA,PCR,535,4,NULL,NULL,NULL
+53,16.02,3.31,"Morvan, 1999",Ebolavirus,yes,no,CAR,Salo,Mus sp,NULL,4,5,6,1994,1994,Pulled form Manuscript,point,Point from Manuscript,no outbreak,Mus sp,NULL,NA,PCR,40,1,NULL,NULL,NULL
+54,20.83,8.25,"Morvan, 1999",Ebolavirus,yes,no,CAR,Bohou,Paromys complex,NULL,4,6,6,1998,1998,Pulled form Manuscript,point,Point from Manuscript,no outbreak,Paromys complex,NULL,NA,PCR,12,2,,,
+55,16.56,3.56,"Morvan, 1999",Ebolavirus,yes,no,CAR,Batouri,Sylvisorex ollula,,4,10,1,1998,1999,Pulled form Manuscript,point,Point from Manuscript,no outbreak,Sylvisorex ollula,NULL,NA,PCR,7,1,NULL,NULL,NULL

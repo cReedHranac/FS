@@ -2,8 +2,10 @@
   #Script for creating dataframes representing the binary breeding of African Bats
   # Update of BioOccMunge
 ##See if cached files exist in the clean.dir
+taxa <- c("mic", "mol", "ptr")
+exist.names <- paste0(taxa,"Occ.csv")
 
-if(length(list.files(file.path(clean.dir), pattern = "*Occ.csv")) == 3 ){
+if(file.exists(file.path(clean.dir, exist.names))){
   taxa <- c("mic", "mol", "ptr")
   for( i in 1:3){
     assign(paste0(taxa[[i]], ".occ"),

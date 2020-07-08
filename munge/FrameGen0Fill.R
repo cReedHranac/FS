@@ -8,23 +8,23 @@ source("R/helperFunctions.R"); source("R/dblMonthFuns.R")
 library(raster);library(gtools)
 # human outbreak stack
 hum.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum0*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hum0*")))
   ,raster))
 hum.stk <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hum*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hum*")))
   ,raster))
 
 # animal outbreak stack
 ann.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann0*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_ann0*")))
   ,raster))
 ann.stk <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_ann*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_ann*")))
   ,raster))
 
 # host detection locations (bats with detected virus)
 hdl.stk0 <- do.call(stack, lapply(
-  file.path(clean.dir,mixedsort(list.files(file.path(clean.dir), pattern = "OB_hdl0_*")))
+  file.path(clean.dir.nov,mixedsort(list.files(file.path(clean.dir.nov), pattern = "OB_hdl0_*")))
   ,raster))
 
 #### Breeding probability rasters without imputation #### 
@@ -44,6 +44,8 @@ mol.sng.imp <- resRasterLoad("mol", "SNG_3",F,  mod.out.dir)
 ptr.dbl.imp <- resRasterLoad("ptr", "DBL_3",T,  mod.out.dir)
 mic.dbl.imp <- resRasterLoad("mic", "DBL_3",T,  mod.out.dir)
 mol.dbl.imp <- resRasterLoad("mol", "DBL_3",T,  mod.out.dir)
+
+
 
 tax <- c("ptr", "mol", "mic")
 rf <- raster(file.path(data.source, "cropMask.tif"))
@@ -99,7 +101,7 @@ for(i in 1:12){
                   hum.stk[[paste0("OB_hum",i)]], ann.stk[[paste0("OB_ann",i)]],
                   hdl.stk0[[paste0("OB_hdl0_",i)]]) 
   names(ob.stk) <- c("OB_hum_imp", "OB_ann_imp", "OB_hum_raw", "OB_ann_raw", "hdl")
-  #Breeding Stacks
+####Breeding Stacks####
   ####Raw####
     #sng
   br.sng.raw <- list()
@@ -173,10 +175,15 @@ library(data.table);library(dplyr)
 long.table <- as.data.table(do.call(rbind, long.list))
 xy <- as.data.table(xyFromCell(blank, seq(1:ncell(blank))))
 xy$cell <- paste0("c", seq(1:ncell(blank)))
-long.table <- left_join(long.table, xy, "cell")
+long.table <- left_join(long.table, xy, "cell") %>%
+  ##add conditional probability and total bat div
+    mutate(BB.cond = (1-((1-ptr_dbl_imp)*(1-mic_dbl_imp)*(1-mol_dbl_imp))),
+         BatDiv = (ptr.div + mic.div + mol.div))
 
 
 
+
+##add conditional probability and total bat div
 #### Add force of breeding ####
 tax <- c("ptr", "mic", "mol") #taxonomic group
 grp <- c("sng", "dbl") #temporal grouping
@@ -246,11 +253,58 @@ for(i in 1:length(tax)){ #tax
   } 
 }
 
+q <- 1
+item.2 <- list()
+##adding lag colums for non-force of birthing 
+## add lag columns ##
+for(i in 1:length(tax)){ #tax
+  for(j in 1:length(grp)){ #group
+    for(k in 1:length(hndl)){ #handle
+      for(l in 1:6){ # n lag
+        nm <- paste(tax[[i]], grp[[j]], hndl[[k]], "Prob", l ,sep="_")
+        nw <- paste(tax[[i]], grp[[j]], hndl[[k]], sep="_")
+        bz <- long.table.br %>% dplyr::group_by(cell) %>%
+          dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw, n = p, order_by = month),
+                                                                nw=as.name(nw),
+                                                                p=l,
+                                                                month = as.name("month"))),nm)) %>%
+          ungroup %>%
+          dplyr::select(!!nm)
+        item.2[[q]] <- bz
+        q <- q+1
+        cat(nm,"\n")
+      }
+    }
+  } 
+}
+
+q <- 1
+item.3 <- list()
+## adding lag columns for the conditional total probabillities
+for(l in 1:6){
+  nm <- paste("BB.cond", l, sep= "_")
+  nw <- "BB.cond"
+  bz <- long.table.br %>% dplyr::group_by(cell) %>%
+    dplyr::mutate_(.dots = setNames(list(lazyeval::interp(~wrap(x = nw, n = p, order_by = month),
+                                                          nw = as.name(nw),
+                                                          p=l,
+                                                          month = as.name("month"))), nm)) %>%
+    ungroup %>%
+    dplyr::select(!!nm)
+  item.3[[q]] <- bz
+  q <- q+1
+  cat(nm,"\n")
+}
+
+
 lagz <- as.data.table(do.call(cbind, item))
+lagz2 <- as.data.table(do.call(cbind, item.2))
+lagz3 <- as.data.table(do.call(cbind, item.3))
+lag.terms <- bind_cols(lagz, lagz2, lagz3)
 long.table.full <- long.table.br %>%
-  bind_cols(lagz) %>%
+  bind_cols(lag.terms) %>%
   mutate(logPop = log(popDen + 1),
          lFrag = log(fragIndex +1),
          lnBm.div = log(nBm.div +1))
 
-fwrite(long.table.full, file.path(clean.dir, "longMaster.csv"))
+fwrite(long.table.full, file.path(clean.dir.nov, "longMaster.csv"))

@@ -249,7 +249,7 @@ spatGLM.AnimalMod <- function(ob.col, coV.v, dat, rGrid = rf){
 }
 
 #### Data ####
-dat <- tbl_df(fread(file.path(clean.dir, "longMaster.csv")))
+dat <- tbl_df(fread(file.path(clean.dir.nov, "longMaster.csv")))
 # library(skimr)
 #  skim(dat)
 dat <- dat %>%
@@ -270,6 +270,9 @@ windows <- lapply(regions, as.owin)
 rm(rf.poly, regions)
 
 #### Human Model ####
+
+#############################
+### Full
 hum.full <-spatGLM(ob.col = OB_hum_imp,
                               coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
                                          "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
@@ -285,12 +288,32 @@ summary(hum.full[[1]])
 
 # tidy and write out
 humFullTable <- resTabSimple(hum.full)
-write.csv(humFullTable, "data/HumSpGLMRes_F.csv", row.names = F)
+write.csv(humFullTable, "data/HumSpGLMRes_Org.csv", row.names = F)
 
 mod.stk <- do.call(stack, hum.full[[3]])
-writeRaster(mod.stk, file.path(mod.out.dir, "SpGLMRes_F", "hum"),format = "GTiff",
+writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_Org", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
+## Remove animal bits for the outbreak fitting
+hum.full.noAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
+                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
+                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
+                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
+                              "OB_ann_imp","OB_ann_imp_1",
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat)
+mod.stk <- do.call(stack, hum.full.noAn[[3]])
+writeRaster(mod.stk,
+            file.path(mod.out.nov, "SpGLMRes_Org", "humNoAn"),
+            format = "GTiff",
+            bylayer=T,
+            suffix = "numbers",
+            overwrite = T)
+##############################
+## Null model
 hum.null <-spatGLM(ob.col = OB_hum_imp,
                       coV.v = c(  "OB_ann_imp", "OB_ann_imp_1","lnBm.div","logPop",
                                  "lFrag", "month",
@@ -299,37 +322,154 @@ hum.null <-spatGLM(ob.col = OB_hum_imp,
 summary(hum.null[[1]])
 
 humNullTable <- resTabSimple(hum.null)
-write.csv(humNullTable, "data/HumNullSpGLMRes_F.csv", row.names = F)
+write.csv(humNullTable, "data/HumNullSpGLMRes_Orgcsv", row.names = F)
 
-### Compare 2 modesl 
 
-full.qAIC <- qAIC(hum.full)
-null.qAIC <- qAIC(hum.null)
+########################################
+## Alternative mod (raw probablilities rather then multiplied with diversity)
+hum.prob <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                              "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                              "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                              "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                              "OB_ann_imp","OB_ann_imp_1", "BatDiv",
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat)
+summary(hum.prob[[1]])
 
-delta.qAIC <- null.qAIC - full.qAIC
+# tidy and write out
+humprobTable <- resTabSimple(hum.prob)
+write.csv(humprobTable, "data/HumSpGLMRes_Prob.csv", row.names = F)
 
+mod.stk <- do.call(stack, hum.prob[[3]])
+writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_Prob", "hum"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
 ## Modified to remove all animal outbreak information post model fit
 hum.NoAn <-spatGLM.AnimalMod(ob.col = OB_hum_imp,
-                   coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
-                              "ptr_dbl_imp_BR_2", "mic_dbl_imp_BR_2", "mol_dbl_imp_BR_2",
-                              "ptr_dbl_imp_BR_4", "mic_dbl_imp_BR_4", "mol_dbl_imp_BR_4",
-                              "ptr_dbl_imp_BR_6", "mic_dbl_imp_BR_6", "mol_dbl_imp_BR_6",
-                              "logPop", "OB_ann_imp", "lnBm.div",
-                              "hdl","lFrag", "OB_ann_imp_1","month",
-                              "OB_hum_imp",  "x", "y", "cell"),
-                   dat= dat)
+                             coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                                        "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                                        "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                                        "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                                        "logPop", "OB_ann_imp", "lnBm.div", "BatDiv",
+                                        "hdl","lFrag", "OB_ann_imp_1","month",
+                                        "OB_hum_imp",  "x", "y", "cell"),
+                             dat= dat)
 
 summary(hum.NoAn[[1]])
 humNoAnTable <- resTabSimple(hum.NoAn)
-write.csv(humNoAnTable, "data/HumNoAnSpGLMRes_F.csv", row.names = F)
+write.csv(humNoAnTable, "data/HumSpGLMRes_NoAn_Prob.csv", row.names = F)
 modNoAn.stk <- do.call(stack, hum.NoAn[[3]])
-writeRaster(modNoAn.stk, file.path(mod.out.dir, "SpGLMRes_F", "humNoAn"),format = "GTiff",
+writeRaster(modNoAn.stk,
+            file.path(mod.out.nov, "SpGLMRes_Prob", "humNoAn"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "numbers",
+            overwrite = T)
+
+
+###################################
+## Alternative mod 2: totals
+hum.sum <- spatGLM(ob.col = OB_hum_imp,
+                    coV.v = c( "BB.cond",
+                               "BB.cond_2",
+                               "BB.cond_4",
+                               "BB.cond_6",
+                               "OB_ann_imp","OB_ann_imp_1", "BatDiv",
+                               "hdl","logPop","lnBm.div","lFrag",
+                               "OB_hum_imp","month",
+                               "x", "y", "cell"),
+                    dat= dat)
+summary(hum.sum[[1]])
+
+# tidy and write out
+humsumTable <- resTabSimple(hum.sum)
+write.csv(humsumTable, "data/HumSpGLMRes_sum.csv", row.names = F)
+
+mod.stk <- do.call(stack, hum.sum[[3]])
+writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_sum", "hum"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
+## No animal version 
+hum.sumNoAn <- spatGLM.AnimalMod(ob.col = OB_hum_imp,
+                   coV.v = c( "BB.cond",
+                              "BB.cond_2",
+                              "BB.cond_4",
+                              "BB.cond_6",
+                              "OB_ann_imp","OB_ann_imp_1", "BatDiv",
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat)
+
+sumNoAn <- do.call(stack, hum.sumNoAn[[3]])
+writeRaster(sumNoAn,
+            file.path(mod.out.nov, "SpGLMRes_sum", "humNoAn"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "numbers",
+            overwrite = T)
+
+####################################
+## Alternative mod 3: totals x BatDiv
+## modify dataframe
+dat.mod <- dat %>%
+  mutate(BB.condDIV = BB.cond * BatDiv,
+         BB.condDIV_2 = BB.cond_2 * BatDiv,
+         BB.condDIV_4 = BB.cond_4 * BatDiv,
+         BB.condDIV_6 = BB.cond_6 * BatDiv)
+
+hum.sumDIV <- spatGLM(ob.col = OB_hum_imp,
+                   coV.v = c( "BB.condDIV",
+                              "BB.condDIV_2",
+                              "BB.condDIV_4",
+                              "BB.condDIV_6",
+                              "OB_ann_imp","OB_ann_imp_1", 
+                              "hdl","logPop","lnBm.div","lFrag",
+                              "OB_hum_imp","month",
+                              "x", "y", "cell"),
+                   dat= dat.mod)
+summary(hum.sumDIV[[1]])
+
+# tidy and write out
+humsumDIVTable <- resTabSimple(hum.sumDIV)
+write.csv(humsumDIVTable, "data/HumSpGLMRes_sumDIV.csv", row.names = F)
+
+mod.stk <- do.call(stack, hum.sumDIV[[3]])
+writeRaster(mod.stk, file.path(mod.out.nov, "SpGLMRes_sumDIV", "hum"),format = "GTiff",
+            bylayer = T, suffix = "numbers", overwrite = T)
+
+hum.sumDIV_NoAn <- spatGLM.AnimalMod(ob.col = OB_hum_imp,
+                      coV.v = c( "BB.condDIV",
+                                 "BB.condDIV_2",
+                                 "BB.condDIV_4",
+                                 "BB.condDIV_6",
+                                 "OB_ann_imp","OB_ann_imp_1", 
+                                 "hdl","logPop","lnBm.div","lFrag",
+                                 "OB_hum_imp","month",
+                                 "x", "y", "cell"),
+                      dat= dat.mod)
+summary(hum.sumDIV_NoAn[[1]])
+mod.stk <- do.call(stack, hum.sumDIV_NoAn[[3]])
+writeRaster(mod.stk,
+            file.path(mod.out.nov, "SpGLMRes_sumDIV", "humNoAn"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "numbers",
+            overwrite = T)
+
+#### Hum qAIC ###
 
 
 
+quack <- list(hum.full, hum.prob, hum.sum, hum.sumDIV, hum.null)
+hum.qAIC <- as.data.frame(do.call(rbind, lapply(quack, qAIC)),
+              row.names = c("full", "prob", "sum", "sumDIV", "null"))
 
+write.csv(hum.qAIC, "data/humqAIC.csv")
+
+##############################################################
 #### Animal Outbreaks ####
 ann.full <- spatGLM(ob.col = OB_ann_imp,
                                coV.v = c( "ptr_dbl_imp_BR", "mic_dbl_imp_BR", "mol_dbl_imp_BR",
@@ -341,7 +481,7 @@ ann.full <- spatGLM(ob.col = OB_ann_imp,
                                dat = dat)
 summary(ann.full[[1]])
 anFull <- resTabSimple(ann.full)
-write.csv(anFull, "data/AnFullSpGLMRes_F.csv", row.names = F)
+write.csv(anFull, "data/AnFullSpGLMRes_org.csv", row.names = F)
 
 ##Creating animal rasters without stocastic events
 an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp, 
@@ -353,7 +493,7 @@ an.op <- spatGLM.AnimalMod(ob.col = OB_ann_imp,
                                       "OB_ann_imp",  "x", "y", "cell"),
                            dat = dat)
 an.stk <- do.call(stack, an.op[[3]])
-writeRaster(an.stk, file.path(mod.out.dir, "SpGLMRes_F", "ann"),format = "GTiff",
+writeRaster(an.stk, file.path(mod.out.nov, "SpGLMRes_ORG", "ann"),format = "GTiff",
             bylayer = T, suffix = "numbers", overwrite = T)
 
 ## Null
@@ -363,10 +503,100 @@ ann.null <- spatGLM(ob.col = OB_ann_imp,
                     dat = dat)
 summary(ann.null[[1]])
 anNull <- resTabSimple(ann.null)
-write.csv(anNull, "data/AnNullSpGLMRes_F.csv", row.names = F)
+write.csv(anNull, "data/AnNullSpGLMRes_Nov.csv", row.names = F)
 
+## alt 
+ann.prob <- spatGLM(ob.col = OB_ann_imp,
+                    coV.v = c( "ptr_dbl_imp", "mic_dbl_imp", "mol_dbl_imp",
+                               "ptr_dbl_imp_Prob_2", "mic_dbl_imp_Prob_2", "mol_dbl_imp_Prob_2",
+                               "ptr_dbl_imp_Prob_4", "mic_dbl_imp_Prob_4", "mol_dbl_imp_Prob_4",
+                               "ptr_dbl_imp_Prob_6", "mic_dbl_imp_Prob_6", "mol_dbl_imp_Prob_6",
+                               "hdl","lnBm.div","lFrag", "BatDiv", "month",
+                               "OB_ann_imp",  "x", "y", "cell"),
+                    dat = dat)
+summary(ann.prob[[1]])
+anAlt <- resTabSimple(ann.prob)
+write.csv(anAlt, "data/AnAltSpGLMRes_prob.csv", row.names = F)
+
+ann.sum <- spatGLM(ob.col = OB_ann_imp,
+                    coV.v = c( "BB.cond",
+                               "BB.cond_2",
+                               "BB.cond_4",
+                               "BB.cond_6",
+                               "BatDiv",
+                               "hdl","logPop","lnBm.div","lFrag",
+                               "OB_ann_imp","month",
+                               "x", "y", "cell"),
+                    dat = dat)
+summary(ann.sum[[1]])
+anSum <- resTabSimple(ann.sum)
+write.csv(anSum, "data/AnAltSpGLMRes_sum.csv", row.names = F)
 ## Compare the 2
 fAn.qAIC <- qAIC(ann.full)
 nAn.qAIC <- qAIC(ann.null)
+aAn.qAIC <- qAIC(ann.prob)
+sAn.qAIC <- qAIC(ann.sum)
 delta.An <- nAn.qAIC - fAn.qAIC
 
+#### Tables for publication ####
+library(xtable)
+options(xtable.floating = FALSE)
+options(xtable.timestamp = "")
+
+## human full table
+hum.full.tab.pub <- humFullTable[c(5,6,4)]
+hum.full.tab.pub$Significance <- c("***",
+                                   "",
+                                   "",
+                                   "",
+                                   "**",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "*",
+                                   "",
+                                   "",
+                                   "***",
+                                   "",
+                                   "",
+                                   "",
+                                   "***",
+                                   "")
+                                     
+rownames(hum.full.tab.pub) <- c("Intercept",
+                                "$?beta_1 ?lambda_{?afb}$",
+                                "$?beta_2 ?lambda_{?mic}$",
+                                "$?beta_3 ?lambda_{?mol}$",
+                                "$?beta_4 ?lambda_{?afb_2}$",
+                                "$?beta_5 ?lambda_{?mic_2}$",
+                                "$?beta_6 ?lambda_{?mol_2}$",
+                                "$?beta_7 ?lambda_{?afb_4}$",
+                                "$?beta_8 ?lambda_{?mic_4}$",
+                                "$?beta_9 ?lambda_{?mol_4}$",
+                                "$?beta_{10} ?lambda_{?afb_6}$",
+                                "$?beta_{11} ?lambda_{?mic_6}$",
+                                "$?beta_{12} ?lambda_{?mol_6}$",
+                                "$?beta_{13} ?mathrm{OB}_{?mathrm{an}}$",
+                                "$?beta_{14} ?mathrm{OB}_{?mathrm{an}_{l-1}}$",
+                                "$?beta_{15} ?mathrm{BVD}$",
+                                "$?beta_{15} ?logplus(PopDen)$",
+                                "$?beta_{16} ?logplus(NBM div)$",
+                                "$?beta_{17} ?logplus(fragIndex)$")
+  
+
+tab <- xtable(hum.full.tab.pub)
+print(tab, sanitize.text.function = function(x) {x})
+
+## q aic table
+dqaic <- as.data.frame(rbind( null.qAIC,full.qAIC, nAn.qAIC,fAn.qAIC))
+dqaic$daic <- c(0,-317.23,0,-83.99)
+
+rownames(dqaic) <- c("$RR_?mathrm{hum} Null$",
+                     "$RR_?mathrm{hum} Full$",
+                     "$RR_?mathrm{an} Null$",
+                     "$RR_?mathrm{an} Full$")
+colnames(dqaic) <- c("$k$", "$?hat{c}$", "?mathrm{qAIC}", "$?Delta ?mathrm{qAIC}$")
+q.tab <- xtable(dqaic)
+print(q.tab, sanitize.text.function = function(x) {x})
